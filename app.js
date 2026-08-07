@@ -38,10 +38,18 @@ productsBox.innerHTML += `
 <p><b>${data.price||0} ريال</b></p>
 
 <p>${data.description||''}</p>
-
-<button onclick="addToCart('${doc.id}')">
+<button onclick="addToCart(${id})" style="
+background:#009688;
+color:white;
+border:none;
+padding:12px;
+border-radius:8px;
+font-size:16px;
+cursor:pointer;
+">
 🛒 أضف إلى السلة
 </button>
+
 
 </div>
 
