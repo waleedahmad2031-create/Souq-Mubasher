@@ -146,7 +146,7 @@ background:#ff9800;
 
 </div>
 
-  <script type="module">
+<script type="module">
 
 import { db } from "./firebase.js";
 
@@ -155,6 +155,7 @@ collection,
 addDoc,
 getDocs,
 deleteDoc,
+updateDoc,
 doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -262,14 +263,20 @@ ordersBox.innerHTML += `
 
 <div class="product">
 
-<h3>👤 ${data.name || "بدون اسم"}</h3>
+<h3>👤 ${data.customerName || "بدون اسم"}</h3>
 
-<p>📱 ${data.phone || ""}</p>
+<p>📱 ${data.customerPhone || ""}</p>
 
-<p>📍 ${data.address || ""}</p>
+<p>🏙 ${data.customerCity || ""}</p>
 
-<p>🛒 الطلب: ${JSON.stringify(data.cart || "")}</p>
+<p>📍 ${data.customerAddress || ""}</p>
 
+<p>🛒 ${JSON.stringify(data.products || [])}</p>
+
+<p>📌 الحالة: ${data.status || "جديد"}</p>
+<button onclick="changeStatus('${item.id}')">
+تغيير الحالة
+</button>
 <button class="delete" onclick="deleteOrder('${item.id}')">
 حذف الطلب
 </button>
@@ -295,6 +302,15 @@ loadOrders();
 
 };
 
+window.changeStatus = async(id)=>{
+
+await updateDoc(doc(db,"orders",id),{
+status:"تم التوصيل"
+});
+
+loadOrders();
+
+};
 
 loadOrders();
 loadProducts();
