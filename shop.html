@@ -69,7 +69,19 @@ font-size:18px;
 </div>
 
 <script type="module" src="app.js"></script>
+<script>
 
+function updateCartCount(){
+
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+document.getElementById("cartCount").innerText = cart.length;
+
+}
+
+updateCartCount();
+
+</script>
 </body>
 
 </html>
