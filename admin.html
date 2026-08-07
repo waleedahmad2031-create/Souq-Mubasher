@@ -16,7 +16,8 @@ box-sizing:border-box;
 font-family:Tahoma,Arial,sans-serif;
 }
 
-body{
+html,body{
+overflow-x:hidden;
 background:#f5f5f5;
 }
 
@@ -61,7 +62,7 @@ background:#009688;
 color:#fff;
 border:none;
 border-radius:8px;
-font-size:18px;
+font-size:17px;
 cursor:pointer;
 }
 
@@ -75,7 +76,6 @@ background:#e53935;
 
 .status{
 background:#ff9800;
-margin-top:10px;
 }
 
 .product{
@@ -84,10 +84,11 @@ padding:15px;
 margin-bottom:15px;
 border-radius:10px;
 box-shadow:0 2px 5px rgba(0,0,0,.1);
+overflow-wrap:anywhere;
 }
 
-img{
-max-width:120px;
+.product img{
+width:120px;
 border-radius:10px;
 margin-top:10px;
 }
@@ -115,15 +116,22 @@ margin-top:10px;
 <input id="image" placeholder="رابط الصورة">
 <textarea id="description" placeholder="وصف المنتج"></textarea>
 
-<button id="saveBtn">حفظ المنتج</button>
+<button id="saveBtn">
+حفظ المنتج
+</button>
 
 </div>
 
 <div id="products"></div>
 
 <div class="card">
+
 <h2>📦 طلبات الزبائن</h2>
-<div id="orders">جاري تحميل الطلبات...</div>
+
+<div id="orders">
+جاري تحميل الطلبات...
+</div>
+
 </div>
 
 <script type="module">
@@ -141,7 +149,8 @@ doc
 
 const saveBtn=document.getElementById("saveBtn");
 const productsBox=document.getElementById("products");
-async function loadProducts(){
+const ordersBox=document.getElementById("orders");
+  async function loadProducts(){
 
 productsBox.innerHTML="";
 
@@ -161,12 +170,12 @@ productsBox.innerHTML+=`
 
 <p>🏙 ${data.city||""}</p>
 
-<img src="${data.image||""}">
+<img src="${data.image||""}" alt="صورة المنتج">
 
 <p>${data.description||""}</p>
 
 <button class="delete" onclick="deleteProduct('${item.id}')">
-حذف المنتج
+🗑 حذف المنتج
 </button>
 
 </div>
@@ -179,24 +188,25 @@ productsBox.innerHTML+=`
 
 saveBtn.onclick=async()=>{
 
-const name=document.getElementById("name").value;
-const price=document.getElementById("price").value;
-const city=document.getElementById("city").value;
-const phone=document.getElementById("phone").value;
-const image=document.getElementById("image").value;
-const description=document.getElementById("description").value;
+const name=document.getElementById("name").value.trim();
+const price=document.getElementById("price").value.trim();
+const city=document.getElementById("city").value.trim();
+const phone=document.getElementById("phone").value.trim();
+const image=document.getElementById("image").value.trim();
+const description=document.getElementById("description").value.trim();
 
-if(name=="") return alert("اكتب اسم المنتج");
+if(!name){
+alert("اكتب اسم المنتج");
+return;
+}
 
 await addDoc(collection(db,"products"),{
-
 name,
 price,
 city,
 phone,
 image,
 description
-
 });
 
 alert("تم حفظ المنتج");
@@ -217,15 +227,13 @@ loadProducts();
 
 async function loadOrders(){
 
-const ordersBox=document.getElementById("orders");
+ordersBox.innerHTML="";
 
 const snap=await getDocs(collection(db,"orders"));
 
-ordersBox.innerHTML="";
-
 if(snap.empty){
 
-ordersBox.innerHTML="لا توجد طلبات";
+ordersBox.innerHTML="<p>لا توجد طلبات.</p>";
 
 return;
 
@@ -235,24 +243,29 @@ snap.forEach(item=>{
 
 const data=item.data();
 
-ordersBox.innerHTML+=`
+const products=(data.products||[])
+.map(p=>`• ${p.name} (${p.price} ريال)`)
+.join("<br>");
 
+ordersBox.innerHTML+=`
 <div class="product">
 
 <h3>👤 ${data.customerName || "بدون اسم"}</h3>
 
-<p>📱 ${data.customerPhone || ""}</p>
+<p>📱 ${data.customerPhone || "-"}</p>
 
-<p>🏙 ${data.customerCity || ""}</p>
+<p>🏙 ${data.customerCity || "-"}</p>
 
-<p>📍 ${data.customerAddress || ""}</p>
+<p>📍 ${data.customerAddress || "-"}</p>
 
-<p>🛒 ${JSON.stringify(data.products || [])}</p>
+<p><strong>🛒 المنتجات:</strong><br>${products || "لا توجد منتجات"}</p>
 
-<p><b>📌 الحالة:</b> ${data.status || "جديد"}</p>
+<p><strong>💵 الإجمالي:</strong> ${data.total || 0} ريال</p>
+
+<p><strong>📌 الحالة:</strong> ${data.status || "جديد"}</p>
 
 <button class="status" onclick="changeStatus('${item.id}')">
-تغيير الحالة
+تغيير الحالة إلى (تم التوصيل)
 </button>
 
 <button class="delete" onclick="deleteOrder('${item.id}')">
@@ -267,7 +280,7 @@ ordersBox.innerHTML+=`
 
 }
 
-window.deleteOrder=async(id)=>{
+window.deleteOrder = async(id)=>{
 
 if(!confirm("حذف الطلب؟")) return;
 
@@ -277,7 +290,7 @@ loadOrders();
 
 };
 
-window.changeStatus=async(id)=>{
+window.changeStatus = async(id)=>{
 
 await updateDoc(doc(db,"orders",id),{
 status:"تم التوصيل"
