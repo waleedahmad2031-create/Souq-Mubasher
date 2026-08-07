@@ -62,6 +62,8 @@ window.productsData[doc.id]=doc.data();
 
 window.addToCart = function(id){
 
+cart = JSON.parse(localStorage.getItem("cart")) || [];
+
 const product = window.productsData[id];
 
 if(!product){
