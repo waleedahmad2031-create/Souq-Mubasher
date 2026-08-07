@@ -2,9 +2,11 @@
 <html lang="ar" dir="rtl">
 
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>المتجر</title>
+
+<title>سوق مباشر</title>
 
 <style>
 
@@ -21,8 +23,9 @@ padding:15px;
 text-align:center;
 font-size:24px;
 }
+
 .banner{
-background:#009688;
+background:#00796b;
 color:white;
 padding:25px;
 text-align:center;
@@ -46,18 +49,24 @@ display:block;
 }
 
 @keyframes fade{
+
 from{
 opacity:0;
 }
+
 to{
 opacity:1;
 }
+
 }
+
+
 #products{
 padding:15px;
 display:grid;
 gap:15px;
 }
+
 
 .product{
 background:#fff;
@@ -67,6 +76,7 @@ box-shadow:0 2px 5px rgba(0,0,0,.1);
 text-align:center;
 }
 
+
 .product img{
 width:150px;
 height:150px;
@@ -74,14 +84,19 @@ object-fit:cover;
 border-radius:10px;
 }
 
+
 </style>
 
 </head>
 
+
 <body>
-  
+
+
 <header>
-🛒 المتجر
+
+🛒 سوق مباشر
+
 
 <a href="cart.html" style="
 display:block;
@@ -90,73 +105,139 @@ color:white;
 text-decoration:none;
 font-size:18px;
 ">
+
 🛍️ السلة (<span id="cartCount">0</span>)
+
 </a>
+
 
 </header>
 
+
+
 <div class="banner">
 
+
 <div class="slide">
+
 🛒 سوق مباشر
+
 <br>
-<span>كل احتياجاتك في مكان واحد</span>
+
+<span>
+كل احتياجاتك في مكان واحد
+</span>
+
 </div>
 
+
+
 <div class="slide">
+
 🚚 تسوق بسهولة
+
 <br>
-<span>اطلب منتجاتك ونحن نسهل لك الوصول إليها</span>
+
+<span>
+اطلب منتجاتك ونحن نسهل لك الوصول إليها
+</span>
+
 </div>
+
+
 
 <div class="slide">
+
 ⭐ خيارات أكثر... وقت أقل
+
 <br>
-<span>منتجات متنوعة وأسعار مناسبة</span>
-</div>
+
+<span>
+منتجات متنوعة وأسعار مناسبة
+</span>
 
 </div>
+
+
+</div>
+
+
+
 
 <div id="products">
+
 جاري تحميل المنتجات...
+
 </div>
 
+
+
+
 <script type="module" src="app.js"></script>
+
+
+
 <script>
+
 
 function updateCartCount(){
 
+
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-document.getElementById("cartCount").innerText = cart.length;
+
+let count = document.getElementById("cartCount");
+
+
+if(count){
+
+count.innerText = cart.length;
 
 }
+
+
+}
+
 
 updateCartCount();
 
 
-<
-localStorage.removeItem("cart");
-<script>
 
-let slides=document.querySelectorAll(".slide");
-let index=0;
+
+let slides = document.querySelectorAll(".slide");
+
+let index = 0;
+
+
 
 setInterval(()=>{
 
+
 slides[index].style.display="none";
+
 
 index++;
 
-if(index>=slides.length){
+
+if(index >= slides.length){
+
 index=0;
+
 }
+
 
 slides[index].style.display="block";
 
+
+
 },3000);
 
+
+
 </script>
+
+
+
 </body>
 
 </html>
