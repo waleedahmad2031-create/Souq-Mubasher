@@ -136,7 +136,15 @@ background:#ff9800;
 </div>
 
 <div id="products"></div>
+<div class="card">
 
+<h2>📦 طلبات الزبائن</h2>
+
+<div id="orders">
+جاري تحميل الطلبات...
+</div>
+
+</div>
 
   <script type="module">
 
@@ -227,7 +235,68 @@ await deleteDoc(doc(db,"products",id));
 loadProducts();
 
 };
+async function loadOrders(){
 
+const ordersBox = document.getElementById("orders");
+
+const snap = await getDocs(collection(db,"orders"));
+
+ordersBox.innerHTML="";
+
+
+if(snap.empty){
+
+ordersBox.innerHTML="لا توجد طلبات";
+
+return;
+
+}
+
+
+snap.forEach(item=>{
+
+const data=item.data();
+
+
+ordersBox.innerHTML += `
+
+<div class="product">
+
+<h3>👤 ${data.name || "بدون اسم"}</h3>
+
+<p>📱 ${data.phone || ""}</p>
+
+<p>📍 ${data.address || ""}</p>
+
+<p>🛒 الطلب: ${JSON.stringify(data.cart || "")}</p>
+
+<button class="delete" onclick="deleteOrder('${item.id}')">
+حذف الطلب
+</button>
+
+</div>
+
+`;
+
+});
+
+
+}
+
+
+
+window.deleteOrder = async(id)=>{
+
+if(!confirm("حذف الطلب؟")) return;
+
+await deleteDoc(doc(db,"orders",id));
+
+loadOrders();
+
+};
+
+
+loadOrders();
 loadProducts();
 
 </script>
