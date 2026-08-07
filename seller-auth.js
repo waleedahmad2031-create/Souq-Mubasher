@@ -1,3 +1,4 @@
+
 import { auth, db } from "./firebase.js";
 
 import {
@@ -51,9 +52,11 @@ async function loadSellerProducts(sellerId) {
 
       card.innerHTML = `
 
-        ${product.image ? `
-        <img src="${product.image}" alt="">
-        ` : ""}
+        ${
+          product.image
+            ? `<img src="${product.image}" alt="">`
+            : ""
+        }
 
         <h3>${product.name || "بدون اسم"}</h3>
 
@@ -61,14 +64,11 @@ async function loadSellerProducts(sellerId) {
 
         <p>القسم: ${product.category || "-"}</p>
 
-        ${product.description ? `
-        <p>${product.description}</p>
-        ` : ""}
-
-        <div class="actions">
-          <button>تعديل</button>
-          <button>حذف</button>
-        </div>
+        ${
+          product.description
+            ? `<p>${product.description}</p>`
+            : ""
+        }
 
       `;
 
@@ -97,7 +97,11 @@ onAuthStateChanged(auth, async (user) => {
   try {
 
     // بيانات البائع
-    doc(db, "sellers", user.uid)
+    const sellerRef = doc(
+      db,
+      "sellers",
+      user.uid
+    );
 
     const sellerSnap = await getDoc(sellerRef);
 
@@ -112,7 +116,7 @@ onAuthStateChanged(auth, async (user) => {
     const seller = sellerSnap.data();
 
 
-    // التحقق من حالة الحساب
+    // حالة الحساب
     if (seller.status !== "active") {
 
       alert("تم إيقاف حسابك، تواصل مع الإدارة.");
@@ -123,13 +127,23 @@ onAuthStateChanged(auth, async (user) => {
 
 
     // اسم المتجر
-    document.getElementById("shopName").textContent =
-      seller.shopName || "-";
+    const shopName =
+      document.getElementById("shopName");
+
+    if (shopName) {
+      shopName.textContent =
+        seller.shopName || "-";
+    }
 
 
     // الاشتراك
-    document.getElementById("subscription").textContent =
-      seller.subscription || "free";
+    const subscription =
+      document.getElementById("subscription");
+
+    if (subscription) {
+      subscription.textContent =
+        seller.subscription || "free";
+    }
 
 
     // المنتجات
@@ -138,10 +152,16 @@ onAuthStateChanged(auth, async (user) => {
       where("sellerId", "==", user.uid)
     );
 
-    const productsSnap = await getDocs(productsQuery);
+    const productsSnap =
+      await getDocs(productsQuery);
 
-    document.getElementById("productsCount").textContent =
-      productsSnap.size;
+    const productsCount =
+      document.getElementById("productsCount");
+
+    if (productsCount) {
+      productsCount.textContent =
+        productsSnap.size;
+    }
 
 
     // الطلبات
@@ -150,10 +170,16 @@ onAuthStateChanged(auth, async (user) => {
       where("sellerId", "==", user.uid)
     );
 
-    const ordersSnap = await getDocs(ordersQuery);
+    const ordersSnap =
+      await getDocs(ordersQuery);
 
-    document.getElementById("ordersCount").textContent =
-      ordersSnap.size;
+    const ordersCount =
+      document.getElementById("ordersCount");
+
+    if (ordersCount) {
+      ordersCount.textContent =
+        ordersSnap.size;
+    }
 
 
     // عرض منتجات البائع
@@ -163,8 +189,9 @@ onAuthStateChanged(auth, async (user) => {
 
     console.error(error);
 
-    alert("حدث خطأ أثناء تحميل بيانات البائع");
-
+    alert(
+      "حدث خطأ أثناء تحميل بيانات البائع"
+    );
   }
 
 });
