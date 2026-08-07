@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إنشاء حساب بائع | سوق مباشر</title>
+
+<style>
+body{
+font-family:Tahoma,Arial,sans-serif;
+background:#f5f5f5;
+margin:0;
+padding:20px;
+}
+
+.box{
+max-width:420px;
+margin:30px auto;
+background:#fff;
+padding:20px;
+border-radius:12px;
+box-shadow:0 2px 10px rgba(0,0,0,.1);
+}
+
+h2{
+text-align:center;
+color:#0b7a75;
+margin-bottom:20px;
+}
+
+input{
+width:100%;
+padding:12px;
+margin:8px 0;
+border:1px solid #ccc;
+border-radius:8px;
+box-sizing:border-box;
+}
+
+button{
+width:100%;
+padding:12px;
+background:#0b7a75;
+color:#fff;
+border:none;
+border-radius:8px;
+font-size:16px;
+cursor:pointer;
+margin-top:10px;
+}
+
+button:hover{
+opacity:.9;
+}
+
+#msg{
+margin-top:15px;
+text-align:center;
+font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>إنشاء حساب بائع</h2>
+
+<input type="text" id="shopName" placeholder="اسم المتجر">
+
+<input type="text" id="phone" placeholder="رقم الجوال">
+
+<input type="email" id="email" placeholder="البريد الإلكتروني">
+
+<input type="password" id="password" placeholder="كلمة المرور">
+
+<button id="registerBtn">إنشاء الحساب</button>
+
+<div id="msg"></div>
+
+</div>
+<script type="module" src="seller.js"></script>
+</body>
+</html
