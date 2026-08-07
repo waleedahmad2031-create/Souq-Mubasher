@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>لوحة الإدارة | سوق مباشر</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Tahoma,Arial,sans-serif;
+}
+
+body{
+background:#f5f5f5;
+}
+
+header{
+background:#009688;
+color:#fff;
+padding:18px;
+text-align:center;
+font-size:26px;
+font-weight:bold;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+padding:20px;
+}
+
+.card{
+background:#fff;
+padding:15px;
+margin-bottom:20px;
+border-radius:12px;
+box-shadow:0 2px 6px rgba(0,0,0,.1);
+}
+
+input,
+select,
+textarea{
+width:100%;
+padding:12px;
+margin-top:10px;
+border:1px solid #ccc;
+border-radius:8px;
+font-size:16px;
+}
+
+button{
+width:100%;
+padding:14px;
+margin-top:12px;
+background:#009688;
+color:#fff;
+border:none;
+border-radius:8px;
+font-size:18px;
+cursor:pointer;
+}
+
+button:hover{
+background:#00796b;
+}
+
+#products{
+margin-top:20px;
+}
+
+.product{
+background:#fff;
+padding:15px;
+margin-bottom:15px;
+border-radius:10px;
+box-shadow:0 2px 5px rgba(0,0,0,.1);
+}
+
+.actions{
+display:flex;
+gap:10px;
+margin-top:10px;
+}
+
+.actions button{
+flex:1;
+}
+
+.delete{
+background:#e53935;
+}
+
+.edit{
+background:#ff9800;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+🛠 لوحة إدارة سوق مباشر
+</header>
+
+<div class="container">
+
+<div class="card">
+
+<h2>إضافة منتج جديد</h2>
+
+<input id="name" placeholder="اسم المنتج">
+
+<input id="price" type="number" placeholder="السعر">
+
+<input id="city" placeholder="المدينة">
+
+<input id="phone" placeholder="رقم التواصل">
+
+<input id="image" placeholder="رابط الصورة">
+
+<textarea id="description" placeholder="وصف المنتج"></textarea>
+
+<button id="saveBtn">
+حفظ المنتج
+</button>
+
+</div>
+
+<div id="products"></div>
+
+
+  <script type="module">
+
+import { db } from "./firebase.js";
+
+import {
+collection,
+addDoc,
+getDocs,
+deleteDoc,
+doc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const saveBtn = document.getElementById("saveBtn");
+const productsBox = document.getElementById("products");
+
+async function loadProducts(){
+
+productsBox.innerHTML="";
+
+const snap = await getDocs(collection(db,"products"));
+
+snap.forEach(item=>{
+
+const data=item.data();
+
+productsBox.innerHTML += `
+<div class="product">
+
+<h3>${data.name||""}</h3>
+
+<p>السعر: ${data.price||""}</p>
+
+<p>${data.city||""}</p>
+
+<img src="${data.image||""}" style="width:120px;border-radius:10px;">
+
+<div class="actions">
+
+<button class="delete"
+onclick="deleteProduct('${item.id}')">
+حذف
+</button>
+
+</div>
+
+</div>
+`;
+
+});
+
+}
+
+saveBtn.onclick = async ()=>{
+
+const name=document.getElementById("name").value;
+const price=document.getElementById("price").value;
+const city=document.getElementById("city").value;
+const phone=document.getElementById("phone").value;
+const image=document.getElementById("image").value;
+const description=document.getElementById("description").value;
+
+if(name=="") return alert("اكتب اسم المنتج");
+
+await addDoc(collection(db,"products"),{
+
+name,
+price,
+city,
+phone,
+image,
+description
+
+});
+
+alert("تم حفظ المنتج");
+
+location.reload();
+
+};
+
+window.deleteProduct = async(id)=>{
+
+if(!confirm("حذف المنتج؟")) return;
+
+await deleteDoc(doc(db,"products",id));
+
+loadProducts();
+
+};
+
+loadProducts();
+
+</script>
+
+</body>
+
+</html>
