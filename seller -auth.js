@@ -97,7 +97,7 @@ onAuthStateChanged(auth, async (user) => {
   try {
 
     // بيانات البائع
-    const sellerRef = doc(db, "البائعون", user.uid);
+    await setDoc(doc(db,"sellers",user.uid),{
 
     const sellerSnap = await getDoc(sellerRef);
 
