@@ -1,160 +1,170 @@
 import { auth, db } from "./firebase.js";
 
 import {
-onAuthStateChanged
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
-doc,
-getDoc,
-collection,
-query,
-where,
-getDocs
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-async function loadSellerProducts(sellerId){
 
-const productsList = document.getElementById("productsList");
+async function loadSellerProducts(sellerId) {
 
-if(!productsList) return;
+  const productsList = document.getElementById("productsList");
 
-productsList.innerHTML = "<p>جاري تحميل المنتجات...</p>";
+  if (!productsList) return;
 
-try{
+  productsList.innerHTML = "<p>جاري تحميل المنتجات...</p>";
 
-const productsQuery = query(
-collection(db,"products"),
-where("sellerId","==",sellerId)
-);
+  try {
 
-const snapshot = await getDocs(productsQuery);
+    const productsQuery = query(
+      collection(db, "products"),
+      where("sellerId", "==", sellerId)
+    );
 
-if(snapshot.empty){
+    const snapshot = await getDocs(productsQuery);
 
-productsList.innerHTML = "<p>لا توجد منتجات حتى الآن.</p>";
-return;
+    if (snapshot.empty) {
 
-}
+      productsList.innerHTML =
+        "<p>لا توجد منتجات حتى الآن.</p>";
 
-productsList.innerHTML = "";
+      return;
+    }
 
-snapshot.forEach((productDoc)=>{
+    productsList.innerHTML = "";
 
-const product = productDoc.data();
+    snapshot.forEach((productDoc) => {
 
-const card = document.createElement("div");
+      const product = productDoc.data();
 
-card.className = "product-card";
+      const card = document.createElement("div");
 
-card.innerHTML = `
+      card.className = "product-card";
 
-${product.image ? `
-<img src="${product.image}" alt="">
-` : ""}
+      card.innerHTML = `
 
-<h3>${product.name || "بدون اسم"}</h3>
+        ${product.image ? `
+        <img src="${product.image}" alt="">
+        ` : ""}
 
-<p>السعر: ${product.price || 0} ريال</p>
+        <h3>${product.name || "بدون اسم"}</h3>
 
-<p>القسم: ${product.category || "-"}</p>
+        <p>السعر: ${product.price || 0} ريال</p>
 
-${product.description ? `
-<p>${product.description}</p>
-` : ""}
+        <p>القسم: ${product.category || "-"}</p>
 
-<div class="actions">
+        ${product.description ? `
+        <p>${product.description}</p>
+        ` : ""}
 
-<button>تعديل</button>
+        <div class="actions">
+          <button>تعديل</button>
+          <button>حذف</button>
+        </div>
 
-<button>حذف</button>
+      `;
 
-</div>
+      productsList.appendChild(card);
 
-`;
+    });
 
-productsList.appendChild(card);
+  } catch (error) {
 
-});
+    console.error(error);
 
-}catch(error){
-
-console.error(error);
-
-productsList.innerHTML =
-"<p>حدث خطأ أثناء تحميل المنتجات.</p>";
-
-}
-
+    productsList.innerHTML =
+      "<p>حدث خطأ أثناء تحميل المنتجات.</p>";
+  }
 }
 
 
-onAuthStateChanged(auth, async (user)=>{
+onAuthStateChanged(auth, async (user) => {
 
-if(!user){
+  if (!user) {
 
-location.href="login.html";
-return;
+    location.href = "login.html";
+    return;
+  }
 
-}
+  try {
 
-const sellerRef = doc(db,"sellers",user.uid);
+    // بيانات البائع
+    const sellerRef = doc(db, "البائعون", user.uid);
 
-const sellerSnap = await getDoc(sellerRef);
+    const sellerSnap = await getDoc(sellerRef);
 
-if(!sellerSnap.exists()){
+    if (!sellerSnap.exists()) {
 
-alert("لم يتم العثور على بيانات البائع");
+      alert("لم يتم العثور على بيانات البائع");
 
-location.href="login.html";
+      location.href = "login.html";
+      return;
+    }
 
-return;
-
-}
-
-const seller = sellerSnap.data();
-
-
-if(seller.status !== "active"){
-
-alert("تم إيقاف حسابك، تواصل مع الإدارة.");
-
-location.href="login.html";
-
-return;
-
-}
+    const seller = sellerSnap.data();
 
 
-document.getElementById("shopName").textContent =
-seller.shopName || "-";
+    // التحقق من حالة الحساب
+    if (seller.status !== "active") {
 
-document.getElementById("subscription").textContent =
-seller.subscription || "free";
+      alert("تم إيقاف حسابك، تواصل مع الإدارة.");
 
-
-const productsQuery = query(
-collection(db,"products"),
-where("sellerId","==",user.uid)
-);
-
-const productsSnap = await getDocs(productsQuery);
-
-document.getElementById("productsCount").textContent =
-productsSnap.size;
+      location.href = "login.html";
+      return;
+    }
 
 
-const ordersQuery = query(
-collection(db,"orders"),
-where("sellerId","==",user.uid)
-);
-
-const ordersSnap = await getDocs(ordersQuery);
-
-document.getElementById("ordersCount").textContent =
-ordersSnap.size;
+    // اسم المتجر
+    document.getElementById("shopName").textContent =
+      seller.shopName || "-";
 
 
-await loadSellerProducts(user.uid);
+    // الاشتراك
+    document.getElementById("subscription").textContent =
+      seller.subscription || "free";
+
+
+    // المنتجات
+    const productsQuery = query(
+      collection(db, "products"),
+      where("sellerId", "==", user.uid)
+    );
+
+    const productsSnap = await getDocs(productsQuery);
+
+    document.getElementById("productsCount").textContent =
+      productsSnap.size;
+
+
+    // الطلبات
+    const ordersQuery = query(
+      collection(db, "orders"),
+      where("sellerId", "==", user.uid)
+    );
+
+    const ordersSnap = await getDocs(ordersQuery);
+
+    document.getElementById("ordersCount").textContent =
+      ordersSnap.size;
+
+
+    // عرض منتجات البائع
+    await loadSellerProducts(user.uid);
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert("حدث خطأ أثناء تحميل بيانات البائع");
+
+  }
 
 });
