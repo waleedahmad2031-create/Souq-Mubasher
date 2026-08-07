@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
 
 <meta charset="UTF-8">
@@ -45,7 +44,6 @@ box-shadow:0 2px 6px rgba(0,0,0,.1);
 }
 
 input,
-select,
 textarea{
 width:100%;
 padding:12px;
@@ -71,8 +69,13 @@ button:hover{
 background:#00796b;
 }
 
-#products{
-margin-top:20px;
+.delete{
+background:#e53935;
+}
+
+.status{
+background:#ff9800;
+margin-top:10px;
 }
 
 .product{
@@ -83,22 +86,10 @@ border-radius:10px;
 box-shadow:0 2px 5px rgba(0,0,0,.1);
 }
 
-.actions{
-display:flex;
-gap:10px;
+img{
+max-width:120px;
+border-radius:10px;
 margin-top:10px;
-}
-
-.actions button{
-flex:1;
-}
-
-.delete{
-background:#e53935;
-}
-
-.edit{
-background:#ff9800;
 }
 
 </style>
@@ -118,32 +109,21 @@ background:#ff9800;
 <h2>إضافة منتج جديد</h2>
 
 <input id="name" placeholder="اسم المنتج">
-
 <input id="price" type="number" placeholder="السعر">
-
 <input id="city" placeholder="المدينة">
-
 <input id="phone" placeholder="رقم التواصل">
-
 <input id="image" placeholder="رابط الصورة">
-
 <textarea id="description" placeholder="وصف المنتج"></textarea>
 
-<button id="saveBtn">
-حفظ المنتج
-</button>
+<button id="saveBtn">حفظ المنتج</button>
 
 </div>
 
 <div id="products"></div>
+
 <div class="card">
-
 <h2>📦 طلبات الزبائن</h2>
-
-<div id="orders">
-جاري تحميل الطلبات...
-</div>
-
+<div id="orders">جاري تحميل الطلبات...</div>
 </div>
 
 <script type="module">
@@ -159,47 +139,45 @@ updateDoc,
 doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const saveBtn = document.getElementById("saveBtn");
-const productsBox = document.getElementById("products");
-
+const saveBtn=document.getElementById("saveBtn");
+const productsBox=document.getElementById("products");
 async function loadProducts(){
 
 productsBox.innerHTML="";
 
-const snap = await getDocs(collection(db,"products"));
+const snap=await getDocs(collection(db,"products"));
 
 snap.forEach(item=>{
 
 const data=item.data();
 
-productsBox.innerHTML += `
+productsBox.innerHTML+=`
+
 <div class="product">
 
 <h3>${data.name||""}</h3>
 
-<p>السعر: ${data.price||""}</p>
+<p>💰 السعر: ${data.price||""}</p>
 
-<p>${data.city||""}</p>
+<p>🏙 ${data.city||""}</p>
 
-<img src="${data.image||""}" style="width:120px;border-radius:10px;">
+<img src="${data.image||""}">
 
-<div class="actions">
+<p>${data.description||""}</p>
 
-<button class="delete"
-onclick="deleteProduct('${item.id}')">
-حذف
+<button class="delete" onclick="deleteProduct('${item.id}')">
+حذف المنتج
 </button>
 
 </div>
 
-</div>
 `;
 
 });
 
 }
 
-saveBtn.onclick = async ()=>{
+saveBtn.onclick=async()=>{
 
 const name=document.getElementById("name").value;
 const price=document.getElementById("price").value;
@@ -227,7 +205,7 @@ location.reload();
 
 };
 
-window.deleteProduct = async(id)=>{
+window.deleteProduct=async(id)=>{
 
 if(!confirm("حذف المنتج؟")) return;
 
@@ -236,14 +214,14 @@ await deleteDoc(doc(db,"products",id));
 loadProducts();
 
 };
+
 async function loadOrders(){
 
-const ordersBox = document.getElementById("orders");
+const ordersBox=document.getElementById("orders");
 
-const snap = await getDocs(collection(db,"orders"));
+const snap=await getDocs(collection(db,"orders"));
 
 ordersBox.innerHTML="";
-
 
 if(snap.empty){
 
@@ -253,13 +231,11 @@ return;
 
 }
 
-
 snap.forEach(item=>{
 
 const data=item.data();
 
-
-ordersBox.innerHTML += `
+ordersBox.innerHTML+=`
 
 <div class="product">
 
@@ -273,10 +249,12 @@ ordersBox.innerHTML += `
 
 <p>🛒 ${JSON.stringify(data.products || [])}</p>
 
-<p>📌 الحالة: ${data.status || "جديد"}</p>
-<button onclick="changeStatus('${item.id}')">
+<p><b>📌 الحالة:</b> ${data.status || "جديد"}</p>
+
+<button class="status" onclick="changeStatus('${item.id}')">
 تغيير الحالة
 </button>
+
 <button class="delete" onclick="deleteOrder('${item.id}')">
 حذف الطلب
 </button>
@@ -287,12 +265,9 @@ ordersBox.innerHTML += `
 
 });
 
-
 }
 
-
-
-window.deleteOrder = async(id)=>{
+window.deleteOrder=async(id)=>{
 
 if(!confirm("حذف الطلب؟")) return;
 
@@ -302,7 +277,7 @@ loadOrders();
 
 };
 
-window.changeStatus = async(id)=>{
+window.changeStatus=async(id)=>{
 
 await updateDoc(doc(db,"orders",id),{
 status:"تم التوصيل"
@@ -312,11 +287,10 @@ loadOrders();
 
 };
 
-loadOrders();
 loadProducts();
+loadOrders();
 
 </script>
 
 </body>
-
 </html>
