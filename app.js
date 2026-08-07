@@ -88,7 +88,13 @@ description:product.description || ""
 
 });
 
-localStorage.setItem("cart",JSON.stringify(cart));
+localStorage.setItem("cart", JSON.stringify(cart));
+
+let count = document.getElementById("cartCount");
+
+if(count){
+    count.innerText = cart.length;
+}
 
 alert("✅ تمت إضافة المنتج إلى السلة");
 
