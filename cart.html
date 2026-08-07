@@ -117,12 +117,26 @@ background:#00796b;
 
 <div class="container">
 
-<div id="cartItems">
+<div id="cart">
+</div>
+
+<div style="
+background:white;
+padding:15px;
+margin:15px;
+border-radius:10px;
+text-align:center;
+font-size:20px;
+">
+الإجمالي: <span id="totalPrice">0</span> ريال
+</div>
 
 </div>
 
-<div class="total">
-الإجمالي:
+
+
+
+
 <span id="totalPrice">0</span>
 ريال
 </div>
@@ -130,6 +144,7 @@ background:#00796b;
 <button class="orderBtn" id="sendOrder">
 إرسال الطلب
 </button>
+
 <script type="module">
 
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
