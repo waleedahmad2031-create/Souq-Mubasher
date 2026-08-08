@@ -238,7 +238,11 @@ placeholder="وصف المنتج"
 
 <script type="module">
 
-import { db } from "./firebase.js";
+import { db, auth } from "./firebase.js";
+
+import {
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 
 import {
@@ -939,11 +943,23 @@ loadOrders();
 ===================================== */
 
 
-loadSellers();
+onAuthStateChanged(auth, (user) => {
 
-loadProducts();
+  if (!user) {
+    alert("يجب تسجيل دخول المدير أولاً");
+    return;
+  }
 
-loadOrders();
+  if (user.email !== "waleedahmad2031@gmail.com") {
+    alert("ليس لديك صلاحية دخول لوحة الإدارة");
+    return;
+  }
+
+  loadSellers();
+  loadProducts();
+  loadOrders();
+
+});
 
 </script>
 
