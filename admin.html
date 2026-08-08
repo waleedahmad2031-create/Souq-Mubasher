@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
@@ -752,135 +751,147 @@ alert(
 
 async function loadOrders(){
 
-ordersBox.innerHTML =
-"جاري تحميل الطلبات...";
+  ordersBox.innerHTML =
+    "جاري تحميل الطلبات...";
 
+  try{
 
-try{
+    const snap =
+      await getDocs(
+        collection(db,"orders")
+      );
 
-const snap =
-await getDocs(
-collection(db,"orders")
-);
+    if(snap.empty){
 
+      ordersBox.innerHTML =
+        "<p>لا توجد طلبات.</p>";
 
-if(snap.empty){
+      return;
+    }
 
-ordersBox.innerHTML =
-"<p>لا توجد طلبات.</p>";
+    ordersBox.innerHTML = "";
 
-return;
+    snap.forEach(item=>{
 
-}
+      const data =
+        item.data();
 
+      const products =
+        (data.products || [])
+        .map(
+          p =>
+          `• ${p.name || "منتج"} (${p.price || 0} ريال)`
+        )
+        .join("<br>");
 
-ordersBox.innerHTML = "";
+      const status =
+        data.status || "جديد";
 
+      let statusButton = "";
 
-snap.forEach(item=>{
+      if(status === "تم التوصيل"){
 
-const data =
-item.data();
+        statusButton = `
+          <p style="
+            background:#e8f5e9;
+            color:#008000;
+            padding:12px;
+            border-radius:8px;
+            font-weight:bold;
+            text-align:center;
+            margin-top:10px;
+          ">
+            ✅ تم التوصيل
+          </p>
+        `;
 
+      }else{
 
-const products =
-(data.products || [])
-.map(
-p =>
-`• ${p.name} (${p.price} ريال)`
-)
-.join("<br>");
+        statusButton = `
+          <button
+            class="status"
+            onclick="changeStatus('${item.id}')"
+          >
+            تغيير الحالة إلى (تم التوصيل)
+          </button>
+        `;
 
+      }
 
-ordersBox.innerHTML += `
+      ordersBox.innerHTML += `
 
-<div class="product">
+        <div class="product">
 
-<h3>
-👤
-${data.customerName || "بدون اسم"}
-</h3>
+          <h3>
+            👤
+            ${data.customerName || "بدون اسم"}
+          </h3>
 
-<p>
-📱
-${data.customerPhone || "-"}
-</p>
+          <p>
+            📱
+            ${data.customerPhone || "-"}
+          </p>
 
-<p>
-🏙
-${data.customerCity || "-"}
-</p>
+          <p>
+            🏙
+            ${data.customerCity || "-"}
+          </p>
 
-<p>
-📍
-${data.customerAddress || "-"}
-</p>
+          <p>
+            📍
+            ${data.customerAddress || "-"}
+          </p>
 
-<p>
-<strong>
-🛒 المنتجات:
-</strong>
+          <p>
+            <strong>
+              🛒 المنتجات:
+            </strong>
 
-<br>
+            <br>
 
-${products || "لا توجد منتجات"}
+            ${products || "لا توجد منتجات"}
+          </p>
 
-</p>
+          <p>
+            <strong>
+              💵 الإجمالي:
+            </strong>
 
+            ${data.total || 0}
+            ريال
+          </p>
 
-<p>
+          <p>
+            <strong>
+              📌 الحالة:
+            </strong>
 
-<strong>
-💵 الإجمالي:
-</strong>
+            ${status}
+          </p>
 
-${data.total || 0}
-ريال
+          ${statusButton}
 
-</p>
+          <button
+            class="delete"
+            onclick="deleteOrder('${item.id}')"
+          >
+            حذف الطلب
+          </button>
 
+        </div>
 
-<p>
+      `;
 
-<strong>
-📌 الحالة:
-</strong>
+    });
 
-${data.status || "جديد"}
+  }catch(error){
 
-</p>
+    console.error(error);
 
+    ordersBox.innerHTML =
+      "<p>حدث خطأ أثناء تحميل الطلبات.</p>";
 
-<button
-class="status"
-onclick="changeStatus('${item.id}')"
->
-تغيير الحالة إلى (تم التوصيل)
-</button>
-
-
-<button
-class="delete"
-onclick="deleteOrder('${item.id}')"
->
-حذف الطلب
-</button>
-
-</div>
-
-`;
-
-});
-
-
-}catch(error){
-
-console.error(error);
-
-ordersBox.innerHTML =
-"<p>حدث خطأ أثناء تحميل الطلبات.</p>";
-
-}
+  }
 
 }
 
