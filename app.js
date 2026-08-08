@@ -1,183 +1,206 @@
-
 import { db } from "./firebase.js";
 
 import {
   collection,
-  getDocs
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
 
 const productsBox = document.getElementById("products");
 
-
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-
-
-async function loadProducts(){
-
-
-productsBox.innerHTML="";
-
-
-const snap = await getDocs(collection(db,"products"));
-
-
-
-if(snap.empty){
-
-productsBox.innerHTML="<h2>لا توجد منتجات</h2>";
-
-return;
-
-}
-
-
 
 window.productsData = {};
 
 
+// ===============================
+// تحميل المنتجات بشكل مباشر
+// ===============================
 
-snap.forEach(doc=>{
+function loadProducts() {
 
+  productsBox.innerHTML = "جاري تحميل المنتجات...";
 
-const data = doc.data();
+  onSnapshot(
+    collection(db, "products"),
 
+    (snap) => {
 
-window.productsData[doc.id] = data;
+      productsBox.innerHTML = "";
+      window.productsData = {};
 
+      if (snap.empty) {
 
+        productsBox.innerHTML =
+          "<h2>لا توجد منتجات</h2>";
 
-productsBox.innerHTML += `
-
-<div class="product">
-
-
-<img src="${data.image || ''}" alt="">
-
-
-<h3>${data.name || ''}</h3>
-
-
-<p><b>${data.price || 0} ريال</b></p>
-
-
-<p>${data.description || ''}</p>
+        return;
+      }
 
 
+      snap.forEach((productDoc) => {
 
-<button onclick="addToCart('${doc.id}')" style="
-background:#009688;
-color:white;
-border:none;
-padding:12px;
-border-radius:8px;
-font-size:16px;
-cursor:pointer;
-width:100%;
-">
+        const data = productDoc.data();
 
-🛒 أضف إلى السلة
-
-</button>
+        window.productsData[productDoc.id] = data;
 
 
-</div>
+        productsBox.innerHTML += `
 
-`;
+        <div class="product">
 
-});
+          ${
+            data.image
+              ? `<img src="${data.image}" alt="${data.name || ""}">`
+              : ""
+          }
 
+          <h3>
+            ${data.name || "بدون اسم"}
+          </h3>
 
+          ${
+            data.shopName
+              ? `<p>🏪 التاجر: <b>${data.shopName}</b></p>`
+              : ""
+          }
+
+          <p>
+            💰 <b>${data.price || 0} ريال</b>
+          </p>
+
+          ${
+            data.category
+              ? `<p>📂 القسم: ${data.category}</p>`
+              : ""
+          }
+
+          ${
+            data.description
+              ? `<p>${data.description}</p>`
+              : ""
+          }
+
+          <button
+            onclick="addToCart('${productDoc.id}')"
+            style="
+              background:#009688;
+              color:white;
+              border:none;
+              padding:12px;
+              border-radius:8px;
+              font-size:16px;
+              cursor:pointer;
+              width:100%;
+            "
+          >
+            🛒 أضف إلى السلة
+          </button>
+
+        </div>
+
+        `;
+
+      });
+
+    },
+
+    (error) => {
+
+      console.error(error);
+
+      productsBox.innerHTML =
+        "<p>حدث خطأ أثناء تحميل المنتجات.</p>";
+
+    }
+  );
 }
 
 
+// ===============================
+// إضافة للسلة
+// ===============================
+
+window.addToCart = function(id) {
+
+  cart =
+    JSON.parse(localStorage.getItem("cart")) || [];
 
 
-window.addToCart = function(id){
+  const product =
+    window.productsData[id];
 
 
-cart = JSON.parse(localStorage.getItem("cart")) || [];
+  if (!product) {
+
+    alert("تعذر العثور على المنتج");
+
+    return;
+  }
 
 
+  cart.push({
 
-const product = window.productsData[id];
+    id: id,
 
+    name: product.name || "",
 
+    price: Number(product.price || 0),
 
-if(!product){
+    image: product.image || "",
 
-alert("تعذر العثور على المنتج");
+    city: product.city || "",
 
-return;
+    description: product.description || "",
 
-}
+    shopName: product.shopName || ""
 
-
-
-cart.push({
-
-id:id,
-
-name:product.name || "",
-
-price:Number(product.price || 0),
-
-image:product.image || "",
-
-city:product.city || "",
-
-description:product.description || ""
-
-});
+  });
 
 
-
-localStorage.setItem(
-"cart",
-JSON.stringify(cart)
-);
-
+  localStorage.setItem(
+    "cart",
+    JSON.stringify(cart)
+  );
 
 
-let count = document.getElementById("cartCount");
+  const count =
+    document.getElementById("cartCount");
 
 
-if(count){
+  if (count) {
 
-count.innerText = cart.length;
+    count.innerText =
+      cart.length;
 
-}
+  }
 
 
-
-alert("✅ تمت إضافة المنتج إلى السلة");
-
+  alert("✅ تمت إضافة المنتج إلى السلة");
 
 };
 
 
+// ===============================
+// عداد السلة
+// ===============================
+
+function updateCartCount() {
+
+  const count =
+    document.getElementById("cartCount");
 
 
+  if (count) {
 
-function updateCartCount(){
+    count.innerText =
+      cart.length;
 
-
-const count = document.getElementById("cartCount");
-
-
-if(count){
-
-count.innerText = cart.length;
+  }
 
 }
 
 
-
-}
-
-
-
+// تشغيل
 loadProducts();
 
 updateCartCount();
