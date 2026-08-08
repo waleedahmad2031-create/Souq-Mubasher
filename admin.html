@@ -275,130 +275,44 @@ document.getElementById("sellers");
 ===================================== */
 
 
-async async function loadSellers(){
+async  window.deleteSeller = async function(id){
 
-  sellersBox.innerHTML = "جاري تحميل البائعين...";
+  const confirmDelete = confirm(
+    "⚠️ هل أنت متأكد من حذف هذا البائع من Firestore؟\n\nسيتم حذف بياناته من مجموعة sellers فقط."
+  );
+
+  if(!confirmDelete){
+    return;
+  }
 
   try{
 
-    const snap = await getDocs(
-      collection(db,"sellers")
+    await deleteDoc(
+      doc(db,"sellers",id)
     );
 
-    if(snap.empty){
+    alert("تم حذف البائع من لوحة الإدارة ✅");
 
-      sellersBox.innerHTML =
-        "<p>لا يوجد بائعون.</p>";
-
-      return;
-    }
-
-    sellersBox.innerHTML = "";
-
-    snap.forEach(item=>{
-
-      const seller = item.data();
-      const sellerId = item.id;
-
-      const status = seller.status || "active";
-
-      const statusText =
-        status === "active"
-        ? "🟢 نشط"
-        : "🔴 موقوف";
-
-      const statusClass =
-        status === "active"
-        ? "active"
-        : "inactive";
-
-      sellersBox.innerHTML += `
-
-        <div class="seller">
-
-          <h3>
-            🏪 ${seller.shopName || "بدون اسم"}
-          </h3>
-
-          <p>
-            📧 البريد:
-            ${seller.email || "-"}
-          </p>
-
-          <p>
-            📱 الجوال:
-            ${seller.phone || "-"}
-          </p>
-
-          <p>
-            💳 الاشتراك:
-            ${seller.subscription || "free"}
-          </p>
-
-          <p class="${statusClass}">
-            الحالة:
-            ${statusText}
-          </p>
-
-          ${
-            status === "active"
-
-            ?
-
-            `
-            <button
-              class="delete"
-              onclick="changeSellerStatus(
-                '${sellerId}',
-                'inactive'
-              )"
-            >
-              🔴 إيقاف الحساب
-            </button>
-            `
-
-            :
-
-            `
-            <button
-              class="activate"
-              onclick="changeSellerStatus(
-                '${sellerId}',
-                'active'
-              )"
-            >
-              🟢 تفعيل الحساب
-            </button>
-            `
-          }
-
-          <button
-            class="delete"
-            onclick="deleteSeller('${sellerId}')"
-          >
-            🗑️ حذف البائع
-          </button>
-
-        </div>
-
-      `;
-
-    });
+    loadSellers();
 
   }catch(error){
 
     console.error(error);
 
-    sellersBox.innerHTML =
-      "<p>حدث خطأ أثناء تحميل البائعين.</p>";
+    alert(
+      "حدث خطأ أثناء حذف البائع:\n" +
+      error.message
+    );
 
   }
 
-  }
+};  
 
+      
 
-
-/* =====================================
+    
+    
+===============================
    تغيير حالة البائع
 ===================================== */
 
