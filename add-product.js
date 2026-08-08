@@ -23,12 +23,17 @@ const saveBtn = document.getElementById("saveBtn");
 const msg = document.getElementById("msg");
 
 let currentSeller = null;
-let sellerData = null;
+let shopName = "";
 
+
+// ===============================
+// التحقق من البائع وجلب اسم المتجر
+// ===============================
 
 onAuthStateChanged(auth, async (user) => {
 
   if (!user) {
+
     location.href = "login.html";
     return;
   }
@@ -45,54 +50,75 @@ onAuthStateChanged(auth, async (user) => {
 
     const sellerSnap = await getDoc(sellerRef);
 
+
     if (!sellerSnap.exists()) {
 
       msg.style.color = "red";
-      msg.textContent = "لم يتم العثور على بيانات المتجر";
+      msg.textContent =
+        "لم يتم العثور على بيانات المتجر";
+
       return;
     }
 
-    sellerData = sellerSnap.data();
 
-    if (sellerData.status !== "active") {
+    const seller = sellerSnap.data();
 
-      msg.style.color = "red";
-      msg.textContent = "حسابك موقوف";
-      return;
-    }
+    shopName = seller.shopName || "بدون اسم";
+
+
+    console.log("اسم المتجر:", shopName);
 
   } catch (error) {
 
     console.error(error);
 
     msg.style.color = "red";
-    msg.textContent = "حدث خطأ أثناء تحميل بيانات المتجر";
+    msg.textContent =
+      "حدث خطأ في تحميل بيانات المتجر";
+
   }
 
 });
 
 
+// ===============================
+// حفظ المنتج
+// ===============================
+
 saveBtn.addEventListener("click", async () => {
 
-  const name = nameInput.value.trim();
-  const price = Number(priceInput.value);
-  const category = categoryInput.value;
-  const image = imageInput.value.trim();
-  const description = descriptionInput.value.trim();
+  const name =
+    nameInput.value.trim();
+
+  const price =
+    Number(priceInput.value);
+
+  const category =
+    categoryInput.value;
+
+  const image =
+    imageInput.value.trim();
+
+  const description =
+    descriptionInput.value.trim();
 
 
   if (!currentSeller) {
 
     msg.style.color = "red";
-    msg.textContent = "يجب تسجيل الدخول أولًا";
+    msg.textContent =
+      "يجب تسجيل الدخول أولًا";
+
     return;
   }
 
 
-  if (!sellerData) {
+  if (!shopName) {
 
     msg.style.color = "red";
-    msg.textContent = "لم يتم تحميل بيانات المتجر بعد";
+    msg.textContent =
+      "جاري تحميل بيانات المتجر، حاول مرة أخرى";
+
     return;
   }
 
@@ -112,7 +138,8 @@ saveBtn.addEventListener("click", async () => {
     saveBtn.disabled = true;
 
     msg.style.color = "#0b7a75";
-    msg.textContent = "جاري حفظ المنتج...";
+    msg.textContent =
+      "جاري حفظ المنتج...";
 
 
     await addDoc(
@@ -129,9 +156,11 @@ saveBtn.addEventListener("click", async () => {
 
         description: description,
 
+        // رقم البائع
         sellerId: currentSeller.uid,
 
-        shopName: sellerData.shopName || "متجر",
+        // اسم المتجر
+        shopName: shopName,
 
         createdAt: serverTimestamp()
 
@@ -164,6 +193,7 @@ saveBtn.addEventListener("click", async () => {
   } finally {
 
     saveBtn.disabled = false;
+
   }
 
 });
