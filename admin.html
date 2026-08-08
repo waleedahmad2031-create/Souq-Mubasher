@@ -1,5 +1,7 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
 
 <meta charset="UTF-8">
@@ -44,6 +46,10 @@ border-radius:12px;
 box-shadow:0 2px 6px rgba(0,0,0,.1);
 }
 
+h2{
+margin-bottom:12px;
+}
+
 input,
 textarea{
 width:100%;
@@ -78,6 +84,19 @@ background:#e53935;
 background:#ff9800;
 }
 
+.activate{
+background:#009688;
+}
+
+.seller{
+background:#fff;
+padding:15px;
+margin-bottom:15px;
+border-radius:10px;
+box-shadow:0 2px 5px rgba(0,0,0,.1);
+border-right:5px solid #009688;
+}
+
 .product{
 background:#fff;
 padding:15px;
@@ -93,28 +112,86 @@ border-radius:10px;
 margin-top:10px;
 }
 
+.active{
+color:#008000;
+font-weight:bold;
+}
+
+.inactive{
+color:#e53935;
+font-weight:bold;
+}
+
 </style>
 
 </head>
 
+
 <body>
+
 
 <header>
 🛠 لوحة إدارة سوق مباشر
 </header>
 
+
 <div class="container">
+
+
+<!-- ========================= -->
+<!-- إدارة البائعين -->
+<!-- ========================= -->
 
 <div class="card">
 
-<h2>إضافة منتج جديد</h2>
+<h2>👥 إدارة البائعين</h2>
 
-<input id="name" placeholder="اسم المنتج">
-<input id="price" type="number" placeholder="السعر">
-<input id="city" placeholder="المدينة">
-<input id="phone" placeholder="رقم التواصل">
-<input id="image" placeholder="رابط الصورة">
-<textarea id="description" placeholder="وصف المنتج"></textarea>
+<div id="sellers">
+جاري تحميل البائعين...
+</div>
+
+</div>
+
+
+
+<!-- ========================= -->
+<!-- إضافة منتج -->
+<!-- ========================= -->
+
+<div class="card">
+
+<h2>➕ إضافة منتج جديد</h2>
+
+<input
+id="name"
+placeholder="اسم المنتج"
+>
+
+<input
+id="price"
+type="number"
+placeholder="السعر"
+>
+
+<input
+id="city"
+placeholder="المدينة"
+>
+
+<input
+id="phone"
+placeholder="رقم التواصل"
+>
+
+<input
+id="image"
+placeholder="رابط الصورة"
+>
+
+<textarea
+id="description"
+placeholder="وصف المنتج"
+></textarea>
 
 <button id="saveBtn">
 حفظ المنتج
@@ -122,7 +199,27 @@ margin-top:10px;
 
 </div>
 
-<div id="products"></div>
+
+
+<!-- ========================= -->
+<!-- المنتجات -->
+<!-- ========================= -->
+
+<div class="card">
+
+<h2>🛍️ المنتجات</h2>
+
+<div id="products">
+جاري تحميل المنتجات...
+</div>
+
+</div>
+
+
+
+<!-- ========================= -->
+<!-- الطلبات -->
+<!-- ========================= -->
 
 <div class="card">
 
@@ -134,9 +231,15 @@ margin-top:10px;
 
 </div>
 
+
+</div>
+
+
+
 <script type="module">
 
 import { db } from "./firebase.js";
+
 
 import {
 collection,
@@ -145,36 +248,298 @@ getDocs,
 deleteDoc,
 updateDoc,
 doc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+} from
+"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const saveBtn=document.getElementById("saveBtn");
-const productsBox=document.getElementById("products");
-const ordersBox=document.getElementById("orders");
-  async function loadProducts(){
 
-productsBox.innerHTML="";
 
-const snap=await getDocs(collection(db,"products"));
+const saveBtn =
+document.getElementById("saveBtn");
+
+const productsBox =
+document.getElementById("products");
+
+const ordersBox =
+document.getElementById("orders");
+
+const sellersBox =
+document.getElementById("sellers");
+
+
+
+/* =====================================
+   البائعون
+===================================== */
+
+
+async function loadSellers(){
+
+sellersBox.innerHTML =
+"جاري تحميل البائعين...";
+
+
+try{
+
+const snap =
+await getDocs(
+collection(db,"sellers")
+);
+
+
+if(snap.empty){
+
+sellersBox.innerHTML =
+"<p>لا يوجد بائعون.</p>";
+
+return;
+
+}
+
+
+sellersBox.innerHTML = "";
+
 
 snap.forEach(item=>{
 
-const data=item.data();
+const seller =
+item.data();
 
-productsBox.innerHTML+=`
+const sellerId =
+item.id;
+
+
+const status =
+seller.status || "active";
+
+
+const statusText =
+status === "active"
+? "🟢 نشط"
+: "🔴 موقوف";
+
+
+const statusClass =
+status === "active"
+? "active"
+: "inactive";
+
+
+sellersBox.innerHTML += `
+
+<div class="seller">
+
+<h3>
+🏪 ${seller.shopName || "بدون اسم"}
+</h3>
+
+<p>
+📧 البريد:
+${seller.email || "-"}
+</p>
+
+<p>
+📱 الجوال:
+${seller.phone || "-"}
+</p>
+
+<p>
+💳 الاشتراك:
+${seller.subscription || "free"}
+</p>
+
+<p class="${statusClass}">
+الحالة:
+${statusText}
+</p>
+
+
+${
+status === "active"
+
+?
+
+`
+<button
+class="delete"
+onclick="changeSellerStatus(
+'${sellerId}',
+'inactive'
+)"
+>
+🔴 إيقاف الحساب
+</button>
+`
+
+:
+
+`
+<button
+class="activate"
+onclick="changeSellerStatus(
+'${sellerId}',
+'active'
+)"
+>
+🟢 تفعيل الحساب
+</button>
+`
+
+}
+
+
+</div>
+
+`;
+
+});
+
+
+}catch(error){
+
+console.error(error);
+
+sellersBox.innerHTML =
+"<p>حدث خطأ أثناء تحميل البائعين.</p>";
+
+}
+
+}
+
+
+
+/* =====================================
+   تغيير حالة البائع
+===================================== */
+
+
+window.changeSellerStatus =
+async function(id,status){
+
+const message =
+status === "inactive"
+? "هل تريد إيقاف هذا البائع؟"
+: "هل تريد تفعيل هذا البائع؟";
+
+
+if(!confirm(message)){
+return;
+}
+
+
+try{
+
+await updateDoc(
+doc(db,"sellers",id),
+{
+status:status
+}
+);
+
+
+alert(
+status === "inactive"
+? "تم إيقاف الحساب ✅"
+: "تم تفعيل الحساب ✅"
+);
+
+
+loadSellers();
+
+
+}catch(error){
+
+console.error(error);
+
+alert(
+"حدث خطأ أثناء تغيير حالة الحساب"
+);
+
+}
+
+};
+
+
+
+/* =====================================
+   المنتجات
+===================================== */
+
+
+async function loadProducts(){
+
+productsBox.innerHTML = "";
+
+
+try{
+
+const snap =
+await getDocs(
+collection(db,"products")
+);
+
+
+if(snap.empty){
+
+productsBox.innerHTML =
+"<p>لا توجد منتجات.</p>";
+
+return;
+
+}
+
+
+snap.forEach(item=>{
+
+const data =
+item.data();
+
+
+productsBox.innerHTML += `
 
 <div class="product">
 
-<h3>${data.name||""}</h3>
+<h3>
+${data.name || ""}
+</h3>
 
-<p>💰 السعر: ${data.price||""}</p>
+<p>
+💰 السعر:
+${data.price || ""}
+ريال
+</p>
 
-<p>🏙 ${data.city||""}</p>
+<p>
+🏪 المتجر:
+${data.shopName || "غير محدد"}
+</p>
 
-<img src="${data.image||""}" alt="صورة المنتج">
+<p>
+🏙 المدينة:
+${data.city || "-"}
+</p>
 
-<p>${data.description||""}</p>
+${
+data.image
+?
+`
+<img
+src="${data.image}"
+alt="صورة المنتج"
+>
+`
+:
+""
+}
 
-<button class="delete" onclick="deleteProduct('${item.id}')">
+<p>
+${data.description || ""}
+</p>
+
+
+<button
+class="delete"
+onclick="deleteProduct('${item.id}')"
+>
 🗑 حذف المنتج
 </button>
 
@@ -184,91 +549,316 @@ productsBox.innerHTML+=`
 
 });
 
+
+}catch(error){
+
+console.error(error);
+
+productsBox.innerHTML =
+"<p>حدث خطأ أثناء تحميل المنتجات.</p>";
+
 }
 
-saveBtn.onclick=async()=>{
+}
 
-const name=document.getElementById("name").value.trim();
-const price=document.getElementById("price").value.trim();
-const city=document.getElementById("city").value.trim();
-const phone=document.getElementById("phone").value.trim();
-const image=document.getElementById("image").value.trim();
-const description=document.getElementById("description").value.trim();
+
+
+/* =====================================
+   إضافة منتج من الإدارة
+===================================== */
+
+
+saveBtn.onclick =
+async()=>{
+
+const name =
+document
+.getElementById("name")
+.value
+.trim();
+
+
+const price =
+document
+.getElementById("price")
+.value
+.trim();
+
+
+const city =
+document
+.getElementById("city")
+.value
+.trim();
+
+
+const phone =
+document
+.getElementById("phone")
+.value
+.trim();
+
+
+const image =
+document
+.getElementById("image")
+.value
+.trim();
+
+
+const description =
+document
+.getElementById("description")
+.value
+.trim();
+
 
 if(!name){
-alert("اكتب اسم المنتج");
+
+alert(
+"اكتب اسم المنتج"
+);
+
 return;
+
 }
 
-await addDoc(collection(db,"products"),{
-name,
-price,
-city,
-phone,
-image,
-description
-});
 
-alert("تم حفظ المنتج");
+try{
 
-location.reload();
+await addDoc(
+collection(db,"products"),
+{
 
-};
+name:name,
 
-window.deleteProduct=async(id)=>{
+price:price,
 
-if(!confirm("حذف المنتج؟")) return;
+city:city,
 
-await deleteDoc(doc(db,"products",id));
+phone:phone,
+
+image:image,
+
+description:description
+
+}
+);
+
+
+alert(
+"تم حفظ المنتج"
+);
+
+
+document
+.getElementById("name")
+.value = "";
+
+
+document
+.getElementById("price")
+.value = "";
+
+
+document
+.getElementById("city")
+.value = "";
+
+
+document
+.getElementById("phone")
+.value = "";
+
+
+document
+.getElementById("image")
+.value = "";
+
+
+document
+.getElementById("description")
+.value = "";
+
 
 loadProducts();
 
+
+}catch(error){
+
+console.error(error);
+
+alert(
+"حدث خطأ أثناء حفظ المنتج"
+);
+
+}
+
 };
 
-async function loadOrders(){
 
-ordersBox.innerHTML="";
 
-const snap=await getDocs(collection(db,"orders"));
+/* =====================================
+   حذف منتج
+===================================== */
 
-if(snap.empty){
 
-ordersBox.innerHTML="<p>لا توجد طلبات.</p>";
+window.deleteProduct =
+async function(id){
+
+if(
+!confirm(
+"هل تريد حذف المنتج؟"
+)
+){
 
 return;
 
 }
 
+
+try{
+
+await deleteDoc(
+doc(db,"products",id)
+);
+
+
+loadProducts();
+
+
+}catch(error){
+
+console.error(error);
+
+alert(
+"حدث خطأ أثناء حذف المنتج"
+);
+
+}
+
+};
+
+
+
+/* =====================================
+   الطلبات
+===================================== */
+
+
+async function loadOrders(){
+
+ordersBox.innerHTML =
+"جاري تحميل الطلبات...";
+
+
+try{
+
+const snap =
+await getDocs(
+collection(db,"orders")
+);
+
+
+if(snap.empty){
+
+ordersBox.innerHTML =
+"<p>لا توجد طلبات.</p>";
+
+return;
+
+}
+
+
+ordersBox.innerHTML = "";
+
+
 snap.forEach(item=>{
 
-const data=item.data();
+const data =
+item.data();
 
-const products=(data.products||[])
-.map(p=>`• ${p.name} (${p.price} ريال)`)
+
+const products =
+(data.products || [])
+.map(
+p =>
+`• ${p.name} (${p.price} ريال)`
+)
 .join("<br>");
 
-ordersBox.innerHTML+=`
+
+ordersBox.innerHTML += `
+
 <div class="product">
 
-<h3>👤 ${data.customerName || "بدون اسم"}</h3>
+<h3>
+👤
+${data.customerName || "بدون اسم"}
+</h3>
 
-<p>📱 ${data.customerPhone || "-"}</p>
+<p>
+📱
+${data.customerPhone || "-"}
+</p>
 
-<p>🏙 ${data.customerCity || "-"}</p>
+<p>
+🏙
+${data.customerCity || "-"}
+</p>
 
-<p>📍 ${data.customerAddress || "-"}</p>
+<p>
+📍
+${data.customerAddress || "-"}
+</p>
 
-<p><strong>🛒 المنتجات:</strong><br>${products || "لا توجد منتجات"}</p>
+<p>
+<strong>
+🛒 المنتجات:
+</strong>
 
-<p><strong>💵 الإجمالي:</strong> ${data.total || 0} ريال</p>
+<br>
 
-<p><strong>📌 الحالة:</strong> ${data.status || "جديد"}</p>
+${products || "لا توجد منتجات"}
 
-<button class="status" onclick="changeStatus('${item.id}')">
+</p>
+
+
+<p>
+
+<strong>
+💵 الإجمالي:
+</strong>
+
+${data.total || 0}
+ريال
+
+</p>
+
+
+<p>
+
+<strong>
+📌 الحالة:
+</strong>
+
+${data.status || "جديد"}
+
+</p>
+
+
+<button
+class="status"
+onclick="changeStatus('${item.id}')"
+>
 تغيير الحالة إلى (تم التوصيل)
 </button>
 
-<button class="delete" onclick="deleteOrder('${item.id}')">
+
+<button
+class="delete"
+onclick="deleteOrder('${item.id}')"
+>
 حذف الطلب
 </button>
 
@@ -278,32 +868,86 @@ ordersBox.innerHTML+=`
 
 });
 
+
+}catch(error){
+
+console.error(error);
+
+ordersBox.innerHTML =
+"<p>حدث خطأ أثناء تحميل الطلبات.</p>";
+
 }
 
-window.deleteOrder = async(id)=>{
+}
 
-if(!confirm("حذف الطلب؟")) return;
 
-await deleteDoc(doc(db,"orders",id));
+
+/* =====================================
+   حذف طلب
+===================================== */
+
+
+window.deleteOrder =
+async function(id){
+
+if(
+!confirm(
+"هل تريد حذف الطلب؟"
+)
+){
+
+return;
+
+}
+
+
+await deleteDoc(
+doc(db,"orders",id)
+);
+
 
 loadOrders();
 
 };
 
-window.changeStatus = async(id)=>{
 
-await updateDoc(doc(db,"orders",id),{
+
+/* =====================================
+   تغيير حالة الطلب
+===================================== */
+
+
+window.changeStatus =
+async function(id){
+
+await updateDoc(
+doc(db,"orders",id),
+{
 status:"تم التوصيل"
-});
+}
+);
+
 
 loadOrders();
 
 };
+
+
+
+/* =====================================
+   تشغيل
+===================================== */
+
+
+loadSellers();
 
 loadProducts();
+
 loadOrders();
 
 </script>
 
+
 </body>
-</html>
+
+  </html>
