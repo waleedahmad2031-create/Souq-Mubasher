@@ -275,138 +275,126 @@ document.getElementById("sellers");
 ===================================== */
 
 
-async function loadSellers(){
+async async function loadSellers(){
 
-sellersBox.innerHTML =
-"جاري تحميل البائعين...";
+  sellersBox.innerHTML = "جاري تحميل البائعين...";
 
+  try{
 
-try{
+    const snap = await getDocs(
+      collection(db,"sellers")
+    );
 
-const snap =
-await getDocs(
-collection(db,"sellers")
-);
+    if(snap.empty){
 
+      sellersBox.innerHTML =
+        "<p>لا يوجد بائعون.</p>";
 
-if(snap.empty){
+      return;
+    }
 
-sellersBox.innerHTML =
-"<p>لا يوجد بائعون.</p>";
+    sellersBox.innerHTML = "";
 
-return;
+    snap.forEach(item=>{
 
-}
+      const seller = item.data();
+      const sellerId = item.id;
 
+      const status = seller.status || "active";
 
-sellersBox.innerHTML = "";
+      const statusText =
+        status === "active"
+        ? "🟢 نشط"
+        : "🔴 موقوف";
 
+      const statusClass =
+        status === "active"
+        ? "active"
+        : "inactive";
 
-snap.forEach(item=>{
+      sellersBox.innerHTML += `
 
-const seller =
-item.data();
+        <div class="seller">
 
-const sellerId =
-item.id;
+          <h3>
+            🏪 ${seller.shopName || "بدون اسم"}
+          </h3>
 
+          <p>
+            📧 البريد:
+            ${seller.email || "-"}
+          </p>
 
-const status =
-seller.status || "active";
+          <p>
+            📱 الجوال:
+            ${seller.phone || "-"}
+          </p>
 
+          <p>
+            💳 الاشتراك:
+            ${seller.subscription || "free"}
+          </p>
 
-const statusText =
-status === "active"
-? "🟢 نشط"
-: "🔴 موقوف";
+          <p class="${statusClass}">
+            الحالة:
+            ${statusText}
+          </p>
 
+          ${
+            status === "active"
 
-const statusClass =
-status === "active"
-? "active"
-: "inactive";
+            ?
 
+            `
+            <button
+              class="delete"
+              onclick="changeSellerStatus(
+                '${sellerId}',
+                'inactive'
+              )"
+            >
+              🔴 إيقاف الحساب
+            </button>
+            `
 
-sellersBox.innerHTML += `
+            :
 
-<div class="seller">
+            `
+            <button
+              class="activate"
+              onclick="changeSellerStatus(
+                '${sellerId}',
+                'active'
+              )"
+            >
+              🟢 تفعيل الحساب
+            </button>
+            `
+          }
 
-<h3>
-🏪 ${seller.shopName || "بدون اسم"}
-</h3>
+          <button
+            class="delete"
+            onclick="deleteSeller('${sellerId}')"
+          >
+            🗑️ حذف البائع
+          </button>
 
-<p>
-📧 البريد:
-${seller.email || "-"}
-</p>
+        </div>
 
-<p>
-📱 الجوال:
-${seller.phone || "-"}
-</p>
+      `;
 
-<p>
-💳 الاشتراك:
-${seller.subscription || "free"}
-</p>
+    });
 
-<p class="${statusClass}">
-الحالة:
-${statusText}
-</p>
+  }catch(error){
 
+    console.error(error);
 
-${
-status === "active"
+    sellersBox.innerHTML =
+      "<p>حدث خطأ أثناء تحميل البائعين.</p>";
 
-?
+  }
 
-`
-<button
-class="delete"
-onclick="changeSellerStatus(
-'${sellerId}',
-'inactive'
-)"
->
-🔴 إيقاف الحساب
-</button>
-`
-
-:
-
-`
-<button
-class="activate"
-onclick="changeSellerStatus(
-'${sellerId}',
-'active'
-)"
->
-🟢 تفعيل الحساب
-</button>
-`
-
-}
-
-
-</div>
-
-`;
-
-});
-
-
-}catch(error){
-
-console.error(error);
-
-sellersBox.innerHTML =
-"<p>حدث خطأ أثناء تحميل البائعين.</p>";
-
-}
-
-}
+  }
 
 
 
