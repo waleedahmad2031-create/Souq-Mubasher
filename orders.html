@@ -1,14 +1,5 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-
-<head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-
-<title>إتمام الطلب | سوق مباشر</title>
-
-<style>
+<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0"><title>إتمام الطلب | سوق مباشر</title><style>
 
 *{
 margin:0;
@@ -43,6 +34,33 @@ border-radius:12px;
 box-shadow:0 2px 6px rgba(0,0,0,.1);
 }
 
+.infoBox{
+background:#e8f5e9;
+padding:15px;
+border-radius:10px;
+margin:15px 0;
+line-height:1.8;
+}
+
+.totalBox{
+background:#f5f5f5;
+padding:15px;
+border-radius:10px;
+margin-top:15px;
+}
+
+.totalBox p{
+margin:8px 0;
+font-size:17px;
+}
+
+.finalTotal{
+font-size:22px !important;
+font-weight:bold;
+border-top:1px solid #ddd;
+padding-top:10px;
+}
+
 input,
 textarea{
 width:100%;
@@ -69,39 +87,26 @@ button:hover{
 background:#00796b;
 }
 
-</style>
-
-</head>
-
-<body>
-
-<header>
+</style></head><body><header>
 📦 إتمام الطلب
-</header>
+</header><div class="container"><div class="card"><h2>بيانات العميل</h2><div class="infoBox">📍 <strong>منطقة التوصيل:</strong>
+حي منفوحة – الرياض
 
-<div class="container">
+<br>🚚 <strong>رسوم التوصيل:</strong>
+5 ريال
 
-<div class="card">
-
-<h2>بيانات العميل</h2>
-
-<input id="customerName" placeholder="الاسم">
-
-<input id="customerPhone" placeholder="رقم الجوال">
-
-<input id="customerCity" placeholder="المدينة">
-
-<textarea id="customerAddress" placeholder="العنوان بالتفصيل"></textarea>
-
-<button id="sendOrder">
+</div><input id="customerName" placeholder="الاسم"><input id="customerPhone" placeholder="رقم الجوال"><textarea id="customerAddress" placeholder="العنوان بالتفصيل داخل حي منفوحة"></textarea><div class="totalBox"><p>
+🛍️ مجموع المنتجات:
+<strong><span id="productsTotal">0</span> ريال</strong>
+</p><p>
+🚚 التوصيل:
+<strong>5 ريال</strong>
+</p><p class="finalTotal">
+💰 الإجمالي النهائي:
+<strong><span id="totalPrice">0</span> ريال</strong>
+</p></div><button id="sendOrder">
 إرسال الطلب
-</button>
-
-</div>
-
-</div>
-</div>
-<script type="module">
+</button></div></div><script type="module">
 
 import { db } from "./firebase.js";
 
@@ -113,14 +118,36 @@ serverTimestamp
 
 const cart = JSON.parse(localStorage.getItem("cart")) || [];
 
+const DELIVERY_FEE = 5;
+
+let productsTotal = 0;
+
+cart.forEach(item => {
+
+productsTotal += Number(item.price || 0);
+
+});
+
+const finalTotal = productsTotal + DELIVERY_FEE;
+
+document.getElementById("productsTotal").textContent =
+productsTotal;
+
+document.getElementById("totalPrice").textContent =
+finalTotal;
+
 document.getElementById("sendOrder").onclick = async () => {
 
-const name = document.getElementById("customerName").value.trim();
-const phone = document.getElementById("customerPhone").value.trim();
-const city = document.getElementById("customerCity").value.trim();
-const address = document.getElementById("customerAddress").value.trim();
+const name =
+document.getElementById("customerName").value.trim();
 
-if(!name || !phone || !city || !address){
+const phone =
+document.getElementById("customerPhone").value.trim();
+
+const address =
+document.getElementById("customerAddress").value.trim();
+
+if(!name || !phone || !address){
 
 alert("يرجى تعبئة جميع البيانات");
 
@@ -128,22 +155,35 @@ return;
 
 }
 
-let total = 0;
+if(cart.length === 0){
 
-cart.forEach(item => {
-total += Number(item.price || 0);
-});
+alert("السلة فارغة");
+
+return;
+
+}
+
+try{
 
 await addDoc(collection(db,"orders"),{
 
 customerName:name,
+
 customerPhone:phone,
-customerCity:city,
+
+customerCity:"حي منفوحة – الرياض",
+
 customerAddress:address,
+
+deliveryArea:"حي منفوحة – الرياض",
+
+deliveryFee:DELIVERY_FEE,
 
 products:cart,
 
-total:total,
+productsTotal:productsTotal,
+
+total:finalTotal,
 
 status:"جديد",
 
@@ -151,14 +191,20 @@ createdAt:serverTimestamp()
 
 });
 
-let message = `🛒 طلب جديد
+let message = `🛒 طلب جديد من سوق مباشر
 
 الاسم: ${name}
 الجوال: ${phone}
-المدينة: ${city}
-العنوان: ${address}
 
-الإجمالي: ${total} ريال`;
+📍 منطقة التوصيل:
+حي منفوحة – الرياض
+
+العنوان:
+${address}
+
+🛍️ مجموع المنتجات: ${productsTotal} ريال
+🚚 رسوم التوصيل: ${DELIVERY_FEE} ريال
+💰 الإجمالي النهائي: ${finalTotal} ريال`;
 
 window.open(
 `https://wa.me/966550496391?text=${encodeURIComponent(message)}`,
@@ -171,9 +217,14 @@ alert("تم إرسال الطلب بنجاح");
 
 location.href="index.html";
 
+}catch(error){
+
+console.error(error);
+
+alert("حدث خطأ أثناء إرسال الطلب، حاول مرة أخرى");
+
+}
+
 };
 
-</script>
-
-</body>
-</html>
+</script></body></html>
