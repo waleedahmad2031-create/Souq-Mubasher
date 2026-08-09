@@ -1,14 +1,5 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-
-<head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-
-<title>سلة التسوق | سوق مباشر</title>
-
-<style>
+<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0"><title>سلة التسوق | سوق مباشر</title><style>
 
 *{
 margin:0;
@@ -79,14 +70,37 @@ background:#e53935;
 color:#fff;
 }
 
-.total{
+.summary{
 background:#fff;
-padding:15px;
+padding:18px;
 border-radius:10px;
-font-size:20px;
-font-weight:bold;
 margin-top:20px;
-text-align:center;
+box-shadow:0 2px 6px rgba(0,0,0,.1);
+}
+
+.summary p{
+margin:10px 0;
+font-size:18px;
+}
+
+.delivery{
+color:#009688;
+font-weight:bold;
+}
+
+.finalTotal{
+font-size:22px !important;
+font-weight:bold;
+border-top:1px solid #ddd;
+padding-top:12px;
+}
+
+.note{
+background:#e8f5e9;
+padding:12px;
+border-radius:8px;
+margin-top:12px;
+font-size:15px;
 }
 
 .orderBtn{
@@ -101,57 +115,40 @@ border-radius:10px;
 cursor:pointer;
 }
 
-</style>
+.orderBtn:hover{
+background:#00796b;
+}
 
-</head>
-
-<body>
-
-<header>
+</style></head><body><header>
 🛒 سلة التسوق
-</header>
-
-
-<div class="container">
-
-<div id="cart">
-</div>
-
-
-<div class="total">
-الإجمالي:
-<span id="totalPrice">0</span>
-ريال
-</div>
-
-
-<button class="orderBtn" id="sendOrder">
-إرسال الطلب
-</button>
-
-
-</div>
-
-
-<script type="module">
+</header><div class="container"><div id="cart"></div><div class="summary"><p>
+🛍️ مجموع المنتجات:
+<strong><span id="productsTotal">0</span> ريال</strong>
+</p><p class="delivery">
+🚚 التوصيل داخل حي منفوحة:
+<strong>5 ريال</strong>
+</p><p class="finalTotal">
+💰 الإجمالي النهائي:
+<strong><span id="totalPrice">0</span> ريال</strong>
+</p><div class="note">
+📍 التوصيل متوفر داخل حي منفوحة – الرياض فقط
+</div></div><button class="orderBtn" id="sendOrder">
+إتمام الطلب
+</button></div><script type="module">
 
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
+const DELIVERY_FEE = 5;
 
 const cartItems = document.getElementById("cart");
-
+const productsTotal = document.getElementById("productsTotal");
 const totalPrice = document.getElementById("totalPrice");
-
-
 
 function renderCart(){
 
 cartItems.innerHTML="";
 
-
 let total = 0;
-
-
 
 if(cart.length === 0){
 
@@ -167,94 +164,68 @@ cartItems.innerHTML = `
 
 `;
 
+productsTotal.textContent="0";
 totalPrice.textContent="0";
 
 return;
 
 }
 
-
-
 cart.forEach((item,index)=>{
 
-
 total += Number(item.price || 0);
-
-
 
 cartItems.innerHTML += `
 
 <div class="item">
 
-
 <img src="${item.image || ''}">
-
 
 <div class="info">
 
-
 <h3>${item.name || ''}</h3>
-
 
 <p>
 السعر: ${item.price || 0} ريال
 </p>
 
-
 <p>
 ${item.city || ""}
 </p>
 
-
-
 <button class="delete" onclick="removeItem(${index})">
-
 حذف
-
 </button>
 
-
 </div>
-
 
 </div>
 
 `;
 
-
 });
 
+const finalTotal = total + DELIVERY_FEE;
 
-
-totalPrice.textContent = total;
-
-
+productsTotal.textContent = total;
+totalPrice.textContent = finalTotal;
 
 }
 
-
-
 window.removeItem=function(index){
 
-
 cart.splice(index,1);
-
 
 localStorage.setItem(
 "cart",
 JSON.stringify(cart)
 );
 
-
 renderCart();
-
 
 };
 
-
-
 document.getElementById("sendOrder").onclick=function(){
-
 
 if(cart.length===0){
 
@@ -264,20 +235,10 @@ return;
 
 }
 
-
 location.href="orders.html";
-
 
 };
 
-
-
 renderCart();
 
-
-</script>
-
-
-</body>
-
-</html>
+</script></body></html>
