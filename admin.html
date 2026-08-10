@@ -748,6 +748,8 @@ async function(id){
   }
 
 };
+
+
 /* =====================================
    الطلبات
 ===================================== */
@@ -776,17 +778,86 @@ async function loadOrders(){
 
     snap.forEach(item=>{
 
-      const data =
-        item.data();
+      const data = item.data();
+
+      // بيانات العميل
+      const customerName =
+        data.name ||
+        data.customerName ||
+        "بدون اسم";
+
+      const customerPhone =
+        data.phone ||
+        data.customerPhone ||
+        "-";
+
+      const customerAddress =
+        data.address ||
+        data.customerAddress ||
+        "-";
 
 
+      // المنتجات
       const products =
-        (data.products || [])
-        .map(
-          p =>
-            `• ${p.name || "منتج"} (${p.price || 0} ريال)`
-        )
-        .join("<br>");
+        Array.isArray(data.products)
+        ? data.products
+        : [];
+
+
+      let productsHTML = "";
+
+      products.forEach(product => {
+
+        const name =
+          product.name ||
+          "منتج";
+
+        const price =
+          Number(product.price) || 0;
+
+        const quantity =
+          Number(product.quantity) || 1;
+
+        const productTotal =
+          Number(product.total) ||
+          (price * quantity);
+
+
+        productsHTML += `
+
+          <div style="
+            background:#f5f5f5;
+            padding:10px;
+            margin:8px 0;
+            border-radius:8px;
+          ">
+
+            🛍️ <strong>${name}</strong>
+
+            <br>
+
+            📦 الكمية:
+            ${quantity}
+
+            <br>
+
+            💰 سعر الوحدة:
+            ${price} ريال
+
+            <br>
+
+            💵 إجمالي المنتج:
+            ${productTotal} ريال
+
+          </div>
+
+        `;
+
+      });
+
+
+      const total =
+        Number(data.total) || 0;
 
 
       const status =
@@ -809,7 +880,9 @@ async function loadOrders(){
             text-align:center;
             margin-top:10px;
           ">
+
             ✅ تم التوصيل
+
           </p>
 
         `;
@@ -822,7 +895,9 @@ async function loadOrders(){
             class="status"
             onclick="changeStatus('${item.id}')"
           >
-            تغيير الحالة إلى (تم التوصيل)
+
+            🚚 تغيير الحالة إلى (تم التوصيل)
+
           </button>
 
         `;
@@ -835,25 +910,20 @@ async function loadOrders(){
         <div class="product">
 
           <h3>
-            👤
-            ${data.customerName || "بدون اسم"}
+            👤 ${customerName}
           </h3>
 
           <p>
-            📱
-            ${data.customerPhone || "-"}
+            📱 الجوال:
+            ${customerPhone}
           </p>
 
           <p>
-            🏙
-            ${data.customerCity || "-"}
+            📍 العنوان:
+            ${customerAddress}
           </p>
 
-          <p>
-            📍
-            ${data.customerAddress || "-"}
-          </p>
-
+          <hr>
 
           <p>
 
@@ -861,27 +931,25 @@ async function loadOrders(){
               🛒 المنتجات:
             </strong>
 
-            <br>
-
-            ${
-              products ||
-              "لا توجد منتجات"
-            }
-
           </p>
 
+          ${
+            productsHTML ||
+            "<p>لا توجد منتجات</p>"
+          }
 
-          <p>
+          <hr>
 
-            <strong>
-              💵 الإجمالي:
-            </strong>
+          <p style="
+            font-size:20px;
+            font-weight:bold;
+            color:#009688;
+          ">
 
-            ${data.total || 0}
-            ريال
+            💵 إجمالي الطلب:
+            ${total} ريال
 
           </p>
-
 
           <p>
 
@@ -893,7 +961,6 @@ async function loadOrders(){
 
           </p>
 
-
           ${statusButton}
 
 
@@ -901,9 +968,10 @@ async function loadOrders(){
             class="delete"
             onclick="deleteOrder('${item.id}')"
           >
-            🗑️ حذف الطلب
-          </button>
 
+            🗑️ حذف الطلب
+
+          </button>
 
         </div>
 
@@ -913,6 +981,41 @@ async function loadOrders(){
 
 
   }catch(error){
+
+    console.error(error);
+
+    ordersBox.innerHTML =
+      "<p>حدث خطأ أثناء تحميل الطلبات.</p>";
+
+  }
+
+               }
+
+  
+    
+      
+
+  
+
+    
+
+
+
+
+    
+
+    
+
+
+      
+
+      
+
+        
+
+           
+  
+    }catch(error){
 
     console.error(error);
 
