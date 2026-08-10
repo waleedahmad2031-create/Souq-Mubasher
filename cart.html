@@ -2,8 +2,10 @@
 <html lang="ar" dir="rtl">
 
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+
 <title>سلة التسوق | سوق مباشر</title>
 
 <style>
@@ -64,17 +66,37 @@ margin-bottom:10px;
 margin:5px 0;
 }
 
-button{
-padding:10px 15px;
-border:none;
-border-radius:8px;
-cursor:pointer;
-font-size:16px;
+.quantityBox{
+display:flex;
+align-items:center;
+gap:8px;
+margin-top:10px;
+}
+
+.quantityBox button{
+width:40px;
+height:40px;
+padding:0;
+font-size:22px;
+font-weight:bold;
+background:#009688;
+color:white;
+}
+
+.quantity{
+font-size:20px;
+font-weight:bold;
+min-width:35px;
+text-align:center;
 }
 
 .delete{
-background:#e53935;
+background:#e53935 !important;
 color:#fff;
+padding:10px 15px !important;
+width:auto !important;
+height:auto !important;
+font-size:16px !important;
 }
 
 .summary{
@@ -93,6 +115,14 @@ font-size:18px;
 .delivery{
 color:#009688;
 font-weight:bold;
+}
+
+.deliveryDetails{
+background:#f1f8f7;
+padding:12px;
+border-radius:8px;
+font-size:15px !important;
+line-height:1.9;
 }
 
 .finalTotal{
@@ -128,6 +158,7 @@ background:#00796b;
 }
 
 </style>
+
 </head>
 
 <body>
@@ -150,18 +181,39 @@ background:#00796b;
 </p>
 
 <p class="delivery">
-🚚 التوصيل بالجملة داخل إب
+🚚 رسوم توصيل الجملة:
+<strong>
+<span id="deliveryTotal">0</span> ريال
+</strong>
 </p>
 
+<div class="deliveryDetails">
+
+📦 أقل من 1500 ريال:
+<strong>50 ريال للكرتون</strong>
+
+<br>
+
+📦 من 1500 إلى أقل من 2000:
+<strong>70 ريال للكرتون</strong>
+
+<br>
+
+📦 2000 ريال فأكثر:
+<strong>100 ريال للكرتون</strong>
+
+</div>
+
 <p class="finalTotal">
-💰 إجمالي المنتجات:
+💰 الإجمالي النهائي:
 <strong>
 <span id="totalPrice">0</span> ريال
 </strong>
 </p>
 
 <div class="note">
-📍 التوصيل متوفر داخل مدينة إب.
+
+📍 التوصيل داخل مدينة إب.
 
 <br>
 
@@ -172,32 +224,76 @@ background:#00796b;
 
 ☀️ الفترة الصباحية مخصصة للمشاوير والتوصيلات الأخرى.
 
-<br>
-
-📦 طلبات الجملة يتم التنسيق بشأن التوصيل عند تأكيد الطلب.
 </div>
 
 </div>
 
 <button class="orderBtn" id="sendOrder">
-إتمام الطلب
+إتمام طلب الجملة
 </button>
 
 </div>
 
-<script type="module">
 
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
+<script>
 
-const cartItems = document.getElementById("cart");
-const productsTotal = document.getElementById("productsTotal");
-const totalPrice = document.getElementById("totalPrice");
+let cart =
+JSON.parse(localStorage.getItem("cart")) || [];
+
+
+const cartItems =
+document.getElementById("cart");
+
+const productsTotal =
+document.getElementById("productsTotal");
+
+const deliveryTotal =
+document.getElementById("deliveryTotal");
+
+const totalPrice =
+document.getElementById("totalPrice");
+
+
+// ===============================
+// حساب رسوم توصيل الكرتون
+// ===============================
+
+function getDeliveryFee(price){
+
+price = Number(price || 0);
+
+
+if(price < 1500){
+
+return 50;
+
+}
+
+
+if(price < 2000){
+
+return 70;
+
+}
+
+
+return 100;
+
+}
+
+
+// ===============================
+// عرض السلة
+// ===============================
 
 function renderCart(){
 
-cartItems.innerHTML="";
+cartItems.innerHTML = "";
 
 let total = 0;
+
+let delivery = 0;
+
 
 if(cart.length === 0){
 
@@ -213,16 +309,40 @@ cartItems.innerHTML = `
 
 `;
 
-productsTotal.textContent="0";
-totalPrice.textContent="0";
+productsTotal.textContent = "0";
+
+deliveryTotal.textContent = "0";
+
+totalPrice.textContent = "0";
 
 return;
 
 }
 
+
 cart.forEach((item,index)=>{
 
-total += Number(item.price || 0);
+
+const quantity =
+Number(item.quantity || 1);
+
+
+const price =
+Number(item.price || 0);
+
+
+// قيمة المنتج حسب الكمية
+total += price * quantity;
+
+
+// رسوم التوصيل حسب كل كرتون
+const feePerCarton =
+getDeliveryFee(price);
+
+
+// عدد الكراتين × رسوم الكرتون
+delivery += feePerCarton * quantity;
+
 
 cartItems.innerHTML += `
 
@@ -232,17 +352,57 @@ cartItems.innerHTML += `
 
 <div class="info">
 
-<h3>${item.name || ''}</h3>
+<h3>
+${item.name || ''}
+</h3>
 
 <p>
-السعر: ${item.price || 0} ريال
+سعر الكرتون:
+<strong>
+${price} ريال
+</strong>
 </p>
 
 <p>
-${item.city || ""}
+🚚 توصيل الكرتون:
+<strong>
+${feePerCarton} ريال
+</strong>
 </p>
 
-<button class="delete" onclick="removeItem(${index})">
+<p>
+📦 عدد الكراتين:
+<strong>
+${quantity}
+</strong>
+</p>
+
+<div class="quantityBox">
+
+<button
+onclick="decreaseQuantity(${index})"
+>
+−
+</button>
+
+<span class="quantity">
+${quantity}
+</span>
+
+<button
+onclick="increaseQuantity(${index})"
+>
++
+</button>
+
+</div>
+
+<br>
+
+<button
+class="delete"
+onclick="removeItem(${index})"
+>
 حذف
 </button>
 
@@ -254,27 +414,104 @@ ${item.city || ""}
 
 });
 
-productsTotal.textContent = total;
-totalPrice.textContent = total;
+
+const finalTotal =
+total + delivery;
+
+
+productsTotal.textContent =
+total;
+
+deliveryTotal.textContent =
+delivery;
+
+totalPrice.textContent =
+finalTotal;
 
 }
 
-window.removeItem=function(index){
 
-cart.splice(index,1);
+// ===============================
+// زيادة الكمية
+// ===============================
+
+window.increaseQuantity = function(index){
+
+cart[index].quantity =
+Number(cart[index].quantity || 1) + 1;
+
 
 localStorage.setItem(
 "cart",
 JSON.stringify(cart)
 );
 
+
 renderCart();
 
 };
 
-document.getElementById("sendOrder").onclick=function(){
 
-if(cart.length===0){
+// ===============================
+// إنقاص الكمية
+// ===============================
+
+window.decreaseQuantity = function(index){
+
+let quantity =
+Number(cart[index].quantity || 1);
+
+
+if(quantity > 1){
+
+cart[index].quantity =
+quantity - 1;
+
+}else{
+
+cart.splice(index,1);
+
+}
+
+
+localStorage.setItem(
+"cart",
+JSON.stringify(cart)
+);
+
+
+renderCart();
+
+};
+
+
+// ===============================
+// حذف المنتج
+// ===============================
+
+window.removeItem = function(index){
+
+cart.splice(index,1);
+
+
+localStorage.setItem(
+"cart",
+JSON.stringify(cart)
+);
+
+
+renderCart();
+
+};
+
+
+// ===============================
+// إتمام الطلب
+// ===============================
+
+document.getElementById("sendOrder").onclick = function(){
+
+if(cart.length === 0){
 
 alert("السلة فارغة");
 
@@ -282,13 +519,16 @@ return;
 
 }
 
-location.href="orders.html";
+
+location.href = "orders.html";
 
 };
 
+
+// تشغيل
 renderCart();
 
 </script>
 
 </body>
-</html>
+  </html>
