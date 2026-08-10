@@ -304,7 +304,105 @@ function getQuantity(text, productName) {
       
       
     
+// =============================
+// فهم كلام العميل
+// =============================
 
+function understandCustomerMessage(text, products) {
+
+  const value = clean(text);
+
+  // كلمات تدل على طلب كمية
+  const quantityWords = {
+    "واحد": 1,
+    "وحده": 1,
+    "واحدة": 1,
+    "اثنين": 2,
+    "اثنينه": 2,
+    "اثنان": 2,
+    "ثنتين": 2,
+    "ثلاثه": 3,
+    "ثلاث": 3,
+    "اربعه": 4,
+    "خمسه": 5,
+    "سته": 6,
+    "سبعه": 7,
+    "ثمانيه": 8,
+    "تسعه": 9,
+    "عشره": 10
+  };
+
+  let quantity = null; 
+
+  // رقم مباشر
+  const numberMatch = value.match(/\d+/);
+
+  if(numberMatch) {
+    quantity = Number(numberMatch[0]);
+  }
+
+  // رقم بالكلمات
+  if(!quantity) {
+
+    for(const word in quantityWords) {
+
+      if(value.includes(word)) {
+
+        quantity = quantityWords[word];
+
+        break;
+
+      }
+
+    }
+
+  }
+
+  // البحث عن المنتج
+  let found = findProducts(text, products);
+
+  // إذا لم يجد الاسم كاملًا
+  if(!found.length) {
+
+    const similar =
+      findSimilarProducts(text, products);
+
+    if(similar.length === 1) {
+
+      const product = similar[0];
+
+      found = [{
+        id: product.id,
+        name: product.name,
+        price: Number(product.price) || 0,
+        quantity: quantity || 1,
+        total:
+          (Number(product.price) || 0) *
+          (quantity || 1)
+      }];
+
+    }
+
+  }
+
+  // تطبيق الكمية التي فهمناها
+  if(found.length && quantity) {
+
+    found.forEach(function(product) {
+
+      product.quantity = quantity;
+
+      product.total =
+        product.price *
+        quantity;
+
+    });
+
+  }
+
+  return found;
+
+        }
 // =============================
 // البحث عن المنتجات
 // =============================
@@ -1014,10 +1112,14 @@ async function sendMessage() {
 
 
     const found =
-      findProducts(
-        text,
-        products
-      );
+  understandCustomerMessage(
+    text,
+    products
+  );
+      
+      
+        
+      
 
 
     const messages =
