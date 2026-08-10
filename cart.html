@@ -1,5 +1,12 @@
-<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0"><title>سلة التسوق | سوق مباشر</title><style>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>سلة التسوق | سوق مباشر</title>
+
+<style>
 
 *{
 margin:0;
@@ -101,6 +108,7 @@ padding:12px;
 border-radius:8px;
 margin-top:12px;
 font-size:15px;
+line-height:1.8;
 }
 
 .orderBtn{
@@ -119,26 +127,67 @@ cursor:pointer;
 background:#00796b;
 }
 
-</style></head><body><header>
+</style>
+</head>
+
+<body>
+
+<header>
 🛒 سلة التسوق
-</header><div class="container"><div id="cart"></div><div class="summary"><p>
+</header>
+
+<div class="container">
+
+<div id="cart"></div>
+
+<div class="summary">
+
+<p>
 🛍️ مجموع المنتجات:
-<strong><span id="productsTotal">0</span> ريال</strong>
-</p><p class="delivery">
-🚚 التوصيل داخل حي منفوحة:
-<strong>5 ريال</strong>
-</p><p class="finalTotal">
-💰 الإجمالي النهائي:
-<strong><span id="totalPrice">0</span> ريال</strong>
-</p><div class="note">
-📍 التوصيل متوفر داخل حي منفوحة – الرياض فقط
-</div></div><button class="orderBtn" id="sendOrder">
+<strong>
+<span id="productsTotal">0</span> ريال
+</strong>
+</p>
+
+<p class="delivery">
+🚚 التوصيل بالجملة داخل إب
+</p>
+
+<p class="finalTotal">
+💰 إجمالي المنتجات:
+<strong>
+<span id="totalPrice">0</span> ريال
+</strong>
+</p>
+
+<div class="note">
+📍 التوصيل متوفر داخل مدينة إب.
+
+<br>
+
+🌙 التوصيل المسائي:
+من بعد المغرب حتى الساعة 10 مساءً.
+
+<br>
+
+☀️ الفترة الصباحية مخصصة للمشاوير والتوصيلات الأخرى.
+
+<br>
+
+📦 طلبات الجملة يتم التنسيق بشأن التوصيل عند تأكيد الطلب.
+</div>
+
+</div>
+
+<button class="orderBtn" id="sendOrder">
 إتمام الطلب
-</button></div><script type="module">
+</button>
+
+</div>
+
+<script type="module">
 
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-const DELIVERY_FEE = 5;
 
 const cartItems = document.getElementById("cart");
 const productsTotal = document.getElementById("productsTotal");
@@ -205,10 +254,8 @@ ${item.city || ""}
 
 });
 
-const finalTotal = total + DELIVERY_FEE;
-
 productsTotal.textContent = total;
-totalPrice.textContent = finalTotal;
+totalPrice.textContent = total;
 
 }
 
@@ -241,4 +288,7 @@ location.href="orders.html";
 
 renderCart();
 
-</script></body></html>
+</script>
+
+</body>
+</html>
