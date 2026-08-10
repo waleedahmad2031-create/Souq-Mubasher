@@ -107,6 +107,7 @@ overflow-wrap:anywhere;
 
 .product img{
 width:120px;
+height:auto;
 border-radius:10px;
 margin-top:10px;
 }
@@ -121,6 +122,35 @@ color:#e53935;
 font-weight:bold;
 }
 
+hr{
+margin:15px 0;
+border:none;
+border-top:1px solid #ddd;
+}
+
+.order-product{
+background:#f5f5f5;
+padding:12px;
+margin:8px 0;
+border-radius:8px;
+}
+
+.total{
+font-size:20px;
+font-weight:bold;
+color:#009688;
+}
+
+.delivered{
+background:#e8f5e9;
+color:#008000;
+padding:12px;
+border-radius:8px;
+font-weight:bold;
+text-align:center;
+margin-top:10px;
+}
+
 </style>
 
 </head>
@@ -133,9 +163,10 @@ font-weight:bold;
 
 <div class="container">
 
-<!-- ========================= -->
-<!-- إدارة البائعين -->
-<!-- ========================= -->
+
+<!-- =====================================
+     إدارة البائعين
+===================================== -->
 
 <div class="card">
 
@@ -147,9 +178,10 @@ font-weight:bold;
 
 </div>
 
-<!-- ========================= -->
-<!-- إضافة منتج -->
-<!-- ========================= -->
+
+<!-- =====================================
+     إضافة منتج
+===================================== -->
 
 <div class="card">
 
@@ -192,9 +224,10 @@ placeholder="وصف المنتج"
 
 </div>
 
-<!-- ========================= -->
-<!-- المنتجات -->
-<!-- ========================= -->
+
+<!-- =====================================
+     المنتجات
+===================================== -->
 
 <div class="card">
 
@@ -206,9 +239,10 @@ placeholder="وصف المنتج"
 
 </div>
 
-<!-- ========================= -->
-<!-- الطلبات -->
-<!-- ========================= -->
+
+<!-- =====================================
+     الطلبات
+===================================== -->
 
 <div class="card">
 
@@ -220,8 +254,11 @@ placeholder="وصف المنتج"
 
 </div>
 
+
 </div>
-  <script type="module">
+
+
+<script type="module">
 
 import { db, auth } from "./firebase.js";
 
@@ -257,7 +294,7 @@ const sellersBox =
 
 
 /* =====================================
-   البائعون
+   إدارة البائعين
 ===================================== */
 
 async function loadSellers(){
@@ -373,20 +410,18 @@ async function loadSellers(){
             🗑️ حذف البائع
           </button>
 
-
         </div>
 
       `;
 
     });
 
-
   }catch(error){
 
     console.error(error);
 
     sellersBox.innerHTML =
-      "<p>حدث خطأ أثناء تحميل البائعين.</p>";
+      "<p>❌ حدث خطأ أثناء تحميل البائعين.</p>";
 
   }
 
@@ -402,13 +437,12 @@ async function(id){
 
   const confirmDelete =
     confirm(
-      "⚠️ هل أنت متأكد من حذف هذا البائع؟\n\nسيتم حذف بياناته من مجموعة sellers فقط."
+      "⚠️ هل أنت متأكد من حذف هذا البائع؟"
     );
 
   if(!confirmDelete){
     return;
   }
-
 
   try{
 
@@ -416,14 +450,11 @@ async function(id){
       doc(db,"sellers",id)
     );
 
-
     alert(
-      "تم حذف البائع من لوحة الإدارة ✅"
+      "تم حذف البائع ✅"
     );
 
-
     loadSellers();
-
 
   }catch(error){
 
@@ -451,11 +482,9 @@ async function(id,status){
     ? "هل تريد إيقاف هذا البائع؟"
     : "هل تريد تفعيل هذا البائع؟";
 
-
   if(!confirm(message)){
     return;
   }
-
 
   try{
 
@@ -466,31 +495,30 @@ async function(id,status){
       }
     );
 
-
     alert(
       status === "inactive"
       ? "تم إيقاف الحساب ✅"
       : "تم تفعيل الحساب ✅"
     );
 
-
     loadSellers();
-
 
   }catch(error){
 
     console.error(error);
 
     alert(
-      "حدث خطأ أثناء تغيير حالة الحساب"
+      "حدث خطأ أثناء تغيير حالة الحساب:\n" +
+      error.message
     );
 
   }
 
 };
 
-    /* =====================================
-   المنتجات
+
+/* =====================================
+   تحميل المنتجات
 ===================================== */
 
 async function loadProducts(){
@@ -520,12 +548,13 @@ async function loadProducts(){
       const data =
         item.data();
 
+
       productsBox.innerHTML += `
 
         <div class="product">
 
           <h3>
-            ${data.name || ""}
+            🛍️ ${data.name || "بدون اسم"}
           </h3>
 
           <p>
@@ -542,6 +571,11 @@ async function loadProducts(){
           <p>
             🏙 المدينة:
             ${data.city || "-"}
+          </p>
+
+          <p>
+            📱 التواصل:
+            ${data.phone || "-"}
           </p>
 
           ${
@@ -579,7 +613,7 @@ async function loadProducts(){
     console.error(error);
 
     productsBox.innerHTML =
-      "<p>حدث خطأ أثناء تحميل المنتجات.</p>";
+      "<p>❌ حدث خطأ أثناء تحميل المنتجات.</p>";
 
   }
 
@@ -587,7 +621,7 @@ async function loadProducts(){
 
 
 /* =====================================
-   إضافة منتج من الإدارة
+   إضافة منتج
 ===================================== */
 
 saveBtn.onclick =
@@ -645,14 +679,21 @@ async function(){
     await addDoc(
       collection(db,"products"),
       {
+
         name:name,
-        price:price,
+
+        price:Number(price) || 0,
+
         city:city,
+
         phone:phone,
+
         image:image,
+
         description:description,
 
         shopName:"مشتاق وليد"
+
       }
     );
 
@@ -662,29 +703,12 @@ async function(){
     );
 
 
-    document
-      .getElementById("name")
-      .value = "";
-
-    document
-      .getElementById("price")
-      .value = "";
-
-    document
-      .getElementById("city")
-      .value = "";
-
-    document
-      .getElementById("phone")
-      .value = "";
-
-    document
-      .getElementById("image")
-      .value = "";
-
-    document
-      .getElementById("description")
-      .value = "";
+    document.getElementById("name").value = "";
+    document.getElementById("price").value = "";
+    document.getElementById("city").value = "";
+    document.getElementById("phone").value = "";
+    document.getElementById("image").value = "";
+    document.getElementById("description").value = "";
 
 
     loadProducts();
@@ -705,7 +729,7 @@ async function(){
 
 
 /* =====================================
-   حذف منتج
+   حذف المنتج
 ===================================== */
 
 window.deleteProduct =
@@ -751,7 +775,7 @@ async function(id){
 
 
 /* =====================================
-   الطلبات
+   تحميل الطلبات
 ===================================== */
 
 async function loadOrders(){
@@ -766,30 +790,38 @@ async function loadOrders(){
         collection(db,"orders")
       );
 
+
     if(snap.empty){
 
       ordersBox.innerHTML =
-        "<p>لا توجد طلبات.</p>";
+        "<p>📭 لا توجد طلبات حالياً.</p>";
 
       return;
     }
 
+
     ordersBox.innerHTML = "";
+
 
     snap.forEach(item=>{
 
-      const data = item.data();
+      const data =
+        item.data();
 
-      // بيانات العميل
+
+      /* بيانات العميل */
+
       const customerName =
         data.name ||
         data.customerName ||
         "بدون اسم";
 
+
       const customerPhone =
         data.phone ||
         data.customerPhone ||
         "-";
+
 
       const customerAddress =
         data.address ||
@@ -797,7 +829,8 @@ async function loadOrders(){
         "-";
 
 
-      // المنتجات
+      /* المنتجات */
+
       const products =
         Array.isArray(data.products)
         ? data.products
@@ -806,17 +839,21 @@ async function loadOrders(){
 
       let productsHTML = "";
 
-      products.forEach(product => {
+
+      products.forEach(product=>{
 
         const name =
           product.name ||
           "منتج";
 
+
         const price =
           Number(product.price) || 0;
 
+
         const quantity =
           Number(product.quantity) || 1;
+
 
         const productTotal =
           Number(product.total) ||
@@ -825,16 +862,13 @@ async function loadOrders(){
 
         productsHTML += `
 
-          <div style="
-            background:#f5f5f5;
-            padding:10px;
-            margin:8px 0;
-            border-radius:8px;
-          ">
+          <div class="order-product">
 
-            🛍️ <strong>${name}</strong>
+            🛍️ <strong>
+              ${name}
+            </strong>
 
-            <br>
+            <br><br>
 
             📦 الكمية:
             ${quantity}
@@ -856,9 +890,13 @@ async function loadOrders(){
       });
 
 
+      /* إجمالي الطلب */
+
       const total =
         Number(data.total) || 0;
 
+
+      /* حالة الطلب */
 
       const status =
         data.status || "جديد";
@@ -871,19 +909,11 @@ async function loadOrders(){
 
         statusButton = `
 
-          <p style="
-            background:#e8f5e9;
-            color:#008000;
-            padding:12px;
-            border-radius:8px;
-            font-weight:bold;
-            text-align:center;
-            margin-top:10px;
-          ">
+          <div class="delivered">
 
             ✅ تم التوصيل
 
-          </p>
+          </div>
 
         `;
 
@@ -905,6 +935,8 @@ async function loadOrders(){
       }
 
 
+      /* عرض الطلب */
+
       ordersBox.innerHTML += `
 
         <div class="product">
@@ -923,7 +955,9 @@ async function loadOrders(){
             ${customerAddress}
           </p>
 
+
           <hr>
+
 
           <p>
 
@@ -933,33 +967,34 @@ async function loadOrders(){
 
           </p>
 
+
           ${
             productsHTML ||
-            "<p>لا توجد منتجات</p>"
+            "<p>لا توجد منتجات داخل الطلب.</p>"
           }
+
 
           <hr>
 
-          <p style="
-            font-size:20px;
-            font-weight:bold;
-            color:#009688;
-          ">
+
+          <p class="total">
 
             💵 إجمالي الطلب:
-            ${total} ريال
+            ${total}
+            ريال
 
           </p>
+
 
           <p>
 
+            📌 الحالة:
             <strong>
-              📌 الحالة:
+              ${status}
             </strong>
 
-            ${status}
-
           </p>
+
 
           ${statusButton}
 
@@ -984,43 +1019,21 @@ async function loadOrders(){
 
     console.error(error);
 
-    ordersBox.innerHTML =
-      "<p>حدث خطأ أثناء تحميل الطلبات.</p>";
+    ordersBox.innerHTML = `
 
-  }
+      <p style="color:red;font-weight:bold;">
 
-               }
+        ❌ حدث خطأ أثناء تحميل الطلبات.
 
-  
-    
-      
+      </p>
 
-  
+      <p style="color:#777;">
 
-    
+        ${error.message}
 
+      </p>
 
-
-
-    
-
-    
-
-
-      
-
-      
-
-        
-
-           
-  
-    }catch(error){
-
-    console.error(error);
-
-    ordersBox.innerHTML =
-      "<p>حدث خطأ أثناء تحميل الطلبات.</p>";
+    `;
 
   }
 
@@ -1038,6 +1051,7 @@ async function(id){
     confirm(
       "هل تريد حذف هذا الطلب؟"
     );
+
 
   if(!confirmDelete){
     return;
@@ -1118,7 +1132,7 @@ async function(id){
 
 onAuthStateChanged(
   auth,
-  (user) => {
+  (user)=>{
 
     if(!user){
 
@@ -1143,6 +1157,8 @@ onAuthStateChanged(
     }
 
 
+    /* تشغيل الأقسام */
+
     loadSellers();
 
     loadProducts();
@@ -1156,6 +1172,6 @@ onAuthStateChanged(
 
 </body>
 
-</html>
+  </html>
 
     
