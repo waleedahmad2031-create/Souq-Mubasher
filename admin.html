@@ -107,6 +107,8 @@ overflow-wrap:anywhere;
 
 .product img{
 width:120px;
+height:120px;
+object-fit:cover;
 border-radius:10px;
 margin-top:10px;
 }
@@ -121,12 +123,13 @@ color:#e53935;
 font-weight:bold;
 }
 
-.orderSummary{
-background:#e8f5e9;
+.orderBox{
+background:#fff;
 padding:15px;
-margin-top:12px;
+margin-bottom:15px;
 border-radius:10px;
-line-height:2;
+box-shadow:0 2px 5px rgba(0,0,0,.1);
+border-right:5px solid #009688;
 }
 
 .productOrder{
@@ -137,14 +140,20 @@ border-radius:8px;
 line-height:1.9;
 }
 
-.deliveryRules{
-background:#fff;
-border:1px solid #ddd;
-padding:10px;
-border-radius:8px;
+.totalBox{
+background:#e8f5e9;
+padding:15px;
+margin-top:12px;
+border-radius:10px;
+line-height:2;
+}
+
+.deliveryBox{
+background:#fff3e0;
+padding:12px;
 margin-top:10px;
-font-size:14px;
-line-height:1.9;
+border-radius:8px;
+line-height:1.8;
 }
 
 </style>
@@ -158,7 +167,6 @@ line-height:1.9;
 </header>
 
 <div class="container">
-
 
 <!-- ========================= -->
 <!-- إدارة البائعين -->
@@ -191,7 +199,7 @@ placeholder="اسم المنتج"
 <input
 id="price"
 type="number"
-placeholder="السعر"
+placeholder="سعر الكرتون"
 >
 
 <input
@@ -257,11 +265,9 @@ placeholder="وصف المنتج"
 
 import { db, auth } from "./firebase.js";
 
-
 import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
 
 import {
   collection,
@@ -271,7 +277,6 @@ import {
   updateDoc,
   doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
 
 
 /* =====================================
@@ -291,7 +296,6 @@ const sellersBox =
   document.getElementById("sellers");
 
 
-
 /* =====================================
    البائعون
 ===================================== */
@@ -308,19 +312,15 @@ async function loadSellers(){
         collection(db,"sellers")
       );
 
-
     if(snap.empty){
 
       sellersBox.innerHTML =
         "<p>لا يوجد بائعون.</p>";
 
       return;
-
     }
 
-
     sellersBox.innerHTML = "";
-
 
     snap.forEach(item=>{
 
@@ -333,12 +333,10 @@ async function loadSellers(){
       const status =
         seller.status || "active";
 
-
       const statusText =
         status === "active"
         ? "🟢 نشط"
         : "🔴 موقوف";
-
 
       const statusClass =
         status === "active"
@@ -374,7 +372,6 @@ async function loadSellers(){
             ${statusText}
           </p>
 
-
           ${
             status === "active"
 
@@ -382,6 +379,7 @@ async function loadSellers(){
 
             `
             <button
+              class="delete"
               onclick="changeSellerStatus(
                 '${sellerId}',
                 'inactive'
@@ -406,7 +404,6 @@ async function loadSellers(){
             `
           }
 
-
           <button
             class="delete"
             onclick="deleteSeller('${sellerId}')"
@@ -420,7 +417,6 @@ async function loadSellers(){
 
     });
 
-
   }catch(error){
 
     console.error(error);
@@ -433,7 +429,6 @@ async function loadSellers(){
 }
 
 
-
 /* =====================================
    حذف البائع
 ===================================== */
@@ -441,18 +436,13 @@ async function loadSellers(){
 window.deleteSeller =
 async function(id){
 
-  const confirmDelete =
-    confirm(
+  if(
+    !confirm(
       "⚠️ هل أنت متأكد من حذف هذا البائع؟"
-    );
-
-
-  if(!confirmDelete){
-
+    )
+  ){
     return;
-
   }
-
 
   try{
 
@@ -460,14 +450,11 @@ async function(id){
       doc(db,"sellers",id)
     );
 
-
     alert(
-      "تم حذف البائع من لوحة الإدارة ✅"
+      "تم حذف البائع ✅"
     );
 
-
     loadSellers();
-
 
   }catch(error){
 
@@ -483,7 +470,6 @@ async function(id){
 };
 
 
-
 /* =====================================
    تغيير حالة البائع
 ===================================== */
@@ -496,13 +482,9 @@ async function(id,status){
     ? "هل تريد إيقاف هذا البائع؟"
     : "هل تريد تفعيل هذا البائع؟";
 
-
   if(!confirm(message)){
-
     return;
-
   }
-
 
   try{
 
@@ -513,16 +495,13 @@ async function(id,status){
       }
     );
 
-
     alert(
       status === "inactive"
       ? "تم إيقاف الحساب ✅"
       : "تم تفعيل الحساب ✅"
     );
 
-
     loadSellers();
-
 
   }catch(error){
 
@@ -537,7 +516,6 @@ async function(id,status){
 };
 
 
-
 /* =====================================
    المنتجات
 ===================================== */
@@ -547,7 +525,6 @@ async function loadProducts(){
   productsBox.innerHTML =
     "جاري تحميل المنتجات...";
 
-
   try{
 
     const snap =
@@ -555,25 +532,20 @@ async function loadProducts(){
         collection(db,"products")
       );
 
-
     if(snap.empty){
 
       productsBox.innerHTML =
         "<p>لا توجد منتجات.</p>";
 
       return;
-
     }
 
-
     productsBox.innerHTML = "";
-
 
     snap.forEach(item=>{
 
       const data =
         item.data();
-
 
       productsBox.innerHTML += `
 
@@ -584,8 +556,8 @@ async function loadProducts(){
           </h3>
 
           <p>
-            💰 السعر:
-            ${data.price || 0}
+            💰 سعر الكرتون:
+            ${Number(data.price) || 0}
             ريال
           </p>
 
@@ -599,29 +571,22 @@ async function loadProducts(){
             ${data.city || "-"}
           </p>
 
-
           ${
             data.image
-
             ?
-
             `
             <img
               src="${data.image}"
               alt="صورة المنتج"
             >
             `
-
             :
-
             ""
           }
-
 
           <p>
             ${data.description || ""}
           </p>
-
 
           <button
             class="delete"
@@ -636,7 +601,6 @@ async function loadProducts(){
 
     });
 
-
   }catch(error){
 
     console.error(error);
@@ -647,7 +611,6 @@ async function loadProducts(){
   }
 
 }
-
 
 
 /* =====================================
@@ -663,13 +626,11 @@ async function(){
       .value
       .trim();
 
-
   const price =
     document
       .getElementById("price")
       .value
       .trim();
-
 
   const city =
     document
@@ -677,20 +638,17 @@ async function(){
       .value
       .trim();
 
-
   const phone =
     document
       .getElementById("phone")
       .value
       .trim();
 
-
   const image =
     document
       .getElementById("image")
       .value
       .trim();
-
 
   const description =
     document
@@ -706,7 +664,6 @@ async function(){
     );
 
     return;
-
   }
 
 
@@ -715,21 +672,13 @@ async function(){
     await addDoc(
       collection(db,"products"),
       {
-
         name:name,
-
-        price:Number(price || 0),
-
+        price:Number(price) || 0,
         city:city,
-
         phone:phone,
-
         image:image,
-
         description:description,
-
         shopName:"مشتاق وليد"
-
       }
     );
 
@@ -740,15 +689,10 @@ async function(){
 
 
     document.getElementById("name").value = "";
-
     document.getElementById("price").value = "";
-
     document.getElementById("city").value = "";
-
     document.getElementById("phone").value = "";
-
     document.getElementById("image").value = "";
-
     document.getElementById("description").value = "";
 
 
@@ -769,7 +713,6 @@ async function(){
 };
 
 
-
 /* =====================================
    حذف منتج
 ===================================== */
@@ -777,18 +720,13 @@ async function(){
 window.deleteProduct =
 async function(id){
 
-  const confirmDelete =
-    confirm(
+  if(
+    !confirm(
       "هل تريد حذف هذا المنتج؟"
-    );
-
-
-  if(!confirmDelete){
-
+    )
+  ){
     return;
-
   }
-
 
   try{
 
@@ -796,14 +734,11 @@ async function(id){
       doc(db,"products",id)
     );
 
-
     alert(
       "تم حذف المنتج ✅"
     );
 
-
     loadProducts();
-
 
   }catch(error){
 
@@ -819,16 +754,13 @@ async function(id){
 };
 
 
-
 /* =====================================
-   حساب رسوم التوصيل
+   حساب رسوم الكرتون
 ===================================== */
 
-function getDeliveryFee(price){
+function getDeliveryPerCarton(price){
 
-  price =
-    Number(price || 0);
-
+  price = Number(price) || 0;
 
   if(price < 1500){
 
@@ -836,18 +768,15 @@ function getDeliveryFee(price){
 
   }
 
-
   if(price < 2000){
 
     return 70;
 
   }
 
-
   return 100;
 
 }
-
 
 
 /* =====================================
@@ -859,7 +788,6 @@ async function loadOrders(){
   ordersBox.innerHTML =
     "جاري تحميل الطلبات...";
 
-
   try{
 
     const snap =
@@ -867,19 +795,15 @@ async function loadOrders(){
         collection(db,"orders")
       );
 
-
     if(snap.empty){
 
       ordersBox.innerHTML =
         "<p>لا توجد طلبات.</p>";
 
       return;
-
     }
 
-
     ordersBox.innerHTML = "";
-
 
     snap.forEach(item=>{
 
@@ -896,33 +820,28 @@ async function loadOrders(){
         data.customerName ||
         "بدون اسم";
 
-
       const customerPhone =
         data.phone ||
         data.customerPhone ||
         "-";
-
 
       const customerAddress =
         data.address ||
         data.customerAddress ||
         "-";
 
-
-      const customerCity =
+      const city =
         data.customerCity ||
         data.deliveryArea ||
         "إب";
 
+      const orderType =
+        data.orderType ||
+        "جملة";
 
       const deliveryTime =
         data.deliveryTime ||
         "غير محدد";
-
-
-      const orderType =
-        data.orderType ||
-        "جملة";
 
 
       /* ===============================
@@ -937,12 +856,9 @@ async function loadOrders(){
 
       let productsHTML = "";
 
-
       let calculatedDelivery = 0;
 
-
       let calculatedCartons = 0;
-
 
       let calculatedProductsTotal = 0;
 
@@ -955,21 +871,30 @@ async function loadOrders(){
 
 
         const price =
-          Number(product.price) ||
-          0;
+          Number(product.price) || 0;
 
+
+        /*
+          إذا كان quantity موجودًا
+          نستخدمه.
+
+          وإذا لم يكن موجودًا
+          نعتبر كل عنصر في السلة
+          كرتونًا واحدًا.
+        */
 
         const quantity =
-          Number(product.quantity) ||
-          1;
-
-
-        const deliveryPerCarton =
-          getDeliveryFee(price);
+          Number(product.quantity) > 0
+          ? Number(product.quantity)
+          : 1;
 
 
         const productTotal =
           price * quantity;
+
+
+        const deliveryPerCarton =
+          getDeliveryPerCarton(price);
 
 
         const productDelivery =
@@ -980,12 +905,12 @@ async function loadOrders(){
           quantity;
 
 
-        calculatedDelivery +=
-          productDelivery;
-
-
         calculatedProductsTotal +=
           productTotal;
+
+
+        calculatedDelivery +=
+          productDelivery;
 
 
         productsHTML += `
@@ -993,42 +918,35 @@ async function loadOrders(){
           <div class="productOrder">
 
             🛍️ <strong>
-            ${name}
+              ${name}
             </strong>
 
             <br>
 
             📦 عدد الكراتين:
             <strong>
-            ${quantity}
+              ${quantity}
             </strong>
 
             <br>
 
             💰 سعر الكرتون:
             <strong>
-            ${price} ريال
+              ${price} ريال
             </strong>
 
             <br>
 
-            🚚 توصيل الكرتون:
+            🚚 رسوم توصيل هذا المنتج:
             <strong>
-            ${deliveryPerCarton} ريال
-            </strong>
-
-            <br>
-
-            🚚 توصيل هذا المنتج:
-            <strong>
-            ${productDelivery} ريال
+              ${productDelivery} ريال
             </strong>
 
             <br>
 
             💵 إجمالي المنتج:
             <strong>
-            ${productTotal} ريال
+              ${productTotal} ريال
             </strong>
 
           </div>
@@ -1039,34 +957,38 @@ async function loadOrders(){
 
 
       /* ===============================
-         الإجماليات
+         إجمالي المنتجات
       =============================== */
 
       const productsTotal =
         calculatedProductsTotal;
 
 
+      /* ===============================
+         إجمالي التوصيل
+      =============================== */
+
       const deliveryTotal =
         calculatedDelivery;
 
 
-      const cartonsTotal =
-        calculatedCartons;
+      /* ===============================
+         الإجمالي النهائي
+      =============================== */
 
-
-      const finalTotal =
+      const total =
         productsTotal +
         deliveryTotal;
 
-
-      /* ===============================
-         حالة الطلب
-      =============================== */
 
       const status =
         data.status ||
         "جديد";
 
+
+      /* ===============================
+         زر الحالة
+      =============================== */
 
       let statusButton = "";
 
@@ -1115,49 +1037,38 @@ async function loadOrders(){
 
       ordersBox.innerHTML += `
 
-        <div class="product">
+        <div class="orderBox">
 
           <h3>
             👤 ${customerName}
           </h3>
-
 
           <p>
             📱 الجوال:
             ${customerPhone}
           </p>
 
-
           <p>
             📍 المدينة:
-            ${customerCity}
+            ${city}
           </p>
-
 
           <p>
             🏠 العنوان:
             ${customerAddress}
           </p>
 
-
           <p>
             📦 نوع الطلب:
-            <strong>
             ${orderType}
-            </strong>
           </p>
-
 
           <p>
             🕐 وقت التوصيل:
-            <strong>
             ${deliveryTime}
-            </strong>
           </p>
 
-
-          <hr style="margin:15px 0;">
-
+          <hr style="margin:12px 0;">
 
           <p>
             <strong>
@@ -1165,25 +1076,24 @@ async function loadOrders(){
             </strong>
           </p>
 
-
           ${
             productsHTML ||
             "<p>لا توجد منتجات</p>"
           }
 
 
-          <div class="orderSummary">
+          <div class="totalBox">
 
             📦 <strong>
-            إجمالي الكراتين:
+              إجمالي الكراتين:
             </strong>
 
-            ${cartonsTotal}
+            ${calculatedCartons}
 
             <br>
 
             🛍️ <strong>
-            مجموع المنتجات:
+              مجموع المنتجات:
             </strong>
 
             ${productsTotal} ريال
@@ -1191,7 +1101,7 @@ async function loadOrders(){
             <br>
 
             🚚 <strong>
-            إجمالي رسوم التوصيل:
+              إجمالي رسوم التوصيل:
             </strong>
 
             ${deliveryTotal} ريال
@@ -1199,42 +1109,23 @@ async function loadOrders(){
             <br>
 
             💰 <strong>
-            الإجمالي النهائي:
+              الإجمالي النهائي:
             </strong>
 
-            ${finalTotal} ريال
+            ${total} ريال
 
           </div>
 
 
-          <div class="deliveryRules">
+          <div class="deliveryBox">
 
-            📋 <strong>حساب التوصيل:</strong>
+            📋 <strong>
+              حالة الطلب:
+            </strong>
 
-            <br>
-
-            أقل من 1500 ريال = 50 ريال للكرتون
-
-            <br>
-
-            من 1500 إلى أقل من 2000 = 70 ريال للكرتون
-
-            <br>
-
-            2000 ريال فأكثر = 100 ريال للكرتون
-
-          </div>
-
-
-          <p style="
-            margin-top:12px;
-            font-weight:bold;
-          ">
-
-            📌 الحالة:
             ${status}
 
-          </p>
+          </div>
 
 
           ${statusButton}
@@ -1261,28 +1152,17 @@ async function loadOrders(){
     console.error(error);
 
     ordersBox.innerHTML = `
-
-      <p style="
-        color:#e53935;
-        background:#ffebee;
-        padding:12px;
-        border-radius:8px;
-      ">
-
+      <p>
         حدث خطأ أثناء تحميل الطلبات.
-
-        <br><br>
-
-        ${error.message}
-
       </p>
-
+      <p>
+        ${error.message}
+      </p>
     `;
 
   }
 
 }
-
 
 
 /* =====================================
@@ -1292,16 +1172,12 @@ async function loadOrders(){
 window.deleteOrder =
 async function(id){
 
-  const confirmDelete =
-    confirm(
+  if(
+    !confirm(
       "هل تريد حذف هذا الطلب؟"
-    );
-
-
-  if(!confirmDelete){
-
+    )
+  ){
     return;
-
   }
 
 
@@ -1332,7 +1208,6 @@ async function(id){
   }
 
 };
-
 
 
 /* =====================================
@@ -1374,7 +1249,6 @@ async function(id){
 };
 
 
-
 /* =====================================
    تشغيل لوحة الإدارة
 ===================================== */
@@ -1390,7 +1264,6 @@ onAuthStateChanged(
       );
 
       return;
-
     }
 
 
@@ -1404,7 +1277,6 @@ onAuthStateChanged(
       );
 
       return;
-
     }
 
 
@@ -1420,7 +1292,6 @@ onAuthStateChanged(
 </script>
 
 </body>
-
 </html>
 
     
