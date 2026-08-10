@@ -2,7 +2,9 @@ import { db } from "./firebase.js";
 
 import {
   collection,
-  getDocs
+  getDocs,
+  addDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
@@ -10,6 +12,30 @@ const chat = document.getElementById("chat");
 const input = document.getElementById("messageInput");
 const sendButton = document.getElementById("sendButton");
 
+
+// رقم واتساب صاحب المتجر
+const WHATSAPP_NUMBER = "966550496391";
+
+
+// الطلب الحالي
+let currentOrder = [];
+
+
+// مرحلة الطلب
+let orderStage = "products";
+
+
+// بيانات العميل
+let customer = {
+  name: "",
+  phone: "",
+  address: ""
+};
+
+
+// ============================
+// إضافة رسالة
+// ============================
 
 function addMessage(text, type) {
 
@@ -21,11 +47,17 @@ function addMessage(text, type) {
 
   chat.appendChild(message);
 
-  window.scrollTo(0, document.body.scrollHeight);
+  window.scrollTo(
+    0,
+    document.body.scrollHeight
+  );
 }
 
 
+// ============================
 // تحويل الأرقام العربية
+// ============================
+
 function numbers(text) {
 
   const arabic = "٠١٢٣٤٥٦٧٨٩";
@@ -40,7 +72,10 @@ function numbers(text) {
 }
 
 
+// ============================
 // تنظيف النص
+// ============================
+
 function clean(text) {
 
   return numbers(text)
@@ -53,12 +88,71 @@ function clean(text) {
 }
 
 
-// قراءة المنتجات من Firebase
+// ============================
+// هل موافقة؟
+/ ============================
+
+function isYes(text) {
+
+  const value = clean(text);
+
+  const words = [
+    "نعم",
+    "اي",
+    "ايوه",
+    "ايوة",
+    "تمام",
+    "موافق",
+    "اكيد",
+    "اتمام الطلب",
+    "اتم الطلب",
+    "اريد اتمام الطلب",
+    "أريد إتمام الطلب",
+    "اتمام"
+  ];
+
+  return words.some(word =>
+    value.includes(clean(word))
+  );
+}
+
+
+// ============================
+// هل إلغاء؟
+/ ============================
+
+function isNo(text) {
+
+  const value = clean(text);
+
+  const words = [
+    "لا",
+    "الغاء",
+    "الغ",
+    "لا اريد",
+    "ما اريد",
+    "مش اريد"
+  ];
+
+  return words.some(word =>
+    value === clean(word) ||
+    value.includes(clean(word))
+  );
+}
+
+
+// ============================
+// تحميل المنتجات
+// ============================
+
 async function getProducts() {
 
   const result = [];
 
-  const names = ["products", "منتجات"];
+  const names = [
+    "products",
+    "منتجات"
+  ];
 
   for (const collectionName of names) {
 
@@ -86,16 +180,35 @@ async function getProducts() {
 
         if (!name) return;
 
-        result.push({
-          name: name,
-          price: price
-        });
+
+        const exists =
+          result.some(product =>
+            clean(product.name) === clean(name)
+          );
+
+
+        if (!exists) {
+
+          result.push({
+
+            id: doc.id,
+
+            name: name,
+
+            price: price
+
+          });
+
+        }
 
       });
 
     } catch(error) {
 
-      console.error(error);
+      console.error(
+        "خطأ في تحميل المنتجات:",
+        error
+      );
 
     }
 
@@ -105,74 +218,474 @@ async function getProducts() {
 }
 
 
-// استخراج الكمية
-function getQuantity(text) {
+// ============================
+// إيجاد الأرقام المرتبطة بالمنتج
+// ============================
 
-  const value = clean(text);
+function getQuantityForPosition(
+  text,
+  startPosition
+) {
 
-  const match = value.match(/\d+/);
+  const value =
+    clean(text);
 
-  if (match) {
 
-    return Number(match[0]);
+  // نأخذ الجزء الذي قبل اسم المنتج
+  const before =
+    value.substring(
+      Math.max(0, startPosition - 10),
+      startPosition
+    );
+
+
+  // آخر رقم قبل المنتج
+  const matches =
+    before.match(/\d+/g);
+
+
+  if (matches && matches.length) {
+
+    return Number(
+      matches[matches.length - 1]
+    );
 
   }
+
 
   return 1;
 }
 
 
-// إزالة الرقم وكلمات الطلب
-function getProductText(text) {
+// ============================
+// البحث عن أكثر من منتج
+// ============================
 
-  return clean(text)
-    .replace(/\d+/g, "")
-    .replace(/اريد/g, "")
-    .replace(/أريد/g, "")
-    .replace(/اشتي/g, "")
-    .replace(/ابغى/g, "")
-    .replace(/ابي/g, "")
-    .replace(/عدد/g, "")
-    .replace(/حبه/g, "")
-    .replace(/حبات/g, "")
-    .trim();
+function findProducts(
+  text,
+  products
+) {
 
-}
+  const normalized =
+    clean(text);
 
 
-// البحث عن المنتج
-async function findProduct(text) {
+  const found = [];
 
-  const products = await getProducts();
 
-  const productText =
-    getProductText(text);
+  // الأطول أولًا
+  const sorted =
+    [...products].sort(
+      (a, b) =>
+        clean(b.name).length -
+        clean(a.name).length
+    );
 
-  for (const product of products) {
+
+  for (const product of sorted) {
 
     const productName =
       clean(product.name);
 
-    if (
-      productName.includes(productText) ||
-      productText.includes(productName)
-    ) {
 
-      return product;
+    if (!productName) continue;
+
+
+    let position =
+      normalized.indexOf(productName);
+
+
+    while (position !== -1) {
+
+      const quantity =
+        getQuantityForPosition(
+          text,
+          position
+        );
+
+
+      const price =
+        Number(product.price) || 0;
+
+
+      const total =
+        price * quantity;
+
+
+      // لا نكرر نفس المنتج
+      const alreadyFound =
+        found.some(item =>
+          item.id === product.id
+        );
+
+
+      if (!alreadyFound) {
+
+        found.push({
+
+          id: product.id,
+
+          name: product.name,
+
+          price: price,
+
+          quantity: quantity,
+
+          total: total
+
+        });
+
+      }
+
+
+      position =
+        normalized.indexOf(
+          productName,
+          position + productName.length
+        );
 
     }
 
   }
 
-  return null;
+
+  // ترتيب المنتجات حسب ظهورها في الرسالة
+  found.sort(function(a, b) {
+
+    return normalized.indexOf(
+      clean(a.name)
+    ) -
+    normalized.indexOf(
+      clean(b.name)
+    );
+
+  });
+
+
+  return found;
 }
 
 
+// ============================
+// عرض الطلب
+// ============================
+
+function showOrder() {
+
+  let message =
+    "وجدت لك المنتجات التالية ✅\n\n";
+
+
+  let totalOrder = 0;
+
+
+  currentOrder.forEach(function(product) {
+
+    totalOrder += product.total;
+
+
+    message +=
+      "🛍️ المنتج: " +
+      product.name +
+
+      "\n📦 الكمية: " +
+      product.quantity +
+
+      "\n💰 سعر الوحدة: " +
+      product.price +
+      " ريال" +
+
+      "\n💵 إجمالي المنتج: " +
+      product.total +
+      " ريال\n\n";
+
+  });
+
+
+  message +=
+    "━━━━━━━━━━━━\n" +
+
+    "💰 إجمالي الطلب: " +
+    totalOrder +
+    " ريال\n\n" +
+
+    "هل تريد إتمام الطلب؟";
+
+
+  addMessage(
+    message,
+    "bot"
+  );
+}
+
+
+// ============================
+// اسم العميل
+// ============================
+
+function askName() {
+
+  orderStage = "name";
+
+  addMessage(
+    "ممتاز 👍\n\nما اسمك؟",
+    "bot"
+  );
+}
+
+
+// ============================
+// الجوال
+// ============================
+
+function askPhone() {
+
+  orderStage = "phone";
+
+  addMessage(
+    "شكرًا 🌹\n\nأرسل رقم الجوال.",
+    "bot"
+  );
+}
+
+
+// ============================
+// العنوان
+// ============================
+
+function askAddress() {
+
+  orderStage = "address";
+
+  addMessage(
+    "تمام 👍\n\nأرسل عنوان التوصيل بالتفصيل.",
+    "bot"
+  );
+}
+
+
+// ============================
+// مراجعة الطلب
+// ============================
+
+function showFinalOrder() {
+
+  let message =
+    "📋 مراجعة الطلب\n\n";
+
+
+  currentOrder.forEach(function(product) {
+
+    message +=
+      "🛍️ " +
+      product.name +
+      " × " +
+      product.quantity +
+      " = " +
+      product.total +
+      " ريال\n";
+
+  });
+
+
+  const total =
+    currentOrder.reduce(
+      (sum, product) =>
+        sum + product.total,
+      0
+    );
+
+
+  message +=
+    "\n💰 الإجمالي: " +
+    total +
+    " ريال\n\n" +
+
+    "👤 الاسم: " +
+    customer.name +
+
+    "\n📱 الجوال: " +
+    customer.phone +
+
+    "\n📍 العنوان: " +
+    customer.address +
+
+    "\n\nهل تؤكد إرسال الطلب؟";
+
+
+  orderStage =
+    "finalConfirm";
+
+
+  addMessage(
+    message,
+    "bot"
+  );
+}
+
+
+// ============================
+// حفظ الطلب
+// ============================
+
+async function saveOrder() {
+
+  const total =
+    currentOrder.reduce(
+      (sum, product) =>
+        sum + product.total,
+      0
+    );
+
+
+  const orderData = {
+
+    name: customer.name,
+
+    phone: customer.phone,
+
+    address: customer.address,
+
+    products: currentOrder,
+
+    total: total,
+
+    status: "جديد",
+
+    source: "طلب بواسطة المساعد الذكي",
+
+    createdAt: serverTimestamp()
+
+  };
+
+
+  try {
+
+    await addDoc(
+      collection(db, "orders"),
+      orderData
+    );
+
+
+    addMessage(
+      "✅ تم تسجيل طلبك بنجاح.\n\n" +
+      "📦 تم وضع الطلب في نظام الطلبات.\n\n" +
+      "📱 وسيتم فتح واتساب لإرسال تفاصيل الطلب.",
+      "bot"
+    );
+
+
+    sendWhatsApp(
+      orderData
+    );
+
+
+    // إعادة البداية
+    currentOrder = [];
+
+    customer = {
+      name: "",
+      phone: "",
+      address: ""
+    };
+
+    orderStage =
+      "products";
+
+
+  } catch(error) {
+
+    console.error(
+      "خطأ في حفظ الطلب:",
+      error
+    );
+
+
+    addMessage(
+      "❌ حدث خطأ أثناء تسجيل الطلب.\n\nحاول مرة أخرى.",
+      "bot"
+    );
+
+  }
+
+}
+
+
+// ============================
+// إرسال واتساب
+// ============================
+
+function sendWhatsApp(order) {
+
+  let message =
+    "🛒 طلب جديد من سوق مباشر\n\n";
+
+
+  message +=
+    "👤 الاسم: " +
+    order.name +
+    "\n";
+
+
+  message +=
+    "📱 الجوال: " +
+    order.phone +
+    "\n";
+
+
+  message +=
+    "📍 العنوان: " +
+    order.address +
+    "\n\n";
+
+
+  message +=
+    "🛍️ المنتجات:\n";
+
+
+  order.products.forEach(function(product) {
+
+    message +=
+      "- " +
+      product.name +
+      " × " +
+      product.quantity +
+      " = " +
+      product.total +
+      " ريال\n";
+
+  });
+
+
+  message +=
+    "\n💰 إجمالي الطلب: " +
+    order.total +
+    " ريال";
+
+
+  const url =
+    "https://wa.me/" +
+    WHATSAPP_NUMBER +
+    "?text=" +
+    encodeURIComponent(message);
+
+
+  window.open(
+    url,
+    "_blank"
+  );
+}
+
+
+// ============================
 // إرسال الرسالة
+// ============================
+
 async function sendMessage() {
 
   const text =
     input.value.trim();
+
 
   if (!text) return;
 
@@ -182,84 +695,187 @@ async function sendMessage() {
     "user"
   );
 
+
   input.value = "";
 
 
-  addMessage(
-    "🔎 أبحث عن المنتج...",
-    "bot"
-  );
+  // ==========================
+  // إذا كنا نطلب اسم العميل
+  // ==========================
 
+  if (orderStage === "name") {
 
-  const product =
-    await findProduct(text);
+    customer.name =
+      text;
 
+    askPhone();
 
-  // حذف رسالة البحث
-  const messages =
-    chat.querySelectorAll(".bot");
-
-  if (messages.length) {
-
-    messages[
-      messages.length - 1
-    ].remove();
-
+    return;
   }
 
 
-  if (!product) {
+  // ==========================
+  // رقم الجوال
+  // ==========================
+
+  if (orderStage === "phone") {
+
+    customer.phone =
+      text;
+
+    askAddress();
+
+    return;
+  }
+
+
+  // ==========================
+  // العنوان
+  // ==========================
+
+  if (orderStage === "address") {
+
+    customer.address =
+      text;
+
+    showFinalOrder();
+
+    return;
+  }
+
+
+  // ==========================
+  // التأكيد النهائي
+  // ==========================
+
+  if (orderStage === "finalConfirm") {
+
+    if (isYes(text)) {
+
+      addMessage(
+        "⏳ جاري تسجيل الطلب...",
+        "bot"
+      );
+
+      await saveOrder();
+
+      return;
+    }
+
+
+    if (isNo(text)) {
+
+      currentOrder = [];
+
+      orderStage =
+        "products";
+
+      addMessage(
+        "تم إلغاء الطلب 👍\n\nيمكنك كتابة طلب جديد.",
+        "bot"
+      );
+
+      return;
+    }
+
 
     addMessage(
-      "❌ لم أجد هذا المنتج في المتجر.",
+      "اكتب «نعم» لتأكيد الطلب أو «لا» لإلغائه.",
       "bot"
     );
 
     return;
-
   }
 
 
-  const quantity =
-    getQuantity(text);
+  // ==========================
+  // إتمام الطلب بعد عرض المنتجات
+  // ==========================
+
+  if (
+    currentOrder.length > 0 &&
+    isYes(text)
+  ) {
+
+    askName();
+
+    return;
+  }
 
 
-  const total =
-    product.price * quantity;
+  // ==========================
+  // مرحلة المنتجات
+  // ==========================
+
+  if (orderStage === "products") {
+
+    addMessage(
+      "🔎 أبحث لك عن المنتجات...",
+      "bot"
+    );
 
 
-  addMessage(
+    const products =
+      await getProducts();
 
-    "وجدت المنتج ✅\n\n" +
 
-    "🛍️ المنتج: " +
-    product.name +
+    const found =
+      findProducts(
+        text,
+        products
+      );
 
-    "\n📦 الكمية: " +
-    quantity +
 
-    "\n💰 سعر الوحدة: " +
-    product.price +
-    " ريال" +
+    // حذف رسالة البحث
+    const messages =
+      chat.querySelectorAll(".bot");
 
-    "\n💵 الإجمالي: " +
-    total +
-    " ريال" +
 
-    "\n\nهل تريد إتمام الطلب؟",
+    if (messages.length) {
 
-    "bot"
+      messages[
+        messages.length - 1
+      ].remove();
 
-  );
+    }
+
+
+    if (!found.length) {
+
+      addMessage(
+        "❌ لم أجد أي منتج من طلبك.\n\n" +
+        "تأكد من كتابة اسم المنتج كما هو موجود في المتجر.",
+        "bot"
+      );
+
+      return;
+    }
+
+
+    currentOrder =
+      found;
+
+
+    showOrder();
+
+  }
 
 }
 
+
+// ============================
+// زر الإرسال
+// ============================
 
 sendButton.addEventListener(
   "click",
   sendMessage
 );
 
+
+// ============================
+// زر Enter
+// ============================
 
 input.addEventListener(
   "keydown",
