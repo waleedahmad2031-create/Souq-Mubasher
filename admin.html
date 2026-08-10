@@ -332,7 +332,7 @@ document.getElementById("orders");
 
 const sellersBox =
 document.getElementById("sellers");
-
+let editingProductId = null;
 
 /* =====================================
    البائعون
@@ -627,6 +627,12 @@ alt="صورة المنتج"
 <p>
 ${data.description || ""}
 </p>
+
+<button
+onclick="editProduct('${item.id}')"
+>
+✏️ تعديل المنتج
+</button>
 
 <button
 class="delete"
