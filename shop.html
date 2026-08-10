@@ -1,14 +1,5 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-
-<head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>سوق مباشر</title>
-
-<style>
+<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>سوق مباشر</title><style>
 
 body{
 font-family:Tahoma,Arial,sans-serif;
@@ -60,13 +51,64 @@ opacity:1;
 
 }
 
+/* قسم طرق الطلب */
+
+.order-methods{
+background:white;
+margin:15px;
+padding:15px;
+border-radius:12px;
+box-shadow:0 2px 6px rgba(0,0,0,.12);
+text-align:center;
+}
+
+.order-methods h2{
+margin-top:0;
+color:#333;
+font-size:21px;
+}
+
+.order-buttons{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+justify-content:center;
+}
+
+.order-button{
+display:block;
+flex:1;
+min-width:140px;
+padding:14px 10px;
+border-radius:10px;
+text-decoration:none;
+font-size:17px;
+font-weight:bold;
+color:white;
+}
+
+.normal-order{
+background:#009688;
+}
+
+.ai-order{
+background:#673ab7;
+}
+
+.order-button span{
+display:block;
+font-size:13px;
+font-weight:normal;
+margin-top:5px;
+}
+
+/* المنتجات */
 
 #products{
 padding:15px;
 display:grid;
 gap:15px;
 }
-
 
 .product{
 background:#fff;
@@ -76,7 +118,6 @@ box-shadow:0 2px 5px rgba(0,0,0,.1);
 text-align:center;
 }
 
-
 .product img{
 width:150px;
 height:150px;
@@ -84,19 +125,7 @@ object-fit:cover;
 border-radius:10px;
 }
 
-
-</style>
-
-</head>
-
-
-<body>
-
-
-<header>
-
-🛒 سوق مباشر
-
+</style></head><body><header>🛒 سوق مباشر
 
 <a href="cart.html" style="
 display:block;
@@ -106,95 +135,45 @@ text-decoration:none;
 font-size:18px;
 ">
 
-🛍️ اختر منتجاتك ثم اضغط هنا (<span id="cartCount">0</span>)
+🛍️ اختر منتجاتك ثم اضغط هنا
+(<span id="cartCount">0</span>)
 
-</a>
+</a></header><div class="banner"><div class="slide">🛒 سوق مباشر
 
-
-</header>
-
-
-
-<div class="banner">
-
-
-<div class="slide">
-
-🛒 سوق مباشر
-
-<br>
-
-<span>
+<br><span>
 كل احتياجاتك في مكان واحد
-</span>
+</span></div><div class="slide">🚚 تسوق بسهولة
 
-</div>
-
-
-
-<div class="slide">
-
-🚚 تسوق بسهولة
-
-<br>
-
-<span>
+<br><span>
 اطلب منتجاتك ونحن نسهل لك الوصول إليها
-</span>
+</span></div><div class="slide">⭐ خيارات أكثر... وقت أقل
 
-</div>
-
-
-
-<div class="slide">
-
-⭐ خيارات أكثر... وقت أقل
-
-<br>
+<br><span>
+منتجات متنوعة وأسعار مناسبة
+</span></div></div><!-- قسم طرق الطلب --><div class="order-methods"><h2>🛍️ اختر طريقة الطلب</h2><div class="order-buttons"><a href="cart.html" class="order-button normal-order">🛒 طلب عادي
 
 <span>
-منتجات متنوعة وأسعار مناسبة
-</span>
+اختر المنتجات وأرسل طلبك من السلة
+</span></a><a href="assistant.html" class="order-button ai-order">🤖 طلب بواسطة المساعد
 
-</div>
+<span>
+اكتب ما تريد ودع المساعد يساعدك
+</span></a></div></div><div id="products">جاري تحميل المنتجات...
 
-
-</div>
-
-
-
-
-<div id="products">
-
-جاري تحميل المنتجات...
-
-</div>
-
-
-
-
-<script type="module" src="app.js"></script>
-
-
-
-<script>
+</div><script type="module" src="app.js"></script><script>
 
 
 function updateCartCount(){
 
-
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-
 let count = document.getElementById("cartCount");
-
 
 if(count){
 
 count.innerText = cart.length;
 
 }
-
 
 }
 
@@ -203,18 +182,14 @@ updateCartCount();
 
 
 
-
 let slides = document.querySelectorAll(".slide");
 
 let index = 0;
 
 
-
 setInterval(()=>{
 
-
 slides[index].style.display="none";
-
 
 index++;
 
@@ -229,15 +204,7 @@ index=0;
 slides[index].style.display="block";
 
 
-
 },3000);
 
 
-
-</script>
-
-
-
-</body>
-
-</html>
+</script></body></html>
