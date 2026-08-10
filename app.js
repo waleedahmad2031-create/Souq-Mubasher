@@ -1,9 +1,11 @@
+
 import { db } from "./firebase.js";
 
 import {
   collection,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 
 const productsBox = document.getElementById("products");
 
@@ -13,7 +15,7 @@ window.productsData = {};
 
 
 // ===============================
-// تحميل المنتجات بشكل مباشر
+// تحميل المنتجات
 // ===============================
 
 function loadProducts() {
@@ -117,7 +119,7 @@ function loadProducts() {
 
 
 // ===============================
-// إضافة للسلة
+// إضافة المنتج للسلة
 // ===============================
 
 window.addToCart = function(id) {
@@ -138,23 +140,41 @@ window.addToCart = function(id) {
   }
 
 
-  cart.push({
+  // البحث عن المنتج إذا كان موجودًا
+  const existingItem =
+    cart.find(item => item.id === id);
 
-    id: id,
 
-    name: product.name || "",
+  if (existingItem) {
 
-    price: Number(product.price || 0),
+    // زيادة عدد الكراتين
+    existingItem.quantity =
+      Number(existingItem.quantity || 1) + 1;
 
-    image: product.image || "",
+  } else {
 
-    city: product.city || "",
+    // إضافة المنتج لأول مرة
+    cart.push({
 
-    description: product.description || "",
+      id: id,
 
-    shopName: product.shopName || ""
+      name: product.name || "",
 
-  });
+      price: Number(product.price || 0),
+
+      image: product.image || "",
+
+      city: product.city || "",
+
+      description: product.description || "",
+
+      shopName: product.shopName || "",
+
+      quantity: 1
+
+    });
+
+  }
 
 
   localStorage.setItem(
@@ -163,25 +183,16 @@ window.addToCart = function(id) {
   );
 
 
-  const count =
-    document.getElementById("cartCount");
+  updateCartCount();
 
 
-  if (count) {
-
-    count.innerText =
-      cart.length;
-
-  }
-
-
-  alert("✅ تمت إضافة المنتج إلى السلة");
+  alert("✅ تمت إضافة الكرتون إلى السلة");
 
 };
 
 
 // ===============================
-// عداد السلة
+// عداد الكراتين في السلة
 // ===============================
 
 function updateCartCount() {
@@ -192,8 +203,15 @@ function updateCartCount() {
 
   if (count) {
 
+    const totalQuantity =
+      cart.reduce(
+        (sum, item) =>
+          sum + Number(item.quantity || 1),
+        0
+      );
+
     count.innerText =
-      cart.length;
+      totalQuantity;
 
   }
 
