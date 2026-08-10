@@ -1,5 +1,14 @@
-<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0"><title>إتمام الطلب | سوق مباشر</title><style>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>إتمام الطلب | سوق مباشر</title>
+
+<style>
 
 *{
 margin:0;
@@ -39,7 +48,7 @@ background:#e8f5e9;
 padding:15px;
 border-radius:10px;
 margin:15px 0;
-line-height:1.8;
+line-height:1.9;
 }
 
 .totalBox{
@@ -62,13 +71,15 @@ padding-top:10px;
 }
 
 input,
-textarea{
+textarea,
+select{
 width:100%;
 padding:12px;
 margin-top:12px;
 border:1px solid #ccc;
 border-radius:8px;
 font-size:16px;
+background:#fff;
 }
 
 button{
@@ -87,26 +98,108 @@ button:hover{
 background:#00796b;
 }
 
-</style></head><body><header>
-📦 إتمام الطلب
-</header><div class="container"><div class="card"><h2>بيانات العميل</h2><div class="infoBox">📍 <strong>منطقة التوصيل:</strong>
-حي منفوحة – الرياض
+</style>
 
-<br>🚚 <strong>رسوم التوصيل:</strong>
-5 ريال
+</head>
 
-</div><input id="customerName" placeholder="الاسم"><input id="customerPhone" placeholder="رقم الجوال"><textarea id="customerAddress" placeholder="العنوان بالتفصيل داخل حي منفوحة"></textarea><div class="totalBox"><p>
+<body>
+
+<header>
+📦 إتمام طلب الجملة
+</header>
+
+<div class="container">
+
+<div class="card">
+
+<h2>
+بيانات العميل
+</h2>
+
+<div class="infoBox">
+
+📍 <strong>منطقة التوصيل:</strong>
+مدينة إب
+
+<br>
+
+📦 <strong>نوع الطلب:</strong>
+طلب جملة
+
+<br>
+
+🚚 <strong>التوصيل المسائي:</strong>
+من بعد المغرب حتى الساعة 10 مساءً
+
+<br>
+
+☀️ <strong>الفترة الصباحية:</strong>
+مخصصة للمشاوير والتوصيلات الأخرى
+
+</div>
+
+<input
+id="customerName"
+placeholder="اسم العميل"
+>
+
+<input
+id="customerPhone"
+placeholder="رقم الجوال"
+type="tel"
+>
+
+<textarea
+id="customerAddress"
+placeholder="العنوان بالتفصيل داخل مدينة إب"
+></textarea>
+
+<select id="deliveryTime">
+
+<option value="">
+اختر وقت التوصيل
+</option>
+
+<option value="مساءً - من بعد المغرب حتى 10 مساءً">
+🌙 مساءً - من بعد المغرب حتى 10 مساءً
+</option>
+
+</select>
+
+<div class="totalBox">
+
+<p>
 🛍️ مجموع المنتجات:
-<strong><span id="productsTotal">0</span> ريال</strong>
-</p><p>
+<strong>
+<span id="productsTotal">0</span> ريال
+</strong>
+</p>
+
+<p>
 🚚 التوصيل:
-<strong>5 ريال</strong>
-</p><p class="finalTotal">
-💰 الإجمالي النهائي:
-<strong><span id="totalPrice">0</span> ريال</strong>
-</p></div><button id="sendOrder">
-إرسال الطلب
-</button></div></div><script type="module">
+<strong>
+يتم التنسيق لطلبات الجملة
+</strong>
+</p>
+
+<p class="finalTotal">
+💰 إجمالي المنتجات:
+<strong>
+<span id="totalPrice">0</span> ريال
+</strong>
+</p>
+
+</div>
+
+<button id="sendOrder">
+إرسال طلب الجملة
+</button>
+
+</div>
+
+</div>
+
+<script type="module">
 
 import { db } from "./firebase.js";
 
@@ -116,11 +209,13 @@ addDoc,
 serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-const DELIVERY_FEE = 5;
+const cart =
+JSON.parse(localStorage.getItem("cart")) || [];
+
 
 let productsTotal = 0;
+
 
 cart.forEach(item => {
 
@@ -128,7 +223,9 @@ productsTotal += Number(item.price || 0);
 
 });
 
-const finalTotal = productsTotal + DELIVERY_FEE;
+
+const finalTotal = productsTotal;
+
 
 document.getElementById("productsTotal").textContent =
 productsTotal;
@@ -136,24 +233,34 @@ productsTotal;
 document.getElementById("totalPrice").textContent =
 finalTotal;
 
+
 document.getElementById("sendOrder").onclick = async () => {
+
 
 const name =
 document.getElementById("customerName").value.trim();
 
+
 const phone =
 document.getElementById("customerPhone").value.trim();
+
 
 const address =
 document.getElementById("customerAddress").value.trim();
 
-if(!name || !phone || !address){
 
-alert("يرجى تعبئة جميع البيانات");
+const deliveryTime =
+document.getElementById("deliveryTime").value;
+
+
+if(!name || !phone || !address || !deliveryTime){
+
+alert("يرجى تعبئة جميع البيانات واختيار وقت التوصيل");
 
 return;
 
 }
+
 
 if(cart.length === 0){
 
@@ -163,21 +270,29 @@ return;
 
 }
 
+
 try{
 
-await addDoc(collection(db,"orders"),{
+
+await addDoc(
+collection(db,"orders"),
+{
 
 customerName:name,
 
 customerPhone:phone,
 
-customerCity:"حي منفوحة – الرياض",
+customerCity:"إب",
 
 customerAddress:address,
 
-deliveryArea:"حي منفوحة – الرياض",
+deliveryArea:"مدينة إب",
 
-deliveryFee:DELIVERY_FEE,
+orderType:"جملة",
+
+deliveryTime:deliveryTime,
+
+deliveryFee:0,
 
 products:cart,
 
@@ -189,33 +304,55 @@ status:"جديد",
 
 createdAt:serverTimestamp()
 
-});
+}
+);
 
-let message = `🛒 طلب جديد من سوق مباشر
+
+let message = `🛒 طلب جملة جديد من سوق مباشر
 
 الاسم: ${name}
+
 الجوال: ${phone}
 
 📍 منطقة التوصيل:
-حي منفوحة – الرياض
+مدينة إب
+
+📦 نوع الطلب:
+جملة
 
 العنوان:
 ${address}
 
-🛍️ مجموع المنتجات: ${productsTotal} ريال
-🚚 رسوم التوصيل: ${DELIVERY_FEE} ريال
-💰 الإجمالي النهائي: ${finalTotal} ريال`;
+🕐 وقت التوصيل:
+${deliveryTime}
+
+🛍️ مجموع المنتجات:
+${productsTotal} ريال
+
+🚚 التوصيل:
+يتم التنسيق لطلبات الجملة
+
+💰 إجمالي المنتجات:
+${finalTotal} ريال`;
+
 
 window.open(
+
 `https://wa.me/966550496391?text=${encodeURIComponent(message)}`,
+
 "_blank"
+
 );
+
 
 localStorage.removeItem("cart");
 
-alert("تم إرسال الطلب بنجاح");
+
+alert("تم إرسال طلب الجملة بنجاح ✅");
+
 
 location.href="index.html";
+
 
 }catch(error){
 
@@ -227,4 +364,8 @@ alert("حدث خطأ أثناء إرسال الطلب، حاول مرة أخرى
 
 };
 
-</script></body></html>
+</script>
+
+</body>
+
+</html>
