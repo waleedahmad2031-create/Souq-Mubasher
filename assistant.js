@@ -246,44 +246,64 @@ function getQuantity(text, productName) {
 
   const value = clean(text);
 
-  const position =
-    value.indexOf(
-      clean(productName)
-    );
+  const productClean = clean(productName);
 
-  if(position === -1) {
+  const position = value.indexOf(productClean);
 
+  if(position === -1){
     return 1;
-
   }
 
-  const before =
-    value.substring(
-      Math.max(0, position - 15),
-      position
+  // الجزء قبل اسم المنتج
+  const before = value.substring(
+    Math.max(0, position - 20),
+    position
+  );
+
+  // الجزء بعد اسم المنتج
+  const after = value.substring(
+    position + productClean.length,
+    position + productClean.length + 20
+  );
+
+  // البحث عن رقم قبل المنتج
+  const numbersBefore = before.match(/\d+/g);
+
+  // البحث عن رقم بعد المنتج
+  const numbersAfter = after.match(/\d+/g);
+
+  let quantity = 1;
+
+  // إذا وجد رقم قبل اسم المنتج
+  if(numbersBefore && numbersBefore.length){
+
+    quantity = Number(
+      numbersBefore[numbersBefore.length - 1]
     );
 
-  const nums =
-    before.match(/\d+/g);
+  }
 
-  if(nums && nums.length) {
+  // إذا لم يوجد رقم قبل المنتج،
+  // نبحث بعد اسم المنتج
+  else if(numbersAfter && numbersAfter.length){
 
-    const quantity =
-      Number(
-        nums[nums.length - 1]
-      );
-
-    if(quantity > 0) {
-
-      return quantity;
-
-    }
+    quantity = Number(
+      numbersAfter[0]
+    );
 
   }
 
-  return 1;
-}
+  if(!quantity || quantity < 1){
 
+    quantity = 1;
+
+  }
+
+  return quantity;
+}
+      
+      
+    
 
 // =============================
 // البحث عن المنتجات
