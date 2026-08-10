@@ -1,5 +1,15 @@
-<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>المساعد الذكي - سوق مباشر</title><style>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>المساعد الذكي - سوق مباشر</title>
+
+<style>
 
 body{
 font-family:Tahoma,Arial,sans-serif;
@@ -15,10 +25,19 @@ text-align:center;
 font-size:23px;
 }
 
+.back{
+display:block;
+color:white;
+text-decoration:none;
+font-size:14px;
+margin-top:7px;
+}
+
 .chat{
 max-width:600px;
 margin:20px auto;
 padding:15px;
+padding-bottom:90px;
 }
 
 .message{
@@ -70,19 +89,28 @@ border-radius:10px;
 font-size:16px;
 }
 
-.back{
-display:block;
-color:white;
-text-decoration:none;
-font-size:14px;
-margin-top:7px;
-}
+</style>
 
-</style></head><body><header>🤖 المساعد الذكي
+</head>
+
+<body>
+
+<header>
+
+🤖 المساعد الذكي
 
 <a href="shop.html" class="back">
 ⬅️ العودة إلى المنتجات
-</a></header><div class="chat" id="chat"><div class="message bot">السلام عليكم ورحمة الله وبركاته 🌹
+</a>
+
+</header>
+
+
+<div class="chat" id="chat">
+
+<div class="message bot">
+
+السلام عليكم ورحمة الله وبركاته 🌹
 
 أنا مساعد سوق مباشر 🤖
 
@@ -92,52 +120,30 @@ margin-top:7px;
 
 مثال:
 
-"أريد عطر رجالي عدد 2"
+أريد عطر رجالي عدد 2
 
-</div></div><div class="input-area"><input
+</div>
+
+</div>
+
+
+<div class="input-area">
+
+<input
 id="messageInput"
 type="text"
 placeholder="اكتب طلبك هنا..."
+>
 
-«»
-
-<button onclick="sendMessage()">
+<button id="sendButton">
 إرسال
-</button></div><script>
+</button>
 
-function addMessage(text,type){
-
-let chat = document.getElementById("chat");
-
-let message = document.createElement("div");
-
-message.className = "message " + type;
-
-message.innerText = text;
-
-chat.appendChild(message);
-
-window.scrollTo(0,document.body.scrollHeight);
-
-}
-
-
-function sendMessage(){
-
-let input = document.getElementById("messageInput");
-
-let text = input.value.trim();
-
-if(!text){
-
-return;
-
-}
-
-
-addMessage(text,"user");
-
-input.value="";
+</div>
 
 
 <script type="module" src="assistant.js"></script>
+
+</body>
+
+</html>
