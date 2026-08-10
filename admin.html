@@ -87,6 +87,10 @@ background:#ff9800;
 background:#009688;
 }
 
+.cancelEdit{
+background:#757575;
+}
+
 .seller{
 background:#fff;
 padding:15px;
@@ -122,10 +126,6 @@ font-weight:bold;
 color:#e53935;
 font-weight:bold;
 }
-
-/* ===============================
-   بطاقة طلب الزبون
-================================ */
 
 .orderBox{
 background:#fff;
@@ -222,12 +222,14 @@ margin:8px 0;
 
 
 <!-- =========================
-     إضافة منتج
+     إضافة / تعديل منتج
 ========================= -->
 
 <div class="card">
 
-<h2>➕ إضافة منتج جديد</h2>
+<h2 id="productFormTitle">
+➕ إضافة منتج جديد
+</h2>
 
 <input
 id="name"
@@ -262,6 +264,14 @@ placeholder="وصف المنتج"
 
 <button id="saveBtn">
 حفظ المنتج
+</button>
+
+<button
+id="cancelEditBtn"
+class="cancelEdit"
+style="display:none;"
+>
+إلغاء التعديل
 </button>
 
 </div>
@@ -311,6 +321,7 @@ import {
 collection,
 addDoc,
 getDocs,
+getDoc,
 deleteDoc,
 updateDoc,
 doc
@@ -324,6 +335,12 @@ doc
 const saveBtn =
 document.getElementById("saveBtn");
 
+const cancelEditBtn =
+document.getElementById("cancelEditBtn");
+
+const productFormTitle =
+document.getElementById("productFormTitle");
+
 const productsBox =
 document.getElementById("products");
 
@@ -332,7 +349,14 @@ document.getElementById("orders");
 
 const sellersBox =
 document.getElementById("sellers");
+
+
+/* =====================================
+   حالة التعديل
+===================================== */
+
 let editingProductId = null;
+
 
 /* =====================================
    البائعون
@@ -660,7 +684,127 @@ productsBox.innerHTML =
 
 
 /* =====================================
-   إضافة منتج
+   تعديل المنتج
+===================================== */
+
+window.editProduct =
+async function(id){
+
+try{
+
+const productRef =
+doc(db,"products",id);
+
+const snap =
+await getDoc(productRef);
+
+if(!snap.exists()){
+
+alert(
+"لم يتم العثور على المنتج"
+);
+
+return;
+
+}
+
+const productData =
+snap.data();
+
+
+/* تعبئة الخانات */
+
+document.getElementById("name").value =
+productData.name || "";
+
+document.getElementById("price").value =
+productData.price || "";
+
+document.getElementById("city").value =
+productData.city || "";
+
+document.getElementById("phone").value =
+productData.phone || "";
+
+document.getElementById("image").value =
+productData.image || "";
+
+document.getElementById("description").value =
+productData.description || "";
+
+
+/* حفظ رقم المنتج */
+
+editingProductId =
+id;
+
+
+/* تغيير الواجهة */
+
+productFormTitle.innerText =
+"✏️ تعديل المنتج";
+
+saveBtn.innerText =
+"💾 حفظ تعديل المنتج";
+
+cancelEditBtn.style.display =
+"block";
+
+
+/* النزول إلى نموذج المنتج */
+
+productFormTitle
+.parentElement
+.scrollIntoView({
+behavior:"smooth"
+});
+
+}catch(error){
+
+console.error(error);
+
+alert(
+"حدث خطأ أثناء تحميل المنتج للتعديل:\n" +
+error.message
+);
+
+}
+
+};
+
+
+/* =====================================
+   إلغاء تعديل المنتج
+===================================== */
+
+cancelEditBtn.onclick =
+function(){
+
+editingProductId =
+null;
+
+productFormTitle.innerText =
+"➕ إضافة منتج جديد";
+
+saveBtn.innerText =
+"حفظ المنتج";
+
+cancelEditBtn.style.display =
+"none";
+
+
+document.getElementById("name").value="";
+document.getElementById("price").value="";
+document.getElementById("city").value="";
+document.getElementById("phone").value="";
+document.getElementById("image").value="";
+document.getElementById("description").value="";
+
+};
+
+
+/* =====================================
+   إضافة / تعديل المنتج
 ===================================== */
 
 saveBtn.onclick =
@@ -713,7 +857,79 @@ return;
 
 }
 
+
 try{
+
+
+/* =====================================
+   تعديل منتج موجود
+===================================== */
+
+if(editingProductId){
+
+await updateDoc(
+doc(
+db,
+"products",
+editingProductId
+),
+{
+
+name:name,
+
+price:Number(price) || 0,
+
+city:city,
+
+phone:phone,
+
+image:image,
+
+description:description
+
+}
+);
+
+alert(
+"تم تعديل المنتج بنجاح ✅"
+);
+
+
+/* إنهاء وضع التعديل */
+
+editingProductId =
+null;
+
+productFormTitle.innerText =
+"➕ إضافة منتج جديد";
+
+saveBtn.innerText =
+"حفظ المنتج";
+
+cancelEditBtn.style.display =
+"none";
+
+
+/* تنظيف الخانات */
+
+document.getElementById("name").value="";
+document.getElementById("price").value="";
+document.getElementById("city").value="";
+document.getElementById("phone").value="";
+document.getElementById("image").value="";
+document.getElementById("description").value="";
+
+
+loadProducts();
+
+return;
+
+}
+
+
+/* =====================================
+   إضافة منتج جديد
+===================================== */
 
 await addDoc(
 collection(db,"products"),
@@ -740,6 +956,8 @@ alert(
 "تم حفظ المنتج ✅"
 );
 
+
+/* تنظيف الخانات */
 
 document.getElementById("name").value="";
 document.getElementById("price").value="";
@@ -791,91 +1009,12 @@ alert(
 
 loadProducts();
 
-/* =====================================
-   تعديل المنتج
-===================================== */
-
-window.editProduct =
-async function(id){
-
-try{
-
-const productRef =
-doc(db,"products",id);
-
-const snap =
-await getDocs(
-collection(db,"products")
-);
-
-let productData = null;
-
-snap.forEach(item=>{
-
-if(item.id === id){
-
-productData = item.data();
-
-}
-
-});
-
-if(!productData){
-
-alert("لم يتم العثور على المنتج");
-
-return;
-
-}
-
-
-/* تعبئة الخانات */
-
-document.getElementById("name").value =
-productData.name || "";
-
-document.getElementById("price").value =
-productData.price || "";
-
-document.getElementById("city").value =
-productData.city || "";
-
-document.getElementById("phone").value =
-productData.phone || "";
-
-document.getElementById("image").value =
-productData.image || "";
-
-document.getElementById("description").value =
-productData.description || "";
-
-
-/* حفظ رقم المنتج الذي نعدله */
-
-editingProductId = id;
-
-
-/* تغيير زر الحفظ */
-
-saveBtn.innerText =
-"💾 حفظ تعديل المنتج";
-
-
-/* النزول إلى نموذج المنتج */
-
-document
-.querySelector(".card:nth-of-type(2)")
-.scrollIntoView({
-behavior:"smooth"
-});
-
-
 }catch(error){
 
 console.error(error);
 
 alert(
-"حدث خطأ أثناء تحميل المنتج للتعديل:\n" +
+"حدث خطأ أثناء حذف المنتج:\n" +
 error.message
 );
 
@@ -886,6 +1025,7 @@ error.message
 
 /* =====================================
    حساب رسوم الكرتون
+   ⚠️ لم يتم تغيير الحسبة
 ===================================== */
 
 function getDeliveryPerCarton(price){
@@ -1043,7 +1183,7 @@ calculatedDelivery +=
 productDelivery;
 
 
-/* عرض المنتج فقط */
+/* عرض المنتج */
 
 productsHTML += `
 
@@ -1133,7 +1273,7 @@ onclick="changeStatus('${item.id}')"
 
 
 /* ===============================
-   عرض طلب واحد كامل
+   عرض الطلب
 =============================== */
 
 ordersBox.innerHTML += `
@@ -1193,10 +1333,6 @@ productsHTML ||
 
 </div>
 
-
-<!-- ===============================
-     إجمالي واحد فقط للطلب
-=============================== -->
 
 <div class="totalBox">
 
@@ -1353,8 +1489,7 @@ loadOrders();
 console.error(error);
 
 alert(
-"حدث خطأ أثناء تغيير حالة الطلب:\n" +
-error.message
+"حدث خطأ أثناء تغيير حالة الطلب"
 );
 
 }
@@ -1383,7 +1518,7 @@ return;
 
 if(
 user.email !==
-"waleedahmad2031@gmail.com"
+"waleedahmad@gmail.com"
 ){
 
 alert(
@@ -1406,6 +1541,6 @@ loadOrders();
 </script>
 
 </body>
-  </html>
 
+   </html>
     
