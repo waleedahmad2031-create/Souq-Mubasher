@@ -1,0 +1,165 @@
+<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>المساعد الذكي - سوق مباشر</title><style>
+
+body{
+font-family:Tahoma,Arial,sans-serif;
+background:#f5f5f5;
+margin:0;
+}
+
+header{
+background:#673ab7;
+color:white;
+padding:18px;
+text-align:center;
+font-size:23px;
+}
+
+.chat{
+max-width:600px;
+margin:20px auto;
+padding:15px;
+}
+
+.message{
+padding:12px 15px;
+margin:10px 0;
+border-radius:12px;
+max-width:80%;
+line-height:1.7;
+}
+
+.bot{
+background:white;
+margin-left:auto;
+box-shadow:0 2px 5px rgba(0,0,0,.1);
+}
+
+.user{
+background:#673ab7;
+color:white;
+margin-right:auto;
+}
+
+.input-area{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+background:white;
+padding:10px;
+display:flex;
+gap:8px;
+box-shadow:0 -2px 8px rgba(0,0,0,.1);
+}
+
+input{
+flex:1;
+padding:13px;
+border:1px solid #ddd;
+border-radius:10px;
+font-size:16px;
+}
+
+button{
+background:#673ab7;
+color:white;
+border:none;
+padding:13px 18px;
+border-radius:10px;
+font-size:16px;
+}
+
+.back{
+display:block;
+color:white;
+text-decoration:none;
+font-size:14px;
+margin-top:7px;
+}
+
+</style></head><body><header>🤖 المساعد الذكي
+
+<a href="shop.html" class="back">
+⬅️ العودة إلى المنتجات
+</a></header><div class="chat" id="chat"><div class="message bot">السلام عليكم ورحمة الله وبركاته 🌹
+
+أنا مساعد سوق مباشر 🤖
+
+اكتب لي ما الذي تريد شراءه، وسأساعدك في تجهيز طلبك.
+
+<br><br>
+
+مثال:
+
+"أريد عطر رجالي عدد 2"
+
+</div></div><div class="input-area"><input
+id="messageInput"
+type="text"
+placeholder="اكتب طلبك هنا..."
+
+«»
+
+<button onclick="sendMessage()">
+إرسال
+</button></div><script>
+
+function addMessage(text,type){
+
+let chat = document.getElementById("chat");
+
+let message = document.createElement("div");
+
+message.className = "message " + type;
+
+message.innerText = text;
+
+chat.appendChild(message);
+
+window.scrollTo(0,document.body.scrollHeight);
+
+}
+
+
+function sendMessage(){
+
+let input = document.getElementById("messageInput");
+
+let text = input.value.trim();
+
+if(!text){
+
+return;
+
+}
+
+
+addMessage(text,"user");
+
+input.value="";
+
+
+setTimeout(()=>{
+
+addMessage(
+"ممتاز 👍 وصلتني رسالتك. في الخطوة القادمة سأتعلم كيف أفهم اسم المنتج والكمية وأجهز طلبك.",
+"bot"
+);
+
+},500);
+
+}
+
+
+document.getElementById("messageInput").addEventListener("keydown",function(e){
+
+if(e.key==="Enter"){
+
+sendMessage();
+
+}
+
+});
+
+</script></body></html>
