@@ -791,12 +791,91 @@ alert(
 
 loadProducts();
 
+/* =====================================
+   تعديل المنتج
+===================================== */
+
+window.editProduct =
+async function(id){
+
+try{
+
+const productRef =
+doc(db,"products",id);
+
+const snap =
+await getDocs(
+collection(db,"products")
+);
+
+let productData = null;
+
+snap.forEach(item=>{
+
+if(item.id === id){
+
+productData = item.data();
+
+}
+
+});
+
+if(!productData){
+
+alert("لم يتم العثور على المنتج");
+
+return;
+
+}
+
+
+/* تعبئة الخانات */
+
+document.getElementById("name").value =
+productData.name || "";
+
+document.getElementById("price").value =
+productData.price || "";
+
+document.getElementById("city").value =
+productData.city || "";
+
+document.getElementById("phone").value =
+productData.phone || "";
+
+document.getElementById("image").value =
+productData.image || "";
+
+document.getElementById("description").value =
+productData.description || "";
+
+
+/* حفظ رقم المنتج الذي نعدله */
+
+editingProductId = id;
+
+
+/* تغيير زر الحفظ */
+
+saveBtn.innerText =
+"💾 حفظ تعديل المنتج";
+
+
+/* النزول إلى نموذج المنتج */
+
+document
+.querySelector(".card:nth-of-type(2)")
+.scrollIntoView({
+behavior:"smooth"
+});
+
+
 }catch(error){
 
 console.error(error);
 
 alert(
-"حدث خطأ أثناء حذف المنتج:\n" +
+"حدث خطأ أثناء تحميل المنتج للتعديل:\n" +
 error.message
 );
 
