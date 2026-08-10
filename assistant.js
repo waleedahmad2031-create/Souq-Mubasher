@@ -7,6 +7,7 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+
 const chat = document.getElementById("chat");
 const input = document.getElementById("messageInput");
 const sendButton = document.getElementById("sendButton");
@@ -32,9 +33,9 @@ let customer = {
 };
 
 
-// =============================
+// =====================================
 // إضافة رسالة
-// =============================
+// =====================================
 
 function addMessage(text, type) {
 
@@ -50,12 +51,13 @@ function addMessage(text, type) {
     0,
     document.body.scrollHeight
   );
+
 }
 
 
-// =============================
+// =====================================
 // تحويل الأرقام العربية
-// =============================
+// =====================================
 
 function numbers(text) {
 
@@ -71,9 +73,9 @@ function numbers(text) {
 }
 
 
-// =============================
+// =====================================
 // تنظيف النص
-// =============================
+// =====================================
 
 function clean(text) {
 
@@ -89,9 +91,9 @@ function clean(text) {
 }
 
 
-// =============================
+// =====================================
 // نعم
-// =============================
+// =====================================
 
 function isYes(text) {
 
@@ -108,8 +110,7 @@ function isYes(text) {
     "اتمام الطلب",
     "اتم الطلب",
     "اريد الطلب",
-    "نعم اريد",
-    "كيف اتمام الطلب"
+    "نعم اريد"
   ].some(word =>
     value.includes(clean(word))
   );
@@ -117,9 +118,9 @@ function isYes(text) {
 }
 
 
-// =============================
+// =====================================
 // لا
-// =============================
+// =====================================
 
 function isNo(text) {
 
@@ -139,9 +140,37 @@ function isNo(text) {
 }
 
 
-// =============================
+// =====================================
+// حساب رسوم التوصيل للكرتون
+// =====================================
+
+function getDeliveryFee(price) {
+
+  price = Number(price) || 0;
+
+  // أقل من 1500
+  if (price < 1500) {
+
+    return 50;
+
+  }
+
+  // من 1500 إلى أقل من 2000
+  if (price < 2000) {
+
+    return 70;
+
+  }
+
+  // 2000 فأكثر
+  return 100;
+
+}
+
+
+// =====================================
 // تحميل المنتجات
-// =============================
+// =====================================
 
 async function getProducts() {
 
@@ -179,7 +208,6 @@ async function getProducts() {
         if (!name) return;
 
 
-        // منع تكرار المنتج
         const exists =
           result.some(function(product) {
 
@@ -216,23 +244,21 @@ async function getProducts() {
   }
 
   return result;
+
 }
 
 
-// =============================
-// استخراج جميع المنتجات
-// =============================
+// =====================================
+// استخراج المنتجات من كلام العميل
+// =====================================
 
 function findProducts(text, products) {
 
-  const value =
-    clean(text);
-
+  const value = clean(text);
 
   const found = [];
 
 
-  // نرتب المنتجات من الأطول إلى الأقصر
   const sorted =
     [...products].sort(function(a, b) {
 
@@ -251,7 +277,6 @@ function findProducts(text, products) {
     if (!productName) continue;
 
 
-    // هل اسم المنتج موجود داخل الرسالة؟
     if (!value.includes(productName)) {
 
       continue;
@@ -259,20 +284,17 @@ function findProducts(text, products) {
     }
 
 
-    // مكان المنتج داخل الرسالة
     const position =
       value.indexOf(productName);
 
 
-    // نأخذ الجزء الذي قبل اسم المنتج
     const before =
       value.substring(
-        Math.max(0, position - 10),
+        Math.max(0, position - 15),
         position
       );
 
 
-    // نبحث عن آخر رقم قبل اسم المنتج
     const numbersBefore =
       before.match(/\d+/g);
 
@@ -295,7 +317,6 @@ function findProducts(text, products) {
     }
 
 
-    // منع الكمية صفر
     if (!quantity || quantity < 1) {
 
       quantity = 1;
@@ -311,7 +332,6 @@ function findProducts(text, products) {
       price * quantity;
 
 
-    // منع تكرار المنتج
     const already =
       found.some(function(item) {
 
@@ -342,12 +362,75 @@ function findProducts(text, products) {
 
 
   return found;
+
 }
 
 
-// =============================
-// عرض الطلب
-// =============================
+// =====================================
+// حساب إجماليات الطلب
+// =====================================
+
+function calculateOrder() {
+
+  let productsTotal = 0;
+
+  let deliveryTotal = 0;
+
+  let cartonsTotal = 0;
+
+
+  currentOrder.forEach(function(product) {
+
+    const price =
+      Number(product.price) || 0;
+
+    const quantity =
+      Number(product.quantity) || 1;
+
+
+    const productTotal =
+      price * quantity;
+
+
+    const deliveryPerCarton =
+      getDeliveryFee(price);
+
+
+    const productDelivery =
+      deliveryPerCarton * quantity;
+
+
+    productsTotal += productTotal;
+
+    deliveryTotal += productDelivery;
+
+    cartonsTotal += quantity;
+
+  });
+
+
+  const finalTotal =
+    productsTotal + deliveryTotal;
+
+
+  return {
+
+    productsTotal: productsTotal,
+
+    deliveryTotal: deliveryTotal,
+
+    cartonsTotal: cartonsTotal,
+
+    finalTotal: finalTotal
+
+  };
+
+}
+
+
+// =====================================
+// عرض الطلب للعميل
+// =====================================
 
 function showOrder() {
 
@@ -355,13 +438,13 @@ function showOrder() {
     "وجدت لك المنتجات التالية ✅\n\n";
 
 
-  let total =
-    0;
-
-
   currentOrder.forEach(function(product) {
 
-    total += product.total;
+    const price =
+      Number(product.price) || 0;
+
+    const quantity =
+      Number(product.quantity) || 1;
 
 
     message +=
@@ -369,25 +452,39 @@ function showOrder() {
       product.name +
 
       "\n📦 الكمية: " +
-      product.quantity +
+      quantity +
+      " كرتون" +
 
-      "\n💰 سعر الوحدة: " +
-      product.price +
-      " ريال" +
-
-      "\n💵 الإجمالي: " +
-      product.total +
+      "\n💰 سعر الكرتون: " +
+      price +
       " ريال\n\n";
 
   });
 
 
+  const totals =
+    calculateOrder();
+
+
   message +=
     "━━━━━━━━━━━━\n" +
 
-    "💰 إجمالي الطلب: " +
-    total +
-    " ريال\n\n" +
+    "📦 عدد الكراتين: " +
+    totals.cartonsTotal +
+
+    "\n🛍️ مجموع المنتجات: " +
+    totals.productsTotal +
+    " ريال" +
+
+    "\n🚚 إجمالي رسوم التوصيل: " +
+    totals.deliveryTotal +
+    " ريال" +
+
+    "\n💰 الإجمالي النهائي: " +
+    totals.finalTotal +
+    " ريال" +
+
+    "\n━━━━━━━━━━━━\n\n" +
 
     "هل تريد إتمام الطلب؟";
 
@@ -400,9 +497,9 @@ function showOrder() {
 }
 
 
-// =============================
-// اسم العميل
-// =============================
+// =====================================
+// طلب الاسم
+// =====================================
 
 function askName() {
 
@@ -416,9 +513,9 @@ function askName() {
 }
 
 
-// =============================
-// الجوال
-// =============================
+// =====================================
+// طلب الجوال
+// =====================================
 
 function askPhone() {
 
@@ -432,9 +529,9 @@ function askPhone() {
 }
 
 
-// =============================
-// العنوان
-// =============================
+// =====================================
+// طلب العنوان
+// =====================================
 
 function askAddress() {
 
@@ -448,9 +545,9 @@ function askAddress() {
 }
 
 
-// =============================
+// =====================================
 // المراجعة النهائية
-// =============================
+// =====================================
 
 function showFinalOrder() {
 
@@ -474,21 +571,29 @@ function showFinalOrder() {
   });
 
 
-  const total =
-    currentOrder.reduce(
-      function(sum, product) {
-
-        return sum + product.total;
-
-      },
-      0
-    );
+  const totals =
+    calculateOrder();
 
 
   message +=
-    "\n💰 الإجمالي: " +
-    total +
-    " ريال\n\n" +
+    "\n━━━━━━━━━━━━\n" +
+
+    "📦 عدد الكراتين: " +
+    totals.cartonsTotal +
+
+    "\n🛍️ مجموع المنتجات: " +
+    totals.productsTotal +
+    " ريال" +
+
+    "\n🚚 رسوم التوصيل: " +
+    totals.deliveryTotal +
+    " ريال" +
+
+    "\n💰 الإجمالي النهائي: " +
+    totals.finalTotal +
+    " ريال" +
+
+    "\n━━━━━━━━━━━━\n\n" +
 
     "👤 الاسم: " +
     customer.name +
@@ -514,21 +619,14 @@ function showFinalOrder() {
 }
 
 
-// =============================
-// حفظ الطلب
-// =============================
+// =====================================
+// حفظ الطلب في Firebase
+// =====================================
 
 async function saveOrder() {
 
-  const total =
-    currentOrder.reduce(
-      function(sum, product) {
-
-        return sum + product.total;
-
-      },
-      0
-    );
+  const totals =
+    calculateOrder();
 
 
   const orderData = {
@@ -539,9 +637,29 @@ async function saveOrder() {
 
     address: customer.address,
 
+    customerName: customer.name,
+
+    customerPhone: customer.phone,
+
+    customerAddress: customer.address,
+
+    customerCity: "إب",
+
+    deliveryArea: "مدينة إب",
+
+    orderType: "جملة",
+
     products: currentOrder,
 
-    total: total,
+    cartonsTotal: totals.cartonsTotal,
+
+    productsTotal: totals.productsTotal,
+
+    deliveryFee: totals.deliveryTotal,
+
+    deliveryTotal: totals.deliveryTotal,
+
+    total: totals.finalTotal,
 
     status: "جديد",
 
@@ -567,12 +685,9 @@ async function saveOrder() {
     );
 
 
-    sendWhatsApp(
-      orderData
-    );
+    sendWhatsApp(orderData);
 
 
-    // إعادة الطلب
     currentOrder = [];
 
 
@@ -606,9 +721,9 @@ async function saveOrder() {
 }
 
 
-// =============================
-// واتساب
-// =============================
+// =====================================
+// إرسال الطلب إلى واتساب
+// =====================================
 
 function sendWhatsApp(order) {
 
@@ -629,35 +744,80 @@ function sendWhatsApp(order) {
 
 
   message +=
+    "📍 المدينة: إب\n";
+
+
+  message +=
     "📍 العنوان: " +
     order.address +
     "\n\n";
 
 
   message +=
-    "🛍️ المنتجات:\n";
+    "🛍️ المنتجات:\n\n";
 
 
   order.products.forEach(function(product) {
 
+    const price =
+      Number(product.price) || 0;
+
+    const quantity =
+      Number(product.quantity) || 1;
+
+
+    const fee =
+      getDeliveryFee(price);
+
+
+    const productTotal =
+      price * quantity;
+
+
+    const productDelivery =
+      fee * quantity;
+
+
     message +=
-      "- " +
+      "🛍️ " +
       product.name +
 
-      " × " +
-      product.quantity +
+      "\n📦 الكمية: " +
+      quantity +
+      " كرتون" +
 
-      " = " +
-      product.total +
-      " ريال\n";
+      "\n💰 سعر الكرتون: " +
+      price +
+      " ريال" +
+
+      "\n💵 إجمالي المنتج: " +
+      productTotal +
+      " ريال" +
+
+      "\n\n";
 
   });
 
 
   message +=
-    "\n💰 الإجمالي: " +
+    "━━━━━━━━━━━━\n" +
+
+    "📦 عدد الكراتين: " +
+    order.cartonsTotal +
+
+    "\n🛍️ مجموع المنتجات: " +
+    order.productsTotal +
+    " ريال" +
+
+    "\n🚚 رسوم التوصيل: " +
+    order.deliveryTotal +
+    " ريال" +
+
+    "\n💰 الإجمالي النهائي: " +
     order.total +
-    " ريال";
+    " ريال\n" +
+
+    "━━━━━━━━━━━━";
 
 
   const url =
@@ -675,9 +835,9 @@ function sendWhatsApp(order) {
 }
 
 
-// =============================
+// =====================================
 // إرسال الرسالة
-// =============================
+// =====================================
 
 async function sendMessage() {
 
@@ -697,9 +857,9 @@ async function sendMessage() {
   input.value = "";
 
 
-  // ==========================
+  // =================================
   // مرحلة المنتجات
-  // ==========================
+  // =================================
 
   if (
     orderStage === "products"
@@ -722,7 +882,6 @@ async function sendMessage() {
       );
 
 
-    // حذف رسالة البحث
     const messages =
       chat.querySelectorAll(".bot");
 
@@ -747,23 +906,23 @@ async function sendMessage() {
       return;
 
     }
-// حفظ كل المنتجات
-currentOrder = found;
 
-// الانتقال إلى مرحلة تأكيد الطلب
-orderStage = "confirm";
 
-// عرض كل المنتجات
-showOrder();
+    currentOrder = found;
 
-return;
+    orderStage = "confirm";
+
+
+    showOrder();
+
+    return;
 
   }
 
 
-  // ==========================
+  // =================================
   // تأكيد الطلب
-  // ==========================
+  // =================================
 
   if (
     orderStage === "confirm"
@@ -785,6 +944,7 @@ return;
       orderStage =
         "products";
 
+
       addMessage(
         "تم إلغاء الطلب 👍\n\nاكتب طلبًا جديدًا.",
         "bot"
@@ -805,9 +965,9 @@ return;
   }
 
 
-  // ==========================
+  // =================================
   // الاسم
-  // ==========================
+  // =================================
 
   if (
     orderStage === "name"
@@ -823,9 +983,9 @@ return;
   }
 
 
-  // ==========================
+  // =================================
   // الجوال
-  // ==========================
+  // =================================
 
   if (
     orderStage === "phone"
@@ -841,9 +1001,9 @@ return;
   }
 
 
-  // ==========================
+  // =================================
   // العنوان
-  // ==========================
+  // =================================
 
   if (
     orderStage === "address"
@@ -859,9 +1019,9 @@ return;
   }
 
 
-  // ==========================
+  // =================================
   // التأكيد النهائي
-  // ==========================
+  // =================================
 
   if (
     orderStage === "finalConfirm"
@@ -873,6 +1033,7 @@ return;
         "⏳ جاري تسجيل الطلب...",
         "bot"
       );
+
 
       await saveOrder();
 
@@ -887,6 +1048,7 @@ return;
 
       orderStage =
         "products";
+
 
       addMessage(
         "تم إلغاء الطلب 👍\n\nيمكنك كتابة طلب جديد.",
@@ -908,9 +1070,9 @@ return;
 }
 
 
-// =============================
+// =====================================
 // الأحداث
-// =============================
+// =====================================
 
 sendButton.addEventListener(
   "click",
