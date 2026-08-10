@@ -747,18 +747,16 @@ async function sendMessage() {
       return;
 
     }
+// حفظ كل المنتجات
+currentOrder = found;
 
+// الانتقال إلى مرحلة تأكيد الطلب
+orderStage = "confirm";
 
-    // حفظ كل المنتجات
-    currentOrder =
-      found;
+// عرض كل المنتجات
+showOrder();
 
-
-    // عرض كل المنتجات
-    showOrder();
-
-
-    return;
+return;
 
   }
 
