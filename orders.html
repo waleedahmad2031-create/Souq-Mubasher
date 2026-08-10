@@ -63,6 +63,15 @@ margin:8px 0;
 font-size:17px;
 }
 
+.deliveryDetails{
+background:#e8f5e9;
+padding:12px;
+border-radius:8px;
+margin-top:10px;
+line-height:1.9;
+font-size:15px;
+}
+
 .finalTotal{
 font-size:22px !important;
 font-weight:bold;
@@ -128,7 +137,7 @@ background:#00796b;
 
 <br>
 
-🚚 <strong>التوصيل المسائي:</strong>
+🌙 <strong>التوصيل المسائي:</strong>
 من بعد المغرب حتى الساعة 10 مساءً
 
 <br>
@@ -169,6 +178,13 @@ placeholder="العنوان بالتفصيل داخل مدينة إب"
 <div class="totalBox">
 
 <p>
+📦 عدد الكراتين:
+<strong>
+<span id="cartonsTotal">0</span>
+</strong>
+</p>
+
+<p>
 🛍️ مجموع المنتجات:
 <strong>
 <span id="productsTotal">0</span> ريال
@@ -176,17 +192,36 @@ placeholder="العنوان بالتفصيل داخل مدينة إب"
 </p>
 
 <p>
-🚚 التوصيل:
+🚚 رسوم التوصيل:
 <strong>
-يتم التنسيق لطلبات الجملة
+<span id="deliveryTotal">0</span> ريال
 </strong>
 </p>
 
+<div class="deliveryDetails">
+
+📦 أقل من 1500 ريال:
+50 ريال للكرتون
+
+<br>
+
+📦 من 1500 إلى أقل من 2000:
+70 ريال للكرتون
+
+<br>
+
+📦 2000 ريال فأكثر:
+100 ريال للكرتون
+
+</div>
+
 <p class="finalTotal">
-💰 إجمالي المنتجات:
+
+💰 الإجمالي النهائي:
 <strong>
 <span id="totalPrice">0</span> ريال
 </strong>
+
 </p>
 
 </div>
@@ -198,6 +233,7 @@ placeholder="العنوان بالتفصيل داخل مدينة إب"
 </div>
 
 </div>
+
 
 <script type="module">
 
@@ -214,25 +250,95 @@ const cart =
 JSON.parse(localStorage.getItem("cart")) || [];
 
 
+// ===============================
+// حساب رسوم التوصيل للكرتون
+// ===============================
+
+function getDeliveryFee(price){
+
+price = Number(price || 0);
+
+if(price < 1500){
+
+return 50;
+
+}
+
+if(price < 2000){
+
+return 70;
+
+}
+
+return 100;
+
+}
+
+
+// ===============================
+// حساب الطلب
+// ===============================
+
 let productsTotal = 0;
+
+let deliveryTotal = 0;
+
+let cartonsTotal = 0;
 
 
 cart.forEach(item => {
 
-productsTotal += Number(item.price || 0);
+const price =
+Number(item.price || 0);
+
+const quantity =
+Number(item.quantity || 1);
+
+const deliveryPerCarton =
+getDeliveryFee(price);
+
+
+// قيمة المنتجات
+productsTotal +=
+price * quantity;
+
+
+// رسوم التوصيل
+deliveryTotal +=
+deliveryPerCarton * quantity;
+
+
+// عدد الكراتين
+cartonsTotal +=
+quantity;
 
 });
 
 
-const finalTotal = productsTotal;
+const finalTotal =
+productsTotal + deliveryTotal;
 
+
+// ===============================
+// عرض الحساب
+// ===============================
+
+document.getElementById("cartonsTotal").textContent =
+cartonsTotal;
 
 document.getElementById("productsTotal").textContent =
 productsTotal;
 
+document.getElementById("deliveryTotal").textContent =
+deliveryTotal;
+
 document.getElementById("totalPrice").textContent =
 finalTotal;
 
+
+// ===============================
+// إرسال الطلب
+// ===============================
 
 document.getElementById("sendOrder").onclick = async () => {
 
@@ -253,9 +359,16 @@ const deliveryTime =
 document.getElementById("deliveryTime").value;
 
 
-if(!name || !phone || !address || !deliveryTime){
+if(
+!name ||
+!phone ||
+!address ||
+!deliveryTime
+){
 
-alert("يرجى تعبئة جميع البيانات واختيار وقت التوصيل");
+alert(
+"يرجى تعبئة جميع البيانات واختيار وقت التوصيل"
+);
 
 return;
 
@@ -273,6 +386,10 @@ return;
 
 try{
 
+
+// ===============================
+// حفظ الطلب في Firebase
+// ===============================
 
 await addDoc(
 collection(db,"orders"),
@@ -292,7 +409,9 @@ orderType:"جملة",
 
 deliveryTime:deliveryTime,
 
-deliveryFee:0,
+deliveryFee:deliveryTotal,
+
+cartonsTotal:cartonsTotal,
 
 products:cart,
 
@@ -308,32 +427,76 @@ createdAt:serverTimestamp()
 );
 
 
+// ===============================
+// رسالة واتساب
+// ===============================
+
+let productsMessage = "";
+
+cart.forEach((item,index) => {
+
+const price =
+Number(item.price || 0);
+
+const quantity =
+Number(item.quantity || 1);
+
+const fee =
+getDeliveryFee(price);
+
+productsMessage += `
+
+${index + 1}. ${item.name || "منتج"}
+
+📦 الكمية: ${quantity} كرتون
+
+💰 سعر الكرتون: ${price} ريال
+
+🚚 توصيل الكرتون: ${fee} ريال
+
+`;
+
+});
+
+
 let message = `🛒 طلب جملة جديد من سوق مباشر
 
-الاسم: ${name}
+👤 الاسم:
+${name}
 
-الجوال: ${phone}
+📱 الجوال:
+${phone}
 
 📍 منطقة التوصيل:
 مدينة إب
 
-📦 نوع الطلب:
-جملة
-
-العنوان:
+🏠 العنوان:
 ${address}
 
 🕐 وقت التوصيل:
 ${deliveryTime}
 
+📦 عدد الكراتين:
+${cartonsTotal}
+
+━━━━━━━━━━━━
+
+${productsMessage}
+
+━━━━━━━━━━━━
+
 🛍️ مجموع المنتجات:
 ${productsTotal} ريال
 
-🚚 التوصيل:
-يتم التنسيق لطلبات الجملة
+🚚 رسوم التوصيل:
+${deliveryTotal} ريال
 
-💰 إجمالي المنتجات:
-${finalTotal} ريال`;
+💰 الإجمالي النهائي:
+${finalTotal} ريال
+
+📦 نوع الطلب:
+جملة
+`;
 
 
 window.open(
@@ -348,7 +511,9 @@ window.open(
 localStorage.removeItem("cart");
 
 
-alert("تم إرسال طلب الجملة بنجاح ✅");
+alert(
+"تم إرسال طلب الجملة بنجاح ✅"
+);
 
 
 location.href="index.html";
@@ -358,7 +523,9 @@ location.href="index.html";
 
 console.error(error);
 
-alert("حدث خطأ أثناء إرسال الطلب، حاول مرة أخرى");
+alert(
+"حدث خطأ أثناء إرسال الطلب، حاول مرة أخرى"
+);
 
 }
 
@@ -368,4 +535,4 @@ alert("حدث خطأ أثناء إرسال الطلب، حاول مرة أخرى
 
 </body>
 
-</html>
+  </html>
