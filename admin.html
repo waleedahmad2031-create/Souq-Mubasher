@@ -123,37 +123,75 @@ color:#e53935;
 font-weight:bold;
 }
 
+/* ===============================
+   بطاقة طلب الزبون
+================================ */
+
 .orderBox{
 background:#fff;
-padding:15px;
-margin-bottom:15px;
+padding:12px;
+margin-bottom:12px;
 border-radius:10px;
 box-shadow:0 2px 5px rgba(0,0,0,.1);
 border-right:5px solid #009688;
 }
 
-.productOrder{
-background:#f5f5f5;
-padding:12px;
-margin:8px 0;
-border-radius:8px;
+.orderHeader{
+margin-bottom:8px;
+line-height:1.8;
+}
+
+.orderInfo{
+font-size:15px;
 line-height:1.9;
+}
+
+.productsList{
+background:#f5f5f5;
+padding:8px;
+margin-top:8px;
+border-radius:8px;
+}
+
+.productOrder{
+padding:7px 5px;
+border-bottom:1px solid #ddd;
+font-size:15px;
+line-height:1.8;
+}
+
+.productOrder:last-child{
+border-bottom:none;
 }
 
 .totalBox{
 background:#e8f5e9;
-padding:15px;
-margin-top:12px;
-border-radius:10px;
-line-height:2;
+padding:10px;
+margin-top:10px;
+border-radius:8px;
+line-height:1.9;
+font-size:15px;
+}
+
+.finalTotal{
+font-size:19px;
+font-weight:bold;
+color:#00897b;
 }
 
 .deliveryBox{
 background:#fff3e0;
-padding:12px;
-margin-top:10px;
+padding:9px;
+margin-top:8px;
 border-radius:8px;
-line-height:1.8;
+line-height:1.7;
+font-size:14px;
+}
+
+hr{
+border:none;
+border-top:1px solid #ddd;
+margin:8px 0;
 }
 
 </style>
@@ -168,9 +206,9 @@ line-height:1.8;
 
 <div class="container">
 
-<!-- ========================= -->
-<!-- إدارة البائعين -->
-<!-- ========================= -->
+<!-- =========================
+     إدارة البائعين
+========================= -->
 
 <div class="card">
 
@@ -183,9 +221,9 @@ line-height:1.8;
 </div>
 
 
-<!-- ========================= -->
-<!-- إضافة منتج -->
-<!-- ========================= -->
+<!-- =========================
+     إضافة منتج
+========================= -->
 
 <div class="card">
 
@@ -229,9 +267,9 @@ placeholder="وصف المنتج"
 </div>
 
 
-<!-- ========================= -->
-<!-- المنتجات -->
-<!-- ========================= -->
+<!-- =========================
+     المنتجات
+========================= -->
 
 <div class="card">
 
@@ -244,9 +282,9 @@ placeholder="وصف المنتج"
 </div>
 
 
-<!-- ========================= -->
-<!-- الطلبات -->
-<!-- ========================= -->
+<!-- =========================
+     الطلبات
+========================= -->
 
 <div class="card">
 
@@ -266,16 +304,16 @@ placeholder="وصف المنتج"
 import { db, auth } from "./firebase.js";
 
 import {
-  onAuthStateChanged
+onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
-  collection,
-  addDoc,
-  getDocs,
-  deleteDoc,
-  updateDoc,
-  doc
+collection,
+addDoc,
+getDocs,
+deleteDoc,
+updateDoc,
+doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
@@ -284,16 +322,16 @@ import {
 ===================================== */
 
 const saveBtn =
-  document.getElementById("saveBtn");
+document.getElementById("saveBtn");
 
 const productsBox =
-  document.getElementById("products");
+document.getElementById("products");
 
 const ordersBox =
-  document.getElementById("orders");
+document.getElementById("orders");
 
 const sellersBox =
-  document.getElementById("sellers");
+document.getElementById("sellers");
 
 
 /* =====================================
@@ -302,129 +340,130 @@ const sellersBox =
 
 async function loadSellers(){
 
-  sellersBox.innerHTML =
-    "جاري تحميل البائعين...";
+sellersBox.innerHTML =
+"جاري تحميل البائعين...";
 
-  try{
+try{
 
-    const snap =
-      await getDocs(
-        collection(db,"sellers")
-      );
+const snap =
+await getDocs(
+collection(db,"sellers")
+);
 
-    if(snap.empty){
+if(snap.empty){
 
-      sellersBox.innerHTML =
-        "<p>لا يوجد بائعون.</p>";
+sellersBox.innerHTML =
+"<p>لا يوجد بائعون.</p>";
 
-      return;
-    }
+return;
 
-    sellersBox.innerHTML = "";
+}
 
-    snap.forEach(item=>{
+sellersBox.innerHTML = "";
 
-      const seller =
-        item.data();
+snap.forEach(item=>{
 
-      const sellerId =
-        item.id;
+const seller =
+item.data();
 
-      const status =
-        seller.status || "active";
+const sellerId =
+item.id;
 
-      const statusText =
-        status === "active"
-        ? "🟢 نشط"
-        : "🔴 موقوف";
+const status =
+seller.status || "active";
 
-      const statusClass =
-        status === "active"
-        ? "active"
-        : "inactive";
+const statusText =
+status === "active"
+? "🟢 نشط"
+: "🔴 موقوف";
+
+const statusClass =
+status === "active"
+? "active"
+: "inactive";
 
 
-      sellersBox.innerHTML += `
+sellersBox.innerHTML += `
 
-        <div class="seller">
+<div class="seller">
 
-          <h3>
-            🏪 ${seller.shopName || "بدون اسم"}
-          </h3>
+<h3>
+🏪 ${seller.shopName || "بدون اسم"}
+</h3>
 
-          <p>
-            📧 البريد:
-            ${seller.email || "-"}
-          </p>
+<p>
+📧 البريد:
+${seller.email || "-"}
+</p>
 
-          <p>
-            📱 الجوال:
-            ${seller.phone || "-"}
-          </p>
+<p>
+📱 الجوال:
+${seller.phone || "-"}
+</p>
 
-          <p>
-            💳 الاشتراك:
-            ${seller.subscription || "free"}
-          </p>
+<p>
+💳 الاشتراك:
+${seller.subscription || "free"}
+</p>
 
-          <p class="${statusClass}">
-            الحالة:
-            ${statusText}
-          </p>
+<p class="${statusClass}">
+الحالة:
+${statusText}
+</p>
 
-          ${
-            status === "active"
+${
+status === "active"
 
-            ?
+?
 
-            `
-            <button
-              class="delete"
-              onclick="changeSellerStatus(
-                '${sellerId}',
-                'inactive'
-              )"
-            >
-              🔴 إيقاف الحساب
-            </button>
-            `
+`
+<button
+class="delete"
+onclick="changeSellerStatus(
+'${sellerId}',
+'inactive'
+)"
+>
+🔴 إيقاف الحساب
+</button>
+`
 
-            :
+:
 
-            `
-            <button
-              class="activate"
-              onclick="changeSellerStatus(
-                '${sellerId}',
-                'active'
-              )"
-            >
-              🟢 تفعيل الحساب
-            </button>
-            `
-          }
+`
+<button
+class="activate"
+onclick="changeSellerStatus(
+'${sellerId}',
+'active'
+)"
+>
+🟢 تفعيل الحساب
+</button>
+`
+}
 
-          <button
-            class="delete"
-            onclick="deleteSeller('${sellerId}')"
-          >
-            🗑️ حذف البائع
-          </button>
+<button
+class="delete"
+onclick="deleteSeller('${sellerId}')"
+>
+🗑️ حذف البائع
+</button>
 
-        </div>
+</div>
 
-      `;
+`;
 
-    });
+});
 
-  }catch(error){
+}catch(error){
 
-    console.error(error);
+console.error(error);
 
-    sellersBox.innerHTML =
-      "<p>حدث خطأ أثناء تحميل البائعين.</p>";
+sellersBox.innerHTML =
+"<p>حدث خطأ أثناء تحميل البائعين.</p>";
 
-  }
+}
 
 }
 
@@ -436,36 +475,36 @@ async function loadSellers(){
 window.deleteSeller =
 async function(id){
 
-  if(
-    !confirm(
-      "⚠️ هل أنت متأكد من حذف هذا البائع؟"
-    )
-  ){
-    return;
-  }
+if(
+!confirm(
+"⚠️ هل أنت متأكد من حذف هذا البائع؟"
+)
+){
+return;
+}
 
-  try{
+try{
 
-    await deleteDoc(
-      doc(db,"sellers",id)
-    );
+await deleteDoc(
+doc(db,"sellers",id)
+);
 
-    alert(
-      "تم حذف البائع ✅"
-    );
+alert(
+"تم حذف البائع ✅"
+);
 
-    loadSellers();
+loadSellers();
 
-  }catch(error){
+}catch(error){
 
-    console.error(error);
+console.error(error);
 
-    alert(
-      "حدث خطأ أثناء حذف البائع:\n" +
-      error.message
-    );
+alert(
+"حدث خطأ أثناء حذف البائع:\n" +
+error.message
+);
 
-  }
+}
 
 };
 
@@ -477,41 +516,41 @@ async function(id){
 window.changeSellerStatus =
 async function(id,status){
 
-  const message =
-    status === "inactive"
-    ? "هل تريد إيقاف هذا البائع؟"
-    : "هل تريد تفعيل هذا البائع؟";
+const message =
+status === "inactive"
+? "هل تريد إيقاف هذا البائع؟"
+: "هل تريد تفعيل هذا البائع؟";
 
-  if(!confirm(message)){
-    return;
-  }
+if(!confirm(message)){
+return;
+}
 
-  try{
+try{
 
-    await updateDoc(
-      doc(db,"sellers",id),
-      {
-        status:status
-      }
-    );
+await updateDoc(
+doc(db,"sellers",id),
+{
+status:status
+}
+);
 
-    alert(
-      status === "inactive"
-      ? "تم إيقاف الحساب ✅"
-      : "تم تفعيل الحساب ✅"
-    );
+alert(
+status === "inactive"
+? "تم إيقاف الحساب ✅"
+: "تم تفعيل الحساب ✅"
+);
 
-    loadSellers();
+loadSellers();
 
-  }catch(error){
+}catch(error){
 
-    console.error(error);
+console.error(error);
 
-    alert(
-      "حدث خطأ أثناء تغيير حالة الحساب"
-    );
+alert(
+"حدث خطأ أثناء تغيير حالة الحساب"
+);
 
-  }
+}
 
 };
 
@@ -522,93 +561,94 @@ async function(id,status){
 
 async function loadProducts(){
 
-  productsBox.innerHTML =
-    "جاري تحميل المنتجات...";
+productsBox.innerHTML =
+"جاري تحميل المنتجات...";
 
-  try{
+try{
 
-    const snap =
-      await getDocs(
-        collection(db,"products")
-      );
+const snap =
+await getDocs(
+collection(db,"products")
+);
 
-    if(snap.empty){
+if(snap.empty){
 
-      productsBox.innerHTML =
-        "<p>لا توجد منتجات.</p>";
+productsBox.innerHTML =
+"<p>لا توجد منتجات.</p>";
 
-      return;
-    }
+return;
 
-    productsBox.innerHTML = "";
+}
 
-    snap.forEach(item=>{
+productsBox.innerHTML = "";
 
-      const data =
-        item.data();
+snap.forEach(item=>{
 
-      productsBox.innerHTML += `
+const data =
+item.data();
 
-        <div class="product">
+productsBox.innerHTML += `
 
-          <h3>
-            ${data.name || ""}
-          </h3>
+<div class="product">
 
-          <p>
-            💰 سعر الكرتون:
-            ${Number(data.price) || 0}
-            ريال
-          </p>
+<h3>
+${data.name || ""}
+</h3>
 
-          <p>
-            🏪 المتجر:
-            ${data.shopName || "مشتاق وليد"}
-          </p>
+<p>
+💰 سعر الكرتون:
+${Number(data.price) || 0}
+ريال
+</p>
 
-          <p>
-            🏙 المدينة:
-            ${data.city || "-"}
-          </p>
+<p>
+🏪 المتجر:
+${data.shopName || "مشتاق وليد"}
+</p>
 
-          ${
-            data.image
-            ?
-            `
-            <img
-              src="${data.image}"
-              alt="صورة المنتج"
-            >
-            `
-            :
-            ""
-          }
+<p>
+🏙 المدينة:
+${data.city || "-"}
+</p>
 
-          <p>
-            ${data.description || ""}
-          </p>
+${
+data.image
+?
+`
+<img
+src="${data.image}"
+alt="صورة المنتج"
+>
+`
+:
+""
+}
 
-          <button
-            class="delete"
-            onclick="deleteProduct('${item.id}')"
-          >
-            🗑️ حذف المنتج
-          </button>
+<p>
+${data.description || ""}
+</p>
 
-        </div>
+<button
+class="delete"
+onclick="deleteProduct('${item.id}')"
+>
+🗑️ حذف المنتج
+</button>
 
-      `;
+</div>
 
-    });
+`;
 
-  }catch(error){
+});
 
-    console.error(error);
+}catch(error){
 
-    productsBox.innerHTML =
-      "<p>حدث خطأ أثناء تحميل المنتجات.</p>";
+console.error(error);
 
-  }
+productsBox.innerHTML =
+"<p>حدث خطأ أثناء تحميل المنتجات.</p>";
+
+}
 
 }
 
@@ -620,95 +660,100 @@ async function loadProducts(){
 saveBtn.onclick =
 async function(){
 
-  const name =
-    document
-      .getElementById("name")
-      .value
-      .trim();
+const name =
+document
+.getElementById("name")
+.value
+.trim();
 
-  const price =
-    document
-      .getElementById("price")
-      .value
-      .trim();
+const price =
+document
+.getElementById("price")
+.value
+.trim();
 
-  const city =
-    document
-      .getElementById("city")
-      .value
-      .trim();
+const city =
+document
+.getElementById("city")
+.value
+.trim();
 
-  const phone =
-    document
-      .getElementById("phone")
-      .value
-      .trim();
+const phone =
+document
+.getElementById("phone")
+.value
+.trim();
 
-  const image =
-    document
-      .getElementById("image")
-      .value
-      .trim();
+const image =
+document
+.getElementById("image")
+.value
+.trim();
 
-  const description =
-    document
-      .getElementById("description")
-      .value
-      .trim();
-
-
-  if(!name){
-
-    alert(
-      "اكتب اسم المنتج"
-    );
-
-    return;
-  }
+const description =
+document
+.getElementById("description")
+.value
+.trim();
 
 
-  try{
+if(!name){
 
-    await addDoc(
-      collection(db,"products"),
-      {
-        name:name,
-        price:Number(price) || 0,
-        city:city,
-        phone:phone,
-        image:image,
-        description:description,
-        shopName:"مشتاق وليد"
-      }
-    );
+alert(
+"اكتب اسم المنتج"
+);
+
+return;
+
+}
+
+try{
+
+await addDoc(
+collection(db,"products"),
+{
+
+name:name,
+
+price:Number(price) || 0,
+
+city:city,
+
+phone:phone,
+
+image:image,
+
+description:description,
+
+shopName:"مشتاق وليد"
+
+}
+);
+
+alert(
+"تم حفظ المنتج ✅"
+);
 
 
-    alert(
-      "تم حفظ المنتج ✅"
-    );
+document.getElementById("name").value="";
+document.getElementById("price").value="";
+document.getElementById("city").value="";
+document.getElementById("phone").value="";
+document.getElementById("image").value="";
+document.getElementById("description").value="";
 
+loadProducts();
 
-    document.getElementById("name").value = "";
-    document.getElementById("price").value = "";
-    document.getElementById("city").value = "";
-    document.getElementById("phone").value = "";
-    document.getElementById("image").value = "";
-    document.getElementById("description").value = "";
+}catch(error){
 
+console.error(error);
 
-    loadProducts();
+alert(
+"حدث خطأ أثناء حفظ المنتج:\n" +
+error.message
+);
 
-
-  }catch(error){
-
-    console.error(error);
-
-    alert(
-      "حدث خطأ أثناء حفظ المنتج:\n" +
-      error.message
-    );
-
-  }
+}
 
 };
 
@@ -720,36 +765,36 @@ async function(){
 window.deleteProduct =
 async function(id){
 
-  if(
-    !confirm(
-      "هل تريد حذف هذا المنتج؟"
-    )
-  ){
-    return;
-  }
+if(
+!confirm(
+"هل تريد حذف هذا المنتج؟"
+)
+){
+return;
+}
 
-  try{
+try{
 
-    await deleteDoc(
-      doc(db,"products",id)
-    );
+await deleteDoc(
+doc(db,"products",id)
+);
 
-    alert(
-      "تم حذف المنتج ✅"
-    );
+alert(
+"تم حذف المنتج ✅"
+);
 
-    loadProducts();
+loadProducts();
 
-  }catch(error){
+}catch(error){
 
-    console.error(error);
+console.error(error);
 
-    alert(
-      "حدث خطأ أثناء حذف المنتج:\n" +
-      error.message
-    );
+alert(
+"حدث خطأ أثناء حذف المنتج:\n" +
+error.message
+);
 
-  }
+}
 
 };
 
@@ -760,21 +805,22 @@ async function(id){
 
 function getDeliveryPerCarton(price){
 
-  price = Number(price) || 0;
+price =
+Number(price) || 0;
 
-  if(price < 1500){
+if(price < 1500){
 
-    return 50;
+return 50;
 
-  }
+}
 
-  if(price < 2000){
+if(price < 2000){
 
-    return 70;
+return 70;
 
-  }
+}
 
-  return 100;
+return 100;
 
 }
 
@@ -785,382 +831,371 @@ function getDeliveryPerCarton(price){
 
 async function loadOrders(){
 
-  ordersBox.innerHTML =
-    "جاري تحميل الطلبات...";
+ordersBox.innerHTML =
+"جاري تحميل الطلبات...";
 
-  try{
+try{
 
-    const snap =
-      await getDocs(
-        collection(db,"orders")
-      );
+const snap =
+await getDocs(
+collection(db,"orders")
+);
 
-    if(snap.empty){
+if(snap.empty){
 
-      ordersBox.innerHTML =
-        "<p>لا توجد طلبات.</p>";
+ordersBox.innerHTML =
+"<p>لا توجد طلبات.</p>";
 
-      return;
-    }
+return;
 
-    ordersBox.innerHTML = "";
+}
 
-    snap.forEach(item=>{
+ordersBox.innerHTML = "";
 
-      const data =
-        item.data();
+snap.forEach(item=>{
 
+const data =
+item.data();
 
-      /* ===============================
-         بيانات العميل
-      =============================== */
 
-      const customerName =
-        data.name ||
-        data.customerName ||
-        "بدون اسم";
+/* ===============================
+   بيانات العميل
+=============================== */
 
-      const customerPhone =
-        data.phone ||
-        data.customerPhone ||
-        "-";
+const customerName =
+data.name ||
+data.customerName ||
+"بدون اسم";
 
-      const customerAddress =
-        data.address ||
-        data.customerAddress ||
-        "-";
+const customerPhone =
+data.phone ||
+data.customerPhone ||
+"-";
 
-      const city =
-        data.customerCity ||
-        data.deliveryArea ||
-        "إب";
+const customerAddress =
+data.address ||
+data.customerAddress ||
+"-";
 
-      const orderType =
-        data.orderType ||
-        "جملة";
+const city =
+data.customerCity ||
+data.deliveryArea ||
+"إب";
 
-      const deliveryTime =
-        data.deliveryTime ||
-        "غير محدد";
+const orderType =
+data.orderType ||
+"جملة";
 
+const deliveryTime =
+data.deliveryTime ||
+"غير محدد";
 
-      /* ===============================
-         المنتجات
-      =============================== */
 
-      const products =
-        Array.isArray(data.products)
-        ? data.products
-        : [];
+/* ===============================
+   المنتجات
+=============================== */
 
+const products =
+Array.isArray(data.products)
+? data.products
+: [];
 
-      let productsHTML = "";
 
-      let calculatedDelivery = 0;
+let productsHTML = "";
 
-      let calculatedCartons = 0;
+let calculatedDelivery = 0;
 
-      let calculatedProductsTotal = 0;
+let calculatedCartons = 0;
 
+let calculatedProductsTotal = 0;
 
-      products.forEach(product=>{
 
-        const name =
-          product.name ||
-          "منتج";
+products.forEach(product=>{
 
+const name =
+product.name ||
+"منتج";
 
-        const price =
-          Number(product.price) || 0;
+const price =
+Number(product.price) || 0;
 
 
-        /*
-          إذا كان quantity موجودًا
-          نستخدمه.
+/*
+إذا لم توجد كمية
+نعتبر كل منتج كرتونًا واحدًا.
+*/
 
-          وإذا لم يكن موجودًا
-          نعتبر كل عنصر في السلة
-          كرتونًا واحدًا.
-        */
+const quantity =
+Number(product.quantity) > 0
+? Number(product.quantity)
+: 1;
 
-        const quantity =
-          Number(product.quantity) > 0
-          ? Number(product.quantity)
-          : 1;
 
+/* قيمة المنتج */
 
-        const productTotal =
-          price * quantity;
+const productTotal =
+price * quantity;
 
 
-        const deliveryPerCarton =
-          getDeliveryPerCarton(price);
+/* رسوم التوصيل */
 
+const deliveryPerCarton =
+getDeliveryPerCarton(price);
 
-        const productDelivery =
-          deliveryPerCarton * quantity;
+const productDelivery =
+deliveryPerCarton * quantity;
 
 
-        calculatedCartons +=
-          quantity;
+/* التجميع */
 
+calculatedCartons +=
+quantity;
 
-        calculatedProductsTotal +=
-          productTotal;
+calculatedProductsTotal +=
+productTotal;
 
+calculatedDelivery +=
+productDelivery;
 
-        calculatedDelivery +=
-          productDelivery;
 
+/* عرض المنتج فقط */
 
-        productsHTML += `
+productsHTML += `
 
-          <div class="productOrder">
+<div class="productOrder">
 
-            🛍️ <strong>
-              ${name}
-            </strong>
+🛍️ <strong>${name}</strong>
 
-            <br>
+<br>
 
-            📦 عدد الكراتين:
-            <strong>
-              ${quantity}
-            </strong>
+📦 الكراتين:
+<strong>${quantity}</strong>
 
-            <br>
+&nbsp;&nbsp;
 
-            💰 سعر الكرتون:
-            <strong>
-              ${price} ريال
-            </strong>
+💰 سعر الكرتون:
+<strong>${price} ريال</strong>
 
-            <br>
+</div>
 
-            🚚 رسوم توصيل هذا المنتج:
-            <strong>
-              ${productDelivery} ريال
-            </strong>
+`;
 
-            <br>
+});
 
-            💵 إجمالي المنتج:
-            <strong>
-              ${productTotal} ريال
-            </strong>
 
-          </div>
+/* ===============================
+   الإجماليات
+=============================== */
 
-        `;
+const productsTotal =
+calculatedProductsTotal;
 
-      });
+const deliveryTotal =
+calculatedDelivery;
 
+const total =
+productsTotal +
+deliveryTotal;
 
-      /* ===============================
-         إجمالي المنتجات
-      =============================== */
 
-      const productsTotal =
-        calculatedProductsTotal;
+/* ===============================
+   الحالة
+=============================== */
 
+const status =
+data.status ||
+"جديد";
 
-      /* ===============================
-         إجمالي التوصيل
-      =============================== */
+let statusButton = "";
 
-      const deliveryTotal =
-        calculatedDelivery;
 
+if(status === "تم التوصيل"){
 
-      /* ===============================
-         الإجمالي النهائي
-      =============================== */
+statusButton = `
 
-      const total =
-        productsTotal +
-        deliveryTotal;
+<p style="
+background:#e8f5e9;
+color:#008000;
+padding:8px;
+border-radius:8px;
+font-weight:bold;
+text-align:center;
+margin-top:8px;
+">
 
+✅ تم التوصيل
 
-      const status =
-        data.status ||
-        "جديد";
+</p>
 
+`;
 
-      /* ===============================
-         زر الحالة
-      =============================== */
+}else{
 
-      let statusButton = "";
+statusButton = `
 
+<button
+class="status"
+onclick="changeStatus('${item.id}')"
+>
 
-      if(status === "تم التوصيل"){
+🚚 تغيير الحالة إلى تم التوصيل
 
-        statusButton = `
+</button>
 
-          <p style="
-            background:#e8f5e9;
-            color:#008000;
-            padding:12px;
-            border-radius:8px;
-            font-weight:bold;
-            text-align:center;
-            margin-top:10px;
-          ">
+`;
 
-            ✅ تم التوصيل
+}
 
-          </p>
 
-        `;
+/* ===============================
+   عرض طلب واحد كامل
+=============================== */
 
-      }else{
+ordersBox.innerHTML += `
 
-        statusButton = `
+<div class="orderBox">
 
-          <button
-            class="status"
-            onclick="changeStatus('${item.id}')"
-          >
+<div class="orderHeader">
 
-            🚚 تغيير الحالة إلى تم التوصيل
+<h3>
+👤 ${customerName}
+</h3>
 
-          </button>
+</div>
 
-        `;
+<div class="orderInfo">
 
-      }
+📱 الجوال:
+${customerPhone}
 
+<br>
 
-      /* ===============================
-         عرض الطلب
-      =============================== */
+📍 المدينة:
+${city}
 
-      ordersBox.innerHTML += `
+<br>
 
-        <div class="orderBox">
+🏠 العنوان:
+${customerAddress}
 
-          <h3>
-            👤 ${customerName}
-          </h3>
+<br>
 
-          <p>
-            📱 الجوال:
-            ${customerPhone}
-          </p>
+📦 نوع الطلب:
+${orderType}
 
-          <p>
-            📍 المدينة:
-            ${city}
-          </p>
+<br>
 
-          <p>
-            🏠 العنوان:
-            ${customerAddress}
-          </p>
+🕐 وقت التوصيل:
+${deliveryTime}
 
-          <p>
-            📦 نوع الطلب:
-            ${orderType}
-          </p>
+</div>
 
-          <p>
-            🕐 وقت التوصيل:
-            ${deliveryTime}
-          </p>
 
-          <hr style="margin:12px 0;">
+<hr>
 
-          <p>
-            <strong>
-              🛒 المنتجات:
-            </strong>
-          </p>
 
-          ${
-            productsHTML ||
-            "<p>لا توجد منتجات</p>"
-          }
+<strong>
+🛒 المنتجات:
+</strong>
 
 
-          <div class="totalBox">
+<div class="productsList">
 
-            📦 <strong>
-              إجمالي الكراتين:
-            </strong>
+${
+productsHTML ||
+"<p>لا توجد منتجات</p>"
+}
 
-            ${calculatedCartons}
+</div>
 
-            <br>
 
-            🛍️ <strong>
-              مجموع المنتجات:
-            </strong>
+<!-- ===============================
+     إجمالي واحد فقط للطلب
+=============================== -->
 
-            ${productsTotal} ريال
+<div class="totalBox">
 
-            <br>
+📦 <strong>
+إجمالي الكراتين:
+</strong>
 
-            🚚 <strong>
-              إجمالي رسوم التوصيل:
-            </strong>
+${calculatedCartons}
 
-            ${deliveryTotal} ريال
+<br>
 
-            <br>
+🛍️ <strong>
+مجموع المنتجات:
+</strong>
 
-            💰 <strong>
-              الإجمالي النهائي:
-            </strong>
+${productsTotal} ريال
 
-            ${total} ريال
+<br>
 
-          </div>
+🚚 <strong>
+إجمالي التوصيل:
+</strong>
 
+${deliveryTotal} ريال
 
-          <div class="deliveryBox">
+<hr>
 
-            📋 <strong>
-              حالة الطلب:
-            </strong>
+<span class="finalTotal">
 
-            ${status}
+💰 الإجمالي النهائي:
+${total} ريال
 
-          </div>
+</span>
 
+</div>
 
-          ${statusButton}
 
+<div class="deliveryBox">
 
-          <button
-            class="delete"
-            onclick="deleteOrder('${item.id}')"
-          >
+📋 <strong>
+حالة الطلب:
+</strong>
 
-            🗑️ حذف الطلب
+${status}
 
-          </button>
+</div>
 
-        </div>
 
-      `;
+${statusButton}
 
-    });
 
+<button
+class="delete"
+onclick="deleteOrder('${item.id}')"
+>
 
-  }catch(error){
+🗑️ حذف الطلب
 
-    console.error(error);
+</button>
 
-    ordersBox.innerHTML = `
-      <p>
-        حدث خطأ أثناء تحميل الطلبات.
-      </p>
-      <p>
-        ${error.message}
-      </p>
-    `;
 
-  }
+</div>
+
+`;
+
+});
+
+}catch(error){
+
+console.error(error);
+
+ordersBox.innerHTML = `
+
+<p>
+حدث خطأ أثناء تحميل الطلبات.
+</p>
+
+<p>
+${error.message}
+</p>
+
+`;
+
+}
 
 }
 
@@ -1172,40 +1207,36 @@ async function loadOrders(){
 window.deleteOrder =
 async function(id){
 
-  if(
-    !confirm(
-      "هل تريد حذف هذا الطلب؟"
-    )
-  ){
-    return;
-  }
+if(
+!confirm(
+"هل تريد حذف هذا الطلب؟"
+)
+){
+return;
+}
 
+try{
 
-  try{
+await deleteDoc(
+doc(db,"orders",id)
+);
 
-    await deleteDoc(
-      doc(db,"orders",id)
-    );
+alert(
+"تم حذف الطلب ✅"
+);
 
+loadOrders();
 
-    alert(
-      "تم حذف الطلب ✅"
-    );
+}catch(error){
 
+console.error(error);
 
-    loadOrders();
+alert(
+"حدث خطأ أثناء حذف الطلب:\n" +
+error.message
+);
 
-
-  }catch(error){
-
-    console.error(error);
-
-    alert(
-      "حدث خطأ أثناء حذف الطلب:\n" +
-      error.message
-    );
-
-  }
+}
 
 };
 
@@ -1217,34 +1248,31 @@ async function(id){
 window.changeStatus =
 async function(id){
 
-  try{
+try{
 
-    await updateDoc(
-      doc(db,"orders",id),
-      {
-        status:"تم التوصيل"
-      }
-    );
+await updateDoc(
+doc(db,"orders",id),
+{
+status:"تم التوصيل"
+}
+);
 
+alert(
+"تم تغيير حالة الطلب إلى تم التوصيل ✅"
+);
 
-    alert(
-      "تم تغيير حالة الطلب إلى تم التوصيل ✅"
-    );
+loadOrders();
 
+}catch(error){
 
-    loadOrders();
+console.error(error);
 
+alert(
+"حدث خطأ أثناء تغيير حالة الطلب:\n" +
+error.message
+);
 
-  }catch(error){
-
-    console.error(error);
-
-    alert(
-      "حدث خطأ أثناء تغيير حالة الطلب:\n" +
-      error.message
-    );
-
-  }
+}
 
 };
 
@@ -1254,44 +1282,45 @@ async function(id){
 ===================================== */
 
 onAuthStateChanged(
-  auth,
-  (user)=>{
+auth,
+(user)=>{
 
-    if(!user){
+if(!user){
 
-      alert(
-        "يجب تسجيل دخول المدير أولاً"
-      );
-
-      return;
-    }
-
-
-    if(
-      user.email !==
-      "waleedahmad2031@gmail.com"
-    ){
-
-      alert(
-        "ليس لديك صلاحية دخول لوحة الإدارة"
-      );
-
-      return;
-    }
-
-
-    loadSellers();
-
-    loadProducts();
-
-    loadOrders();
-
-  }
+alert(
+"يجب تسجيل دخول المدير أولاً"
 );
+
+return;
+
+}
+
+
+if(
+user.email !==
+"waleedahmad2031@gmail.com"
+){
+
+alert(
+"ليس لديك صلاحية دخول لوحة الإدارة"
+);
+
+return;
+
+}
+
+
+loadSellers();
+
+loadProducts();
+
+loadOrders();
+
+});
 
 </script>
 
 </body>
-</html>
+  </html>
 
     
