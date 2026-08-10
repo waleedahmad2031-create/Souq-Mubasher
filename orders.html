@@ -63,15 +63,6 @@ margin:8px 0;
 font-size:17px;
 }
 
-.deliveryDetails{
-background:#e8f5e9;
-padding:12px;
-border-radius:8px;
-margin-top:10px;
-line-height:1.9;
-font-size:15px;
-}
-
 .finalTotal{
 font-size:22px !important;
 font-weight:bold;
@@ -140,10 +131,8 @@ background:#00796b;
 🌙 <strong>التوصيل المسائي:</strong>
 من بعد المغرب حتى الساعة 10 مساءً
 
-<br>
-
-
 </div>
+
 
 <input
 id="customerName"
@@ -161,6 +150,7 @@ id="customerAddress"
 placeholder="العنوان بالتفصيل داخل مدينة إب"
 ></textarea>
 
+
 <select id="deliveryTime">
 
 <option value="">
@@ -172,6 +162,7 @@ placeholder="العنوان بالتفصيل داخل مدينة إب"
 </option>
 
 </select>
+
 
 <div class="totalBox">
 
@@ -196,11 +187,6 @@ placeholder="العنوان بالتفصيل داخل مدينة إب"
 </strong>
 </p>
 
-<div class="deliveryDetails">
-
-
-</div>
-
 <p class="finalTotal">
 
 💰 الإجمالي النهائي:
@@ -211,6 +197,7 @@ placeholder="العنوان بالتفصيل داخل مدينة إب"
 </p>
 
 </div>
+
 
 <button id="sendOrder">
 إرسال طلب الجملة
@@ -236,24 +223,20 @@ const cart =
 JSON.parse(localStorage.getItem("cart")) || [];
 
 
-// ===============================
+// =====================================
 // حساب رسوم التوصيل للكرتون
-// ===============================
+// =====================================
 
 function getDeliveryFee(price){
 
 price = Number(price || 0);
 
 if(price < 1500){
-
 return 50;
-
 }
 
 if(price < 2000){
-
 return 70;
-
 }
 
 return 100;
@@ -261,9 +244,9 @@ return 100;
 }
 
 
-// ===============================
+// =====================================
 // حساب الطلب
-// ===============================
+// =====================================
 
 let productsTotal = 0;
 
@@ -278,23 +261,16 @@ const price =
 Number(item.price || 0);
 
 const quantity =
-Number(item.quantity || 1);
+Number(item.quantity) > 0
+? Number(item.quantity)
+: 1;
 
-const deliveryPerCarton =
-getDeliveryFee(price);
-
-
-// قيمة المنتجات
 productsTotal +=
 price * quantity;
 
-
-// رسوم التوصيل
 deliveryTotal +=
-deliveryPerCarton * quantity;
+getDeliveryFee(price) * quantity;
 
-
-// عدد الكراتين
 cartonsTotal +=
 quantity;
 
@@ -305,9 +281,9 @@ const finalTotal =
 productsTotal + deliveryTotal;
 
 
-// ===============================
+// =====================================
 // عرض الحساب
-// ===============================
+// =====================================
 
 document.getElementById("cartonsTotal").textContent =
 cartonsTotal;
@@ -322,27 +298,35 @@ document.getElementById("totalPrice").textContent =
 finalTotal;
 
 
-// ===============================
+// =====================================
 // إرسال الطلب
-// ===============================
+// =====================================
 
-document.getElementById("sendOrder").onclick = async () => {
+document.getElementById("sendOrder").onclick =
+async () => {
 
 
 const name =
-document.getElementById("customerName").value.trim();
+document.getElementById("customerName")
+.value
+.trim();
 
 
 const phone =
-document.getElementById("customerPhone").value.trim();
+document.getElementById("customerPhone")
+.value
+.trim();
 
 
 const address =
-document.getElementById("customerAddress").value.trim();
+document.getElementById("customerAddress")
+.value
+.trim();
 
 
 const deliveryTime =
-document.getElementById("deliveryTime").value;
+document.getElementById("deliveryTime")
+.value;
 
 
 if(
@@ -373,9 +357,9 @@ return;
 try{
 
 
-// ===============================
+// =====================================
 // حفظ الطلب في Firebase
-// ===============================
+// =====================================
 
 await addDoc(
 collection(db,"orders"),
@@ -413,84 +397,53 @@ createdAt:serverTimestamp()
 );
 
 
-// ===============================
-// رسالة واتساب
-// ===============================
+// =====================================
+// إنشاء قائمة المنتجات المختصرة
+// =====================================
 
 let productsMessage = "";
 
 cart.forEach((item,index) => {
 
-const price =
-Number(item.price || 0);
-
 const quantity =
-Number(item.quantity || 1);
+Number(item.quantity) > 0
+? Number(item.quantity)
+: 1;
 
-const fee =
-getDeliveryFee(price);
-
-productsMessage += `
-
-${index + 1}. ${item.name || "منتج"}
-
-📦 الكمية: ${quantity} كرتون
-
-💰 سعر الكرتون: ${price} ريال
-
-🚚 توصيل الكرتون: ${fee} ريال
-
-`;
+productsMessage +=
+`${index + 1}. ${item.name || "منتج"} × ${quantity} كرتون\n`;
 
 });
 
 
-let message = `🛒 طلب جملة جديد من سوق مباشر
+// =====================================
+// رسالة واتساب مختصرة
+// =====================================
 
-👤 الاسم:
-${name}
+let message =
+`🛒 طلب جملة جديد - سوق مباشر
 
-📱 الجوال:
-${phone}
+👤 العميل: ${name}
+📱 الجوال: ${phone}
 
-📍 منطقة التوصيل:
-مدينة إب
+📍 إب
+🏠 العنوان: ${address}
 
-🏠 العنوان:
-${address}
+🕐 التوصيل: ${deliveryTime}
 
-🕐 وقت التوصيل:
-${deliveryTime}
-
-📦 عدد الكراتين:
-${cartonsTotal}
-
-━━━━━━━━━━━━
-
+📦 المنتجات:
 ${productsMessage}
 
-━━━━━━━━━━━━
+📦 إجمالي الكراتين: ${cartonsTotal}
+🛍️ مجموع المنتجات: ${productsTotal} ريال
+🚚 التوصيل: ${deliveryTotal} ريال
 
-🛍️ مجموع المنتجات:
-${productsTotal} ريال
-
-🚚 رسوم التوصيل:
-${deliveryTotal} ريال
-
-💰 الإجمالي النهائي:
-${finalTotal} ريال
-
-📦 نوع الطلب:
-جملة
-`;
+💰 الإجمالي النهائي: ${finalTotal} ريال`;
 
 
 window.open(
-
 `https://wa.me/966550496391?text=${encodeURIComponent(message)}`,
-
 "_blank"
-
 );
 
 
@@ -521,4 +474,4 @@ alert(
 
 </body>
 
-  </html>
+</html>
