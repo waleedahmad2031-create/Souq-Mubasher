@@ -140,26 +140,4 @@ addMessage(text,"user");
 input.value="";
 
 
-setTimeout(()=>{
-
-addMessage(
-"ممتاز 👍 وصلتني رسالتك. في الخطوة القادمة سأتعلم كيف أفهم اسم المنتج والكمية وأجهز طلبك.",
-"bot"
-);
-
-},500);
-
-}
-
-
-document.getElementById("messageInput").addEventListener("keydown",function(e){
-
-if(e.key==="Enter"){
-
-sendMessage();
-
-}
-
-});
-
-</script></body></html>
+<script type="module" src="assistant.js"></script>
