@@ -7,7 +7,6 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-
 const chat = document.getElementById("chat");
 const input = document.getElementById("messageInput");
 const sendButton = document.getElementById("sendButton");
@@ -21,7 +20,7 @@ const WHATSAPP_NUMBER = "966550496391";
 let currentOrder = [];
 
 
-// مرحلة الطلب
+// مراحل الطلب
 let orderStage = "products";
 
 
@@ -33,9 +32,9 @@ let customer = {
 };
 
 
-// ============================
+// =============================
 // إضافة رسالة
-// ============================
+// =============================
 
 function addMessage(text, type) {
 
@@ -54,9 +53,9 @@ function addMessage(text, type) {
 }
 
 
-// ============================
+// =============================
 // تحويل الأرقام العربية
-// ============================
+// =============================
 
 function numbers(text) {
 
@@ -72,9 +71,9 @@ function numbers(text) {
 }
 
 
-// ============================
+// =============================
 // تنظيف النص
-// ============================
+// =============================
 
 function clean(text) {
 
@@ -83,20 +82,22 @@ function clean(text) {
     .replace(/[ًٌٍَُِّْـ]/g, "")
     .replace(/[أإآ]/g, "ا")
     .replace(/ة/g, "ه")
+    .replace(/[،,]/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 
 }
 
 
-// ============================
-// هل موافقة؟
-/ ============================
+// =============================
+// نعم
+// =============================
 
 function isYes(text) {
 
   const value = clean(text);
 
-  const words = [
+  return [
     "نعم",
     "اي",
     "ايوه",
@@ -106,44 +107,41 @@ function isYes(text) {
     "اكيد",
     "اتمام الطلب",
     "اتم الطلب",
-    "اريد اتمام الطلب",
-    "أريد إتمام الطلب",
-    "اتمام"
-  ];
-
-  return words.some(word =>
+    "اريد الطلب",
+    "نعم اريد",
+    "كيف اتمام الطلب"
+  ].some(word =>
     value.includes(clean(word))
   );
+
 }
 
 
-// ============================
-// هل إلغاء؟
-/ ============================
+// =============================
+// لا
+// =============================
 
 function isNo(text) {
 
   const value = clean(text);
 
-  const words = [
+  return [
     "لا",
     "الغاء",
     "الغ",
     "لا اريد",
     "ما اريد",
     "مش اريد"
-  ];
-
-  return words.some(word =>
-    value === clean(word) ||
+  ].some(word =>
     value.includes(clean(word))
   );
+
 }
 
 
-// ============================
+// =============================
 // تحميل المنتجات
-// ============================
+// =============================
 
 async function getProducts() {
 
@@ -181,10 +179,13 @@ async function getProducts() {
         if (!name) return;
 
 
+        // منع تكرار المنتج
         const exists =
-          result.some(product =>
-            clean(product.name) === clean(name)
-          );
+          result.some(function(product) {
+
+            return clean(product.name) === clean(name);
+
+          });
 
 
         if (!exists) {
@@ -218,68 +219,27 @@ async function getProducts() {
 }
 
 
-// ============================
-// إيجاد الأرقام المرتبطة بالمنتج
-// ============================
+// =============================
+// استخراج جميع المنتجات
+// =============================
 
-function getQuantityForPosition(
-  text,
-  startPosition
-) {
+function findProducts(text, products) {
 
   const value =
-    clean(text);
-
-
-  // نأخذ الجزء الذي قبل اسم المنتج
-  const before =
-    value.substring(
-      Math.max(0, startPosition - 10),
-      startPosition
-    );
-
-
-  // آخر رقم قبل المنتج
-  const matches =
-    before.match(/\d+/g);
-
-
-  if (matches && matches.length) {
-
-    return Number(
-      matches[matches.length - 1]
-    );
-
-  }
-
-
-  return 1;
-}
-
-
-// ============================
-// البحث عن أكثر من منتج
-// ============================
-
-function findProducts(
-  text,
-  products
-) {
-
-  const normalized =
     clean(text);
 
 
   const found = [];
 
 
-  // الأطول أولًا
+  // نرتب المنتجات من الأطول إلى الأقصر
   const sorted =
-    [...products].sort(
-      (a, b) =>
-        clean(b.name).length -
-        clean(a.name).length
-    );
+    [...products].sort(function(a, b) {
+
+      return clean(b.name).length -
+             clean(a.name).length;
+
+    });
 
 
   for (const product of sorted) {
@@ -291,84 +251,103 @@ function findProducts(
     if (!productName) continue;
 
 
-    let position =
-      normalized.indexOf(productName);
+    // هل اسم المنتج موجود داخل الرسالة؟
+    if (!value.includes(productName)) {
+
+      continue;
+
+    }
 
 
-    while (position !== -1) {
+    // مكان المنتج داخل الرسالة
+    const position =
+      value.indexOf(productName);
 
-      const quantity =
-        getQuantityForPosition(
-          text,
-          position
+
+    // نأخذ الجزء الذي قبل اسم المنتج
+    const before =
+      value.substring(
+        Math.max(0, position - 10),
+        position
+      );
+
+
+    // نبحث عن آخر رقم قبل اسم المنتج
+    const numbersBefore =
+      before.match(/\d+/g);
+
+
+    let quantity = 1;
+
+
+    if (
+      numbersBefore &&
+      numbersBefore.length
+    ) {
+
+      quantity =
+        Number(
+          numbersBefore[
+            numbersBefore.length - 1
+          ]
         );
 
-
-      const price =
-        Number(product.price) || 0;
+    }
 
 
-      const total =
-        price * quantity;
+    // منع الكمية صفر
+    if (!quantity || quantity < 1) {
+
+      quantity = 1;
+
+    }
 
 
-      // لا نكرر نفس المنتج
-      const alreadyFound =
-        found.some(item =>
-          item.id === product.id
-        );
+    const price =
+      Number(product.price) || 0;
 
 
-      if (!alreadyFound) {
-
-        found.push({
-
-          id: product.id,
-
-          name: product.name,
-
-          price: price,
-
-          quantity: quantity,
-
-          total: total
-
-        });
-
-      }
+    const total =
+      price * quantity;
 
 
-      position =
-        normalized.indexOf(
-          productName,
-          position + productName.length
-        );
+    // منع تكرار المنتج
+    const already =
+      found.some(function(item) {
+
+        return clean(item.name) === productName;
+
+      });
+
+
+    if (!already) {
+
+      found.push({
+
+        id: product.id,
+
+        name: product.name,
+
+        price: price,
+
+        quantity: quantity,
+
+        total: total
+
+      });
 
     }
 
   }
 
 
-  // ترتيب المنتجات حسب ظهورها في الرسالة
-  found.sort(function(a, b) {
-
-    return normalized.indexOf(
-      clean(a.name)
-    ) -
-    normalized.indexOf(
-      clean(b.name)
-    );
-
-  });
-
-
   return found;
 }
 
 
-// ============================
+// =============================
 // عرض الطلب
-// ============================
+// =============================
 
 function showOrder() {
 
@@ -376,16 +355,17 @@ function showOrder() {
     "وجدت لك المنتجات التالية ✅\n\n";
 
 
-  let totalOrder = 0;
+  let total =
+    0;
 
 
   currentOrder.forEach(function(product) {
 
-    totalOrder += product.total;
+    total += product.total;
 
 
     message +=
-      "🛍️ المنتج: " +
+      "🛍️ " +
       product.name +
 
       "\n📦 الكمية: " +
@@ -395,7 +375,7 @@ function showOrder() {
       product.price +
       " ريال" +
 
-      "\n💵 إجمالي المنتج: " +
+      "\n💵 الإجمالي: " +
       product.total +
       " ريال\n\n";
 
@@ -406,7 +386,7 @@ function showOrder() {
     "━━━━━━━━━━━━\n" +
 
     "💰 إجمالي الطلب: " +
-    totalOrder +
+    total +
     " ريال\n\n" +
 
     "هل تريد إتمام الطلب؟";
@@ -416,12 +396,13 @@ function showOrder() {
     message,
     "bot"
   );
+
 }
 
 
-// ============================
+// =============================
 // اسم العميل
-// ============================
+// =============================
 
 function askName() {
 
@@ -431,12 +412,13 @@ function askName() {
     "ممتاز 👍\n\nما اسمك؟",
     "bot"
   );
+
 }
 
 
-// ============================
+// =============================
 // الجوال
-// ============================
+// =============================
 
 function askPhone() {
 
@@ -446,12 +428,13 @@ function askPhone() {
     "شكرًا 🌹\n\nأرسل رقم الجوال.",
     "bot"
   );
+
 }
 
 
-// ============================
+// =============================
 // العنوان
-// ============================
+// =============================
 
 function askAddress() {
 
@@ -461,12 +444,13 @@ function askAddress() {
     "تمام 👍\n\nأرسل عنوان التوصيل بالتفصيل.",
     "bot"
   );
+
 }
 
 
-// ============================
-// مراجعة الطلب
-// ============================
+// =============================
+// المراجعة النهائية
+// =============================
 
 function showFinalOrder() {
 
@@ -479,8 +463,10 @@ function showFinalOrder() {
     message +=
       "🛍️ " +
       product.name +
+
       " × " +
       product.quantity +
+
       " = " +
       product.total +
       " ريال\n";
@@ -490,8 +476,11 @@ function showFinalOrder() {
 
   const total =
     currentOrder.reduce(
-      (sum, product) =>
-        sum + product.total,
+      function(sum, product) {
+
+        return sum + product.total;
+
+      },
       0
     );
 
@@ -521,19 +510,23 @@ function showFinalOrder() {
     message,
     "bot"
   );
+
 }
 
 
-// ============================
+// =============================
 // حفظ الطلب
-// ============================
+// =============================
 
 async function saveOrder() {
 
   const total =
     currentOrder.reduce(
-      (sum, product) =>
-        sum + product.total,
+      function(sum, product) {
+
+        return sum + product.total;
+
+      },
       0
     );
 
@@ -569,8 +562,7 @@ async function saveOrder() {
 
     addMessage(
       "✅ تم تسجيل طلبك بنجاح.\n\n" +
-      "📦 تم وضع الطلب في نظام الطلبات.\n\n" +
-      "📱 وسيتم فتح واتساب لإرسال تفاصيل الطلب.",
+      "📦 تم إرسال الطلب إلى المتجر.",
       "bot"
     );
 
@@ -580,14 +572,20 @@ async function saveOrder() {
     );
 
 
-    // إعادة البداية
+    // إعادة الطلب
     currentOrder = [];
 
+
     customer = {
+
       name: "",
+
       phone: "",
+
       address: ""
+
     };
+
 
     orderStage =
       "products";
@@ -595,14 +593,11 @@ async function saveOrder() {
 
   } catch(error) {
 
-    console.error(
-      "خطأ في حفظ الطلب:",
-      error
-    );
+    console.error(error);
 
 
     addMessage(
-      "❌ حدث خطأ أثناء تسجيل الطلب.\n\nحاول مرة أخرى.",
+      "❌ حدث خطأ أثناء حفظ الطلب.",
       "bot"
     );
 
@@ -611,9 +606,9 @@ async function saveOrder() {
 }
 
 
-// ============================
-// إرسال واتساب
-// ============================
+// =============================
+// واتساب
+// =============================
 
 function sendWhatsApp(order) {
 
@@ -648,8 +643,10 @@ function sendWhatsApp(order) {
     message +=
       "- " +
       product.name +
+
       " × " +
       product.quantity +
+
       " = " +
       product.total +
       " ريال\n";
@@ -658,7 +655,7 @@ function sendWhatsApp(order) {
 
 
   message +=
-    "\n💰 إجمالي الطلب: " +
+    "\n💰 الإجمالي: " +
     order.total +
     " ريال";
 
@@ -674,12 +671,13 @@ function sendWhatsApp(order) {
     url,
     "_blank"
   );
+
 }
 
 
-// ============================
+// =============================
 // إرسال الرسالة
-// ============================
+// =============================
 
 async function sendMessage() {
 
@@ -700,117 +698,15 @@ async function sendMessage() {
 
 
   // ==========================
-  // إذا كنا نطلب اسم العميل
-  // ==========================
-
-  if (orderStage === "name") {
-
-    customer.name =
-      text;
-
-    askPhone();
-
-    return;
-  }
-
-
-  // ==========================
-  // رقم الجوال
-  // ==========================
-
-  if (orderStage === "phone") {
-
-    customer.phone =
-      text;
-
-    askAddress();
-
-    return;
-  }
-
-
-  // ==========================
-  // العنوان
-  // ==========================
-
-  if (orderStage === "address") {
-
-    customer.address =
-      text;
-
-    showFinalOrder();
-
-    return;
-  }
-
-
-  // ==========================
-  // التأكيد النهائي
-  // ==========================
-
-  if (orderStage === "finalConfirm") {
-
-    if (isYes(text)) {
-
-      addMessage(
-        "⏳ جاري تسجيل الطلب...",
-        "bot"
-      );
-
-      await saveOrder();
-
-      return;
-    }
-
-
-    if (isNo(text)) {
-
-      currentOrder = [];
-
-      orderStage =
-        "products";
-
-      addMessage(
-        "تم إلغاء الطلب 👍\n\nيمكنك كتابة طلب جديد.",
-        "bot"
-      );
-
-      return;
-    }
-
-
-    addMessage(
-      "اكتب «نعم» لتأكيد الطلب أو «لا» لإلغائه.",
-      "bot"
-    );
-
-    return;
-  }
-
-
-  // ==========================
-  // إتمام الطلب بعد عرض المنتجات
-  // ==========================
-
-  if (
-    currentOrder.length > 0 &&
-    isYes(text)
-  ) {
-
-    askName();
-
-    return;
-  }
-
-
-  // ==========================
   // مرحلة المنتجات
   // ==========================
 
-  if (orderStage === "products") {
+  if (
+    orderStage === "products"
+  ) {
 
     addMessage(
-      "🔎 أبحث لك عن المنتجات...",
+      "🔎 أبحث عن المنتجات...",
       "bot"
     );
 
@@ -843,29 +739,180 @@ async function sendMessage() {
     if (!found.length) {
 
       addMessage(
-        "❌ لم أجد أي منتج من طلبك.\n\n" +
-        "تأكد من كتابة اسم المنتج كما هو موجود في المتجر.",
+        "❌ لم أجد المنتجات.\n\n" +
+        "اكتب اسم المنتجات كما هي موجودة في المتجر.",
         "bot"
       );
 
       return;
+
     }
 
 
+    // حفظ كل المنتجات
     currentOrder =
       found;
 
 
+    // عرض كل المنتجات
     showOrder();
+
+
+    return;
+
+  }
+
+
+  // ==========================
+  // تأكيد الطلب
+  // ==========================
+
+  if (
+    orderStage === "confirm"
+  ) {
+
+    if (isYes(text)) {
+
+      askName();
+
+      return;
+
+    }
+
+
+    if (isNo(text)) {
+
+      currentOrder = [];
+
+      orderStage =
+        "products";
+
+      addMessage(
+        "تم إلغاء الطلب 👍\n\nاكتب طلبًا جديدًا.",
+        "bot"
+      );
+
+      return;
+
+    }
+
+
+    addMessage(
+      "اكتب «نعم» لإتمام الطلب أو «لا» للإلغاء.",
+      "bot"
+    );
+
+    return;
+
+  }
+
+
+  // ==========================
+  // الاسم
+  // ==========================
+
+  if (
+    orderStage === "name"
+  ) {
+
+    customer.name =
+      text;
+
+    askPhone();
+
+    return;
+
+  }
+
+
+  // ==========================
+  // الجوال
+  // ==========================
+
+  if (
+    orderStage === "phone"
+  ) {
+
+    customer.phone =
+      text;
+
+    askAddress();
+
+    return;
+
+  }
+
+
+  // ==========================
+  // العنوان
+  // ==========================
+
+  if (
+    orderStage === "address"
+  ) {
+
+    customer.address =
+      text;
+
+    showFinalOrder();
+
+    return;
+
+  }
+
+
+  // ==========================
+  // التأكيد النهائي
+  // ==========================
+
+  if (
+    orderStage === "finalConfirm"
+  ) {
+
+    if (isYes(text)) {
+
+      addMessage(
+        "⏳ جاري تسجيل الطلب...",
+        "bot"
+      );
+
+      await saveOrder();
+
+      return;
+
+    }
+
+
+    if (isNo(text)) {
+
+      currentOrder = [];
+
+      orderStage =
+        "products";
+
+      addMessage(
+        "تم إلغاء الطلب 👍\n\nيمكنك كتابة طلب جديد.",
+        "bot"
+      );
+
+      return;
+
+    }
+
+
+    addMessage(
+      "اكتب «نعم» لتأكيد الطلب أو «لا» لإلغائه.",
+      "bot"
+    );
 
   }
 
 }
 
 
-// ============================
-// زر الإرسال
-// ============================
+// =============================
+// الأحداث
+// =============================
 
 sendButton.addEventListener(
   "click",
@@ -873,15 +920,13 @@ sendButton.addEventListener(
 );
 
 
-// ============================
-// زر Enter
-// ============================
-
 input.addEventListener(
   "keydown",
   function(event) {
 
-    if (event.key === "Enter") {
+    if (
+      event.key === "Enter"
+    ) {
 
       sendMessage();
 
