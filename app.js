@@ -1,4 +1,3 @@
-
 import { db } from "./firebase.js";
 
 import {
@@ -32,8 +31,18 @@ function loadProducts() {
 
       if (snap.empty) {
 
-        productsBox.innerHTML =
-          "<h2>لا توجد منتجات</h2>";
+        productsBox.innerHTML = `
+          <div style="
+            grid-column:1/-1;
+            background:white;
+            padding:30px;
+            border-radius:15px;
+            text-align:center;
+            color:#777;
+          ">
+            🛍️ لا توجد منتجات حاليًا
+          </div>
+        `;
 
         return;
       }
@@ -52,50 +61,126 @@ function loadProducts() {
 
           ${
             data.image
-              ? `<img src="${data.image}" alt="${data.name || ""}">`
-              : ""
+              ? `
+                <img
+                  src="${data.image}"
+                  alt="${data.name || "منتج"}"
+                  loading="lazy"
+                >
+              `
+              : `
+                <div style="
+                  height:150px;
+                  background:#f1f1f1;
+                  border-radius:11px;
+                  display:flex;
+                  align-items:center;
+                  justify-content:center;
+                  font-size:45px;
+                ">
+                  🛍️
+                </div>
+              `
           }
+
 
           <h3>
             ${data.name || "بدون اسم"}
           </h3>
 
-          ${
-            data.shopName
-              ? `<p>🏪 التاجر: <b>${data.shopName}</b></p>`
-              : ""
-          }
-
-          <p>
-            💰 <b>${data.price || 0} ريال</b>
-          </p>
 
           ${
             data.category
-              ? `<p>📂 القسم: ${data.category}</p>`
+              ? `
+                <div style="
+                  display:inline-block;
+                  background:#e8f5e9;
+                  color:#00897b;
+                  padding:4px 8px;
+                  border-radius:20px;
+                  font-size:11px;
+                  margin-bottom:5px;
+                ">
+                  📂 ${data.category}
+                </div>
+              `
               : ""
           }
 
+
+          <p style="
+            margin:7px 0;
+            color:#777;
+            font-size:12px;
+          ">
+            ${
+              data.shopName
+                ? `🏪 ${data.shopName}`
+                : "🛒 سوق مباشر"
+            }
+          </p>
+
+
+          <div style="
+            background:#f7fafa;
+            padding:8px;
+            border-radius:9px;
+            margin-top:7px;
+            text-align:center;
+          ">
+
+            <span style="
+              color:#777;
+              font-size:11px;
+            ">
+              السعر
+            </span>
+
+            <br>
+
+            <b style="
+              color:#00897b;
+              font-size:18px;
+            ">
+              ${Number(data.price || 0).toLocaleString()}
+              ريال
+            </b>
+
+          </div>
+
+
           ${
             data.description
-              ? `<p>${data.description}</p>`
+              ? `
+                <p style="
+                  font-size:11px;
+                  color:#777;
+                  line-height:1.6;
+                  margin:8px 2px;
+                ">
+                  ${data.description}
+                </p>
+              `
               : ""
           }
+
 
           <button
             onclick="addToCart('${productDoc.id}')"
             style="
-              background:#009688;
+              background:linear-gradient(135deg,#009688,#00796b);
               color:white;
               border:none;
-              padding:12px;
-              border-radius:8px;
-              font-size:16px;
+              padding:11px 6px;
+              border-radius:10px;
+              font-size:14px;
+              font-weight:bold;
               cursor:pointer;
               width:100%;
+              margin-top:7px;
             "
           >
-            🛒 أضف إلى السلة
+            🛒 أضف للسلة
           </button>
 
         </div>
@@ -110,8 +195,18 @@ function loadProducts() {
 
       console.error(error);
 
-      productsBox.innerHTML =
-        "<p>حدث خطأ أثناء تحميل المنتجات.</p>";
+      productsBox.innerHTML = `
+        <div style="
+          grid-column:1/-1;
+          background:white;
+          padding:25px;
+          border-radius:15px;
+          text-align:center;
+          color:#d32f2f;
+        ">
+          ⚠️ حدث خطأ أثناء تحميل المنتجات
+        </div>
+      `;
 
     }
   );
@@ -218,7 +313,10 @@ function updateCartCount() {
 }
 
 
+// ===============================
 // تشغيل
+// ===============================
+
 loadProducts();
 
 updateCartCount();
