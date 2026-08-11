@@ -1,28 +1,64 @@
-<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>سوق مباشر</title><style>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>سوق مباشر</title>
+
+<style>
+
+*{
+box-sizing:border-box;
+}
 
 body{
 font-family:Tahoma,Arial,sans-serif;
-background:#f5f5f5;
+background:#f4f6f8;
 margin:0;
+color:#222;
 }
+
+/* الهيدر */
 
 header{
-background:#009688;
-color:#fff;
-padding:15px;
+background:linear-gradient(135deg,#00897b,#00695c);
+color:white;
+padding:16px 12px;
 text-align:center;
-font-size:24px;
+box-shadow:0 2px 8px rgba(0,0,0,.15);
 }
 
-.banner{
-background:#00796b;
-color:white;
-padding:25px;
-text-align:center;
-font-size:28px;
+.logo{
+font-size:27px;
 font-weight:bold;
-overflow:hidden;
+margin-bottom:10px;
+}
+
+.cart-button{
+display:inline-block;
+background:white;
+color:#00695c;
+text-decoration:none;
+padding:10px 18px;
+border-radius:25px;
+font-size:16px;
+font-weight:bold;
+box-shadow:0 2px 5px rgba(0,0,0,.15);
+}
+
+/* البنر */
+
+.banner{
+background:linear-gradient(135deg,#00796b,#004d40);
+color:white;
+padding:25px 15px;
+text-align:center;
+min-height:120px;
+display:flex;
+align-items:center;
+justify-content:center;
 }
 
 .slide{
@@ -30,61 +66,64 @@ display:none;
 animation:fade 1s;
 }
 
-.slide span{
-font-size:16px;
-font-weight:normal;
-}
-
 .slide:first-child{
 display:block;
 }
 
+.slide-title{
+font-size:26px;
+font-weight:bold;
+margin-bottom:8px;
+}
+
+.slide span{
+font-size:15px;
+font-weight:normal;
+opacity:.95;
+}
+
 @keyframes fade{
-
-from{
-opacity:0;
+from{opacity:0;}
+to{opacity:1;}
 }
 
-to{
-opacity:1;
-}
-
-}
-
-/* قسم طرق الطلب */
+/* طرق الطلب */
 
 .order-methods{
 background:white;
 margin:15px;
-padding:15px;
-border-radius:12px;
-box-shadow:0 2px 6px rgba(0,0,0,.12);
-text-align:center;
+padding:18px;
+border-radius:16px;
+box-shadow:0 2px 8px rgba(0,0,0,.08);
 }
 
 .order-methods h2{
-margin-top:0;
+margin:0 0 15px;
+text-align:center;
+font-size:20px;
 color:#333;
-font-size:21px;
 }
 
 .order-buttons{
 display:flex;
 gap:10px;
-flex-wrap:wrap;
-justify-content:center;
 }
 
 .order-button{
-display:block;
 flex:1;
-min-width:140px;
-padding:14px 10px;
-border-radius:10px;
+display:block;
+padding:14px 8px;
+border-radius:12px;
 text-decoration:none;
-font-size:17px;
+text-align:center;
+font-size:16px;
 font-weight:bold;
 color:white;
+transition:.2s;
+}
+
+.order-button:active{
+transform:scale(.97);
 }
 
 .normal-order{
@@ -97,114 +136,298 @@ background:#673ab7;
 
 .order-button span{
 display:block;
-font-size:13px;
+font-size:12px;
 font-weight:normal;
-margin-top:5px;
+margin-top:6px;
+line-height:1.5;
+}
+
+/* عنوان المنتجات */
+
+.products-title{
+margin:20px 15px 5px;
+font-size:21px;
+font-weight:bold;
+color:#333;
 }
 
 /* المنتجات */
 
 #products{
-padding:15px;
+padding:10px 15px 25px;
 display:grid;
-gap:15px;
+grid-template-columns:repeat(2,minmax(0,1fr));
+gap:12px;
 }
 
+/* بطاقة المنتج */
+
 .product{
-background:#fff;
-padding:15px;
-border-radius:10px;
-box-shadow:0 2px 5px rgba(0,0,0,.1);
-text-align:center;
+background:white;
+border-radius:15px;
+padding:10px;
+box-shadow:0 2px 8px rgba(0,0,0,.08);
+overflow:hidden;
+transition:.2s;
+}
+
+.product:hover{
+transform:translateY(-2px);
 }
 
 .product img{
-width:150px;
+width:100%;
 height:150px;
 object-fit:cover;
-border-radius:10px;
+border-radius:11px;
+background:#eee;
 }
 
-</style></head><body><header>🛒 سوق مباشر
+.product h3{
+font-size:16px;
+margin:10px 2px 7px;
+line-height:1.4;
+}
 
-<a href="cart.html" style="
-display:block;
-margin-top:10px;
+.product p{
+font-size:12px;
+color:#666;
+margin:5px 2px;
+line-height:1.5;
+}
+
+.product p b{
+color:#00897b;
+font-size:16px;
+}
+
+.product button{
+background:#009688;
 color:white;
-text-decoration:none;
-font-size:18px;
-">
+border:none;
+padding:11px 6px;
+border-radius:10px;
+font-size:14px;
+font-weight:bold;
+cursor:pointer;
+width:100%;
+margin-top:8px;
+}
 
-🛍️ اختر منتجاتك ثم اضغط هنا
-(<span id="cartCount">0</span>)
+.product button:active{
+transform:scale(.97);
+}
 
-</a></header><div class="banner"><div class="slide">🛒 سوق مباشر
+/* الجوال الصغير */
 
-<br><span>
+@media(max-width:360px){
+
+#products{
+grid-template-columns:1fr;
+}
+
+.product img{
+height:190px;
+}
+
+.order-buttons{
+flex-direction:column;
+}
+
+}
+
+/* شاشة أكبر */
+
+@media(min-width:700px){
+
+#products{
+grid-template-columns:repeat(3,1fr);
+}
+
+}
+
+</style>
+</head>
+
+
+<body>
+
+<!-- الهيدر -->
+
+<header>
+
+<div class="logo">
+🛒 سوق مباشر
+</div>
+
+<a href="cart.html" class="cart-button">
+
+🛍️ السلة
+(<span id="cartCount">0</span> كرتون)
+
+</a>
+
+</header>
+
+
+<!-- البنر -->
+
+<div class="banner">
+
+<div class="slide">
+
+<div class="slide-title">
+🛒 سوق مباشر
+</div>
+
+<span>
 كل احتياجاتك في مكان واحد
-</span></div><div class="slide">🚚 تسوق بسهولة
+</span>
 
-<br><span>
+</div>
+
+
+<div class="slide">
+
+<div class="slide-title">
+🚚 تسوق بسهولة
+</div>
+
+<span>
 اطلب منتجاتك ونحن نسهل لك الوصول إليها
-</span></div><div class="slide">⭐ خيارات أكثر... وقت أقل
+</span>
 
-<br><span>
+</div>
+
+
+<div class="slide">
+
+<div class="slide-title">
+⭐ خيارات أكثر... وقت أقل
+</div>
+
+<span>
 منتجات متنوعة وأسعار مناسبة
-</span></div></div><!-- قسم طرق الطلب --><div class="order-methods"><h2>🛍️ اختر طريقة الطلب</h2><div class="order-buttons"><a href="cart.html" class="order-button normal-order">🛒 طلب عادي
+</span>
+
+</div>
+
+</div>
+
+
+<!-- طرق الطلب -->
+
+<div class="order-methods">
+
+<h2>
+🛍️ اختر طريقة الطلب
+</h2>
+
+<div class="order-buttons">
+
+<a href="cart.html" class="order-button normal-order">
+
+🛒 طلب عادي
 
 <span>
 اختر المنتجات وأرسل طلبك من السلة
-</span></a><a href="assistant.html" class="order-button ai-order">🤖 طلب بواسطة المساعد
+</span>
+
+</a>
+
+
+<a href="assistant.html" class="order-button ai-order">
+
+🤖 طلب بواسطة المساعد
 
 <span>
 اكتب ما تريد ودع المساعد يساعدك
-</span></a></div></div><div id="products">جاري تحميل المنتجات...
+</span>
 
-</div><script type="module" src="app.js"></script><script>
+</a>
 
+</div>
+
+</div>
+
+
+<!-- عنوان المنتجات -->
+
+<div class="products-title">
+🛍️ المنتجات المتوفرة
+</div>
+
+
+<!-- المنتجات -->
+
+<div id="products">
+
+جاري تحميل المنتجات...
+
+</div>
+
+
+<!-- Firebase / المنتجات -->
+
+<script type="module" src="app.js"></script>
+
+
+<script>
+
+/* عداد السلة */
 
 function updateCartCount(){
 
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
+let cart =
+JSON.parse(localStorage.getItem("cart")) || [];
 
-let count = document.getElementById("cartCount");
+let count =
+document.getElementById("cartCount");
 
 if(count){
 
-count.innerText = cart.length;
+let total = cart.reduce(
+(sum,item) =>
+sum + Number(item.quantity || 1),
+0
+);
+
+count.innerText = total;
 
 }
 
 }
-
 
 updateCartCount();
 
 
+/* البنر المتحرك */
 
-let slides = document.querySelectorAll(".slide");
+let slides =
+document.querySelectorAll(".slide");
 
 let index = 0;
 
 
 setInterval(()=>{
 
+if(slides.length === 0){
+return;
+}
+
 slides[index].style.display="none";
 
 index++;
 
-
 if(index >= slides.length){
-
 index=0;
-
 }
-
 
 slides[index].style.display="block";
 
-
 },3000);
 
+</script>
 
-</script></body></html>
+</body>
+</html>
