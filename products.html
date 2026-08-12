@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>إدارة المنتجات | سوق مباشر</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Tahoma,Arial,sans-serif;
+}
+
+body{
+background:#f5f5f5;
+overflow-x:hidden;
+}
+
+header{
+background:#009688;
+color:#fff;
+padding:18px;
+text-align:center;
+font-size:25px;
+font-weight:bold;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+padding:20px;
+}
+
+.card{
+background:#fff;
+padding:18px;
+margin-bottom:20px;
+border-radius:12px;
+box-shadow:0 2px 6px rgba(0,0,0,.1);
+}
+
+h2{
+margin-bottom:15px;
+}
+
+input,
+textarea{
+width:100%;
+padding:12px;
+margin-top:10px;
+border:1px solid #ccc;
+border-radius:8px;
+font-size:16px;
+}
+
+button{
+width:100%;
+padding:14px;
+margin-top:12px;
+border:none;
+border-radius:8px;
+font-size:17px;
+cursor:pointer;
+background:#009688;
+color:#fff;
+}
+
+button:hover{
+background:#00796b;
+}
+
+.delete{
+background:#e53935;
+}
+
+.cancel{
+background:#757575;
+}
+
+.product{
+background:#fff;
+padding:15px;
+margin-bottom:15px;
+border-radius:10px;
+box-shadow:0 2px 5px rgba(0,0,0,.1);
+line-height:1.9;
+overflow-wrap:anywhere;
+}
+
+.product img{
+width:120px;
+height:120px;
+object-fit:cover;
+border-radius:10px;
+margin-top:10px;
+display:block;
+}
+
+.empty{
+text-align:center;
+padding:25px;
+color:#777;
+}
+
+.sectionDescription{
+color:#666;
+margin-bottom:15px;
+line-height:1.7;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+🛍️ إدارة المنتجات
+</header>
+
+<div class="container">
+
+
+<!-- ===============================
+     العودة
+================================ -->
+
+<div class="card">
+
+<button
+class="cancel"
+onclick="location.href='admin.html'"
+>
+⬅️ العودة إلى لوحة الإدارة
+</button>
+
+</div>
+
+
+<!-- ===============================
+     إضافة / تعديل المنتج
+================================ -->
+
+<div class="card">
+
+<h2 id="formTitle">
+➕ إضافة منتج جديد
+</h2>
+
+<div class="sectionDescription">
+أضف المنتج أو عدّل منتجًا موجودًا.
+</div>
+
+
+<input
+id="name"
+placeholder="اسم المنتج"
+>
+
+<input
+id="price"
+type="number"
+placeholder="سعر الكرتون"
+>
+
+<input
+id="city"
+placeholder="المدينة"
+>
+
+<input
+id="phone"
+placeholder="رقم التواصل"
+>
+
+<input
+id="image"
+placeholder="رابط الصورة"
+>
+
+<textarea
+id="description"
+placeholder="وصف المنتج"
+></textarea>
+
+
+<button id="saveBtn">
+💾 حفظ المنتج
+</button>
+
+
+<button
+id="cancelBtn"
+class="cancel"
+style="display:none;"
+>
+إلغاء التعديل
+</button>
+
+</div>
+
+
+<!-- ===============================
+     قائمة المنتجات
+================================ -->
+
+<div class="card">
+
+<h2>
+📦 قائمة المنتجات
+</h2>
+
+<div id="products">
+جاري تحميل المنتجات...
+</div>
+
+</div>
+
+
+</div>
+
+
+<script type="module">
+
+import { db, auth } from "./firebase.js";
+
+import {
+onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import {
+collection,
+addDoc,
+getDocs,
+getDoc,
+updateDoc,
+deleteDoc,
+doc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+/* =====================================
+   العناصر
+===================================== */
+
+const saveBtn =
+document.getElementById("saveBtn");
+
+const cancelBtn =
+document.getElementById("cancelBtn");
+
+const formTitle =
+document.getElementById("formTitle");
+
+const productsBox =
+document.getElementById("products");
+
+
+/* =====================================
+   حالة التعديل
+===================================== */
+
+let editingProductId = null;
+
+
+/* =====================================
+   تنظيف النموذج
+===================================== */
+
+function clearForm(){
+
+document.getElementById("name").value = "";
+
+document.getElementById("price").value = "";
+
+document.getElementById("city").value = "";
+
+document.getElementById("phone").value = "";
+
+document.getElementById("image").value = "";
+
+document.getElementById("description").value = "";
+
+}
+
+
+/* =====================================
+   تحميل المنتجات
+===================================== */
+
+async function loadProducts(){
+
+productsBox.innerHTML =
+"جاري تحميل المنتجات...";
+
+try{
+
+const snap =
+await getDocs(
+collection(db,"products")
+);
+
+if(snap.empty){
+
+productsBox.innerHTML = `
+<div class="empty">
+🛍️ لا توجد منتجات حاليًا.
+</div>
+`;
+
+return;
+
+}
+
+productsBox.innerHTML = "";
+
+
+snap.forEach(item=>{
+
+const data =
+item.data();
+
+
+productsBox.innerHTML += `
+
+<div class="product">
+
+<h3>
+${data.name || "بدون اسم"}
+</h3>
+
+<p>
+💰 <strong>سعر الكرتون:</strong>
+${Number(data.price) || 0}
+ريال
+</p>
+
+<p>
+🏪 <strong>المتجر:</strong>
+${data.shopName || "مشتاق وليد"}
+</p>
+
+<p>
+🏙️ <strong>المدينة:</strong>
+${data.city || "-"}
+</p>
+
+<p>
+📱 <strong>التواصل:</strong>
+${data.phone || "-"}
+</p>
+
+${
+data.image
+?
+`
+<img
+src="${data.image}"
+alt="صورة المنتج"
+>
+`
+:
+""
+}
+
+<p>
+📝 ${data.description || "لا يوجد وصف"}
+</p>
+
+
+<button
+onclick="editProduct('${item.id}')"
+>
+✏️ تعديل المنتج
+</button>
+
+
+<button
+class="delete"
+onclick="deleteProduct('${item.id}')"
+>
+🗑️ حذف المنتج
+</button>
+
+</div>
+
+`;
+
+});
+
+}catch(error){
+
+console.error(error);
+
+productsBox.innerHTML = `
+
+<div class="empty">
+
+❌ حدث خطأ أثناء تحميل المنتجات.
+
+<br><br>
+
+${error.message}
+
+</div>
+
+`;
+
+}
+
+}
+
+
+/* =====================================
+   تعديل المنتج
+===================================== */
+
+window.editProduct =
+async function(id){
+
+try{
+
+const productRef =
+doc(db,"products",id);
+
+const snap =
+await getDoc(productRef);
+
+
+if(!snap.exists()){
+
+alert(
+"لم يتم العثور على المنتج"
+);
+
+return;
+
+}
+
+
+const data =
+snap.data();
+
+
+document.getElementById("name").value =
+data.name || "";
+
+document.getElementById("price").value =
+data.price || "";
+
+document.getElementById("city").value =
+data.city || "";
+
+document.getElementById("phone").value =
+data.phone || "";
+
+document.getElementById("image").value =
+data.image || "";
+
+document.getElementById("description").value =
+data.description || "";
+
+
+editingProductId =
+id;
+
+
+formTitle.innerText =
+"✏️ تعديل المنتج";
+
+saveBtn.innerText =
+"💾 حفظ تعديل المنتج";
+
+cancelBtn.style.display =
+"block";
+
+
+formTitle
+.parentElement
+.scrollIntoView({
+behavior:"smooth"
+});
+
+
+}catch(error){
+
+console.error(error);
+
+alert(
+"حدث خطأ أثناء تحميل المنتج للتعديل:\n" +
+error.message
+);
+
+}
+
+};
+
+
+/* =====================================
+   إلغاء التعديل
+===================================== */
+
+cancelBtn.onclick =
+function(){
+
+editingProductId =
+null;
+
+formTitle.innerText =
+"➕ إضافة منتج جديد";
+
+saveBtn.innerText =
+"💾 حفظ المنتج";
+
+cancelBtn.style.display =
+"none";
+
+clearForm();
+
+};
+
+
+/* =====================================
+   حفظ المنتج
+===================================== */
+
+saveBtn.onclick =
+async function(){
+
+const name =
+document.getElementById("name")
+.value
+.trim();
+
+const price =
+document.getElementById("price")
+.value
+.trim();
+
+const city =
+document.getElementById("city")
+.value
+.trim();
+
+const phone =
+document.getElementById("phone")
+.value
+.trim();
+
+const image =
+document.getElementById("image")
+.value
+.trim();
+
+const description =
+document.getElementById("description")
+.value
+.trim();
+
+
+if(!name){
+
+alert(
+"اكتب اسم المنتج أولًا"
+);
+
+return;
+
+}
+
+
+try{
+
+
+/* ===============================
+   تعديل
+================================ */
+
+if(editingProductId){
+
+await updateDoc(
+doc(
+db,
+"products",
+editingProductId
+),
+{
+
+name:name,
+
+price:Number(price) || 0,
+
+city:city,
+
+phone:phone,
+
+image:image,
+
+description:description
+
+}
+);
+
+
+alert(
+"تم تعديل المنتج بنجاح ✅"
+);
+
+
+editingProductId =
+null;
+
+formTitle.innerText =
+"➕ إضافة منتج جديد";
+
+saveBtn.innerText =
+"💾 حفظ المنتج";
+
+cancelBtn.style.display =
+"none";
+
+clearForm();
+
+loadProducts();
+
+return;
+
+}
+
+
+/* ===============================
+   إضافة
+================================ */
+
+await addDoc(
+collection(db,"products"),
+{
+
+name:name,
+
+price:Number(price) || 0,
+
+city:city,
+
+phone:phone,
+
+image:image,
+
+description:description,
+
+shopName:"مشتاق وليد"
+
+}
+);
+
+
+alert(
+"تم حفظ المنتج بنجاح ✅"
+);
+
+
+clearForm();
+
+loadProducts();
+
+
+}catch(error){
+
+console.error(error);
+
+alert(
+"حدث خطأ أثناء حفظ المنتج:\n" +
+error.message
+);
+
+}
+
+};
+
+
+/* =====================================
+   حذف المنتج
+===================================== */
+
+window.deleteProduct =
+async function(id){
+
+if(!confirm(
+"⚠️ هل تريد حذف هذا المنتج؟"
+)){
+return;
+}
+
+
+try{
+
+await deleteDoc(
+doc(db,"products",id)
+);
+
+
+alert(
+"تم حذف المنتج ✅"
+);
+
+
+loadProducts();
+
+
+}catch(error){
+
+console.error(error);
+
+alert(
+"حدث خطأ أثناء حذف المنتج:\n" +
+error.message
+);
+
+}
+
+};
+
+
+/* =====================================
+   التحقق من المدير
+===================================== */
+
+onAuthStateChanged(
+auth,
+(user)=>{
+
+if(!user){
+
+alert(
+"يجب تسجيل دخول المدير أولًا"
+);
+
+return;
+
+}
+
+
+if(
+user.email !==
+"waleedahmad@gmail.com" &&
+user.email !==
+"waleedahmadahmad@gmail.com" &&
+user.email !==
+"waleedahmad2031@gmail.com"
+){
+
+alert(
+"ليس لديك صلاحية دخول قسم المنتجات"
+);
+
+return;
+
+}
+
+
+loadProducts();
+
+});
+
+</script>
+
+</body>
+
+</html>
