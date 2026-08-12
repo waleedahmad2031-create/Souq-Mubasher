@@ -1702,10 +1702,31 @@ Number(data.total) ||
 (productsTotal + deliveryTotal);
 
 
-const createdAt =
-data.createdAt?.toDate
-? data.createdAt.toDate()
-: null;
+let createdAt = null;
+
+if(data.createdAt){
+
+try{
+
+if(typeof data.createdAt.toDate === "function"){
+
+createdAt = data.createdAt.toDate();
+
+}else if(data.createdAt instanceof Date){
+
+createdAt = data.createdAt;
+
+}
+
+}catch(error){
+
+console.log("خطأ في قراءة تاريخ الطلب:", error);
+
+}
+
+}
+
+
 
 
 const createdAtText =
