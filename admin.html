@@ -91,6 +91,10 @@ background:#009688;
 background:#757575;
 }
 
+.archive{
+background:#5e35b1;
+}
+
 .seller{
 background:#fff;
 padding:15px;
@@ -181,6 +185,15 @@ color:#00897b;
 
 .deliveryBox{
 background:#fff3e0;
+padding:9px;
+margin-top:8px;
+border-radius:8px;
+line-height:1.7;
+font-size:14px;
+}
+
+.archiveBox{
+background:#f3e5f5;
 padding:9px;
 margin-top:8px;
 border-radius:8px;
@@ -306,6 +319,21 @@ style="display:none;"
 
 </div>
 
+
+<!-- =========================
+     أرشيف الطلبات
+========================= -->
+
+<div class="card">
+
+<h2>📚 أرشيف الطلبات القديمة</h2>
+
+<div id="archivedOrders">
+جاري تحميل الأرشيف...
+</div>
+
+</div>
+
 </div>
 
 
@@ -324,7 +352,9 @@ getDocs,
 getDoc,
 deleteDoc,
 updateDoc,
-doc
+setDoc,
+doc,
+serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
@@ -349,6 +379,9 @@ document.getElementById("orders");
 
 const sellersBox =
 document.getElementById("sellers");
+
+const archivedOrdersBox =
+document.getElementById("archivedOrders");
 
 
 /* =====================================
@@ -712,8 +745,6 @@ const productData =
 snap.data();
 
 
-/* تعبئة الخانات */
-
 document.getElementById("name").value =
 productData.name || "";
 
@@ -733,13 +764,9 @@ document.getElementById("description").value =
 productData.description || "";
 
 
-/* حفظ رقم المنتج */
-
 editingProductId =
 id;
 
-
-/* تغيير الواجهة */
 
 productFormTitle.innerText =
 "✏️ تعديل المنتج";
@@ -750,8 +777,6 @@ saveBtn.innerText =
 cancelEditBtn.style.display =
 "block";
 
-
-/* النزول إلى نموذج المنتج */
 
 productFormTitle
 .parentElement
@@ -861,10 +886,6 @@ return;
 try{
 
 
-/* =====================================
-   تعديل منتج موجود
-===================================== */
-
 if(editingProductId){
 
 await updateDoc(
@@ -895,8 +916,6 @@ alert(
 );
 
 
-/* إنهاء وضع التعديل */
-
 editingProductId =
 null;
 
@@ -909,8 +928,6 @@ saveBtn.innerText =
 cancelEditBtn.style.display =
 "none";
 
-
-/* تنظيف الخانات */
 
 document.getElementById("name").value="";
 document.getElementById("price").value="";
@@ -926,10 +943,6 @@ return;
 
 }
 
-
-/* =====================================
-   إضافة منتج جديد
-===================================== */
 
 await addDoc(
 collection(db,"products"),
@@ -956,8 +969,6 @@ alert(
 "تم حفظ المنتج ✅"
 );
 
-
-/* تنظيف الخانات */
 
 document.getElementById("name").value="";
 document.getElementById("price").value="";
@@ -1025,7 +1036,6 @@ error.message
 
 /* =====================================
    حساب رسوم الكرتون
-   ⚠️ لم يتم تغيير الحسبة
 ===================================== */
 
 function getDeliveryPerCarton(price){
@@ -1144,25 +1154,15 @@ product.name ||
 const price =
 Number(product.price) || 0;
 
-
-/*
-إذا لم توجد كمية
-نعتبر كل منتج كرتونًا واحدًا.
-*/
-
 const quantity =
 Number(product.quantity) > 0
 ? Number(product.quantity)
 : 1;
 
 
-/* قيمة المنتج */
-
 const productTotal =
 price * quantity;
 
-
-/* رسوم التوصيل */
 
 const deliveryPerCarton =
 getDeliveryPerCarton(price);
@@ -1170,8 +1170,6 @@ getDeliveryPerCarton(price);
 const productDelivery =
 deliveryPerCarton * quantity;
 
-
-/* التجميع */
 
 calculatedCartons +=
 quantity;
@@ -1182,8 +1180,6 @@ productTotal;
 calculatedDelivery +=
 productDelivery;
 
-
-/* عرض المنتج */
 
 productsHTML += `
 
@@ -1224,27 +1220,35 @@ deliveryTotal;
 
 
 /* ===============================
-   الحالة
+   الحالة والتاريخ
 =============================== */
 
 const status =
 data.status ||
 "جديد";
+
+
 const createdAt =
 data.createdAt?.toDate
 ? data.createdAt.toDate()
 : null;
 
+
 const createdAtText =
 createdAt
-? createdAt.toLocaleString("ar-SA", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit"
-  })
+? createdAt.toLocaleString(
+"ar-SA",
+{
+year:"numeric",
+month:"long",
+day:"numeric",
+hour:"numeric",
+minute:"2-digit"
+}
+)
 : "غير متوفر";
+
+
 let statusButton = "";
 
 
@@ -1265,6 +1269,15 @@ margin-top:8px;
 ✅ تم التوصيل
 
 </p>
+
+<button
+class="archive"
+onclick="archiveOrder('${item.id}')"
+>
+
+📚 نقل الطلب إلى الأرشيف
+
+</button>
 
 `;
 
@@ -1299,10 +1312,12 @@ ordersBox.innerHTML += `
 <h3>
 👤 ${customerName}
 </h3>
+
 <p>
 🕐 <strong>وقت إنشاء الطلب:</strong>
 ${createdAtText}
 </p>
+
 </div>
 
 <div class="orderInfo">
@@ -1439,7 +1454,437 @@ ${error.message}
 
 
 /* =====================================
-   حذف الطلب
+   نقل الطلب إلى الأرشيف
+===================================== */
+
+window.archiveOrder =
+async function(id){
+
+if(
+!confirm(
+"هل تريد نقل هذا الطلب إلى الأرشيف؟"
+)
+){
+return;
+}
+
+try{
+
+const orderRef =
+doc(db,"orders",id);
+
+const orderSnap =
+await getDoc(orderRef);
+
+if(!orderSnap.exists()){
+
+alert(
+"لم يتم العثور على الطلب"
+);
+
+return;
+
+}
+
+
+const orderData =
+orderSnap.data();
+
+
+/*
+حفظ نسخة كاملة في الأرشيف
+بنفس رقم الطلب
+*/
+
+await setDoc(
+doc(db,"archivedOrders",id),
+{
+
+...orderData,
+
+archivedAt:
+serverTimestamp()
+
+}
+);
+
+
+/*
+بعد نجاح الحفظ فقط
+نحذف الطلب من الطلبات الحالية
+*/
+
+await deleteDoc(
+orderRef
+);
+
+
+alert(
+"تم نقل الطلب إلى الأرشيف بنجاح 📚✅"
+);
+
+
+loadOrders();
+
+loadArchivedOrders();
+
+}catch(error){
+
+console.error(error);
+
+alert(
+"حدث خطأ أثناء نقل الطلب إلى الأرشيف:\n" +
+error.message
+);
+
+}
+
+};
+
+
+/* =====================================
+   تحميل أرشيف الطلبات
+===================================== */
+
+async function loadArchivedOrders(){
+
+archivedOrdersBox.innerHTML =
+"جاري تحميل الأرشيف...";
+
+try{
+
+const snap =
+await getDocs(
+collection(db,"archivedOrders")
+);
+
+if(snap.empty){
+
+archivedOrdersBox.innerHTML =
+"<p>لا توجد طلبات مؤرشفة.</p>";
+
+return;
+
+}
+
+archivedOrdersBox.innerHTML = "";
+
+
+/*
+ترتيب الأرشيف من الأحدث إلى الأقدم
+*/
+
+const archivedOrders =
+snap.docs.sort((a,b)=>{
+
+const dateA =
+a.data().createdAt?.toDate
+? a.data().createdAt.toDate().getTime()
+: 0;
+
+const dateB =
+b.data().createdAt?.toDate
+? b.data().createdAt.toDate().getTime()
+: 0;
+
+return dateB - dateA;
+
+});
+
+
+archivedOrders.forEach(item=>{
+
+const data =
+item.data();
+
+
+const customerName =
+data.customerName ||
+data.name ||
+"بدون اسم";
+
+
+const customerPhone =
+data.customerPhone ||
+data.phone ||
+"-";
+
+
+const customerAddress =
+data.customerAddress ||
+data.address ||
+"-";
+
+
+const city =
+data.customerCity ||
+data.deliveryArea ||
+"إب";
+
+
+const deliveryTime =
+data.deliveryTime ||
+"غير محدد";
+
+
+const products =
+Array.isArray(data.products)
+? data.products
+: [];
+
+
+let productsHTML = "";
+
+let productsTotal = 0;
+
+let cartonsTotal = 0;
+
+
+products.forEach(product=>{
+
+const name =
+product.name ||
+"منتج";
+
+
+const price =
+Number(product.price) || 0;
+
+
+const quantity =
+Number(product.quantity) > 0
+? Number(product.quantity)
+: 1;
+
+
+productsTotal +=
+price * quantity;
+
+cartonsTotal +=
+quantity;
+
+
+productsHTML += `
+
+<div class="productOrder">
+
+🛍️ <strong>${name}</strong>
+
+<br>
+
+📦 الكراتين:
+<strong>${quantity}</strong>
+
+&nbsp;&nbsp;
+
+💰 سعر الكرتون:
+<strong>${price} ريال</strong>
+
+</div>
+
+`;
+
+});
+
+
+/*
+نستخدم القيم الأصلية المحفوظة
+ولا نعيد حساب الطلب القديم من أسعار المنتجات الحالية.
+*/
+
+const deliveryTotal =
+Number(data.deliveryFee) ||
+0;
+
+
+const total =
+Number(data.total) ||
+(productsTotal + deliveryTotal);
+
+
+const createdAt =
+data.createdAt?.toDate
+? data.createdAt.toDate()
+: null;
+
+
+const createdAtText =
+createdAt
+? createdAt.toLocaleString(
+"ar-SA",
+{
+year:"numeric",
+month:"long",
+day:"numeric",
+hour:"numeric",
+minute:"2-digit"
+}
+)
+: "غير متوفر";
+
+
+const archivedAt =
+data.archivedAt?.toDate
+? data.archivedAt.toDate()
+: null;
+
+
+const archivedAtText =
+archivedAt
+? archivedAt.toLocaleString(
+"ar-SA",
+{
+year:"numeric",
+month:"long",
+day:"numeric",
+hour:"numeric",
+minute:"2-digit"
+}
+)
+: "غير متوفر";
+
+
+archivedOrdersBox.innerHTML += `
+
+<div class="orderBox">
+
+<div class="orderHeader">
+
+<h3>
+👤 ${customerName}
+</h3>
+
+<p>
+🕐 <strong>وقت إنشاء الطلب:</strong>
+${createdAtText}
+</p>
+
+<p>
+📚 <strong>وقت الأرشفة:</strong>
+${archivedAtText}
+</p>
+
+</div>
+
+
+<div class="orderInfo">
+
+📱 الجوال:
+${customerPhone}
+
+<br>
+
+📍 المدينة:
+${city}
+
+<br>
+
+🏠 العنوان:
+${customerAddress}
+
+<br>
+
+🕐 وقت التوصيل:
+${deliveryTime}
+
+</div>
+
+
+<hr>
+
+
+<strong>
+🛒 المنتجات:
+</strong>
+
+
+<div class="productsList">
+
+${
+productsHTML ||
+"<p>لا توجد منتجات</p>"
+}
+
+</div>
+
+
+<div class="totalBox">
+
+📦 <strong>
+إجمالي الكراتين:
+</strong>
+
+${cartonsTotal}
+
+<br>
+
+🛍️ <strong>
+مجموع المنتجات:
+</strong>
+
+${productsTotal} ريال
+
+<br>
+
+🚚 <strong>
+إجمالي التوصيل:
+</strong>
+
+${deliveryTotal} ريال
+
+<hr>
+
+<span class="finalTotal">
+
+💰 الإجمالي النهائي:
+${total} ريال
+
+</span>
+
+</div>
+
+
+<div class="archiveBox">
+
+📚 <strong>
+الطلب مؤرشف
+</strong>
+
+<br>
+
+هذا الطلب محفوظ في أرشيف سوق مباشر.
+
+</div>
+
+</div>
+
+`;
+
+});
+
+}catch(error){
+
+console.error(error);
+
+archivedOrdersBox.innerHTML = `
+
+<p>
+حدث خطأ أثناء تحميل الأرشيف.
+</p>
+
+<p>
+${error.message}
+</p>
+
+`;
+
+}
+
+}
+
+
+/* =====================================
+   حذف الطلب الحالي
 ===================================== */
 
 window.deleteOrder =
@@ -1553,11 +1998,13 @@ loadProducts();
 
 loadOrders();
 
+loadArchivedOrders();
+
 });
 
 </script>
 
 </body>
 
-   </html>
+     </html>
     
