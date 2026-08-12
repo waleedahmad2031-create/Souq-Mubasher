@@ -22,17 +22,14 @@ window.productsData = {};
 // =====================================
 
 const VIEW_COOLDOWN =
-  30 * 60 * 1000; // 30 دقيقة
+  30 * 60 * 1000;
 
 
 // =====================================
 // تسجيل مشاهدة المنتج
 // =====================================
 
-async function recordProductView(
-  id,
-  product
-) {
+async function recordProductView(id, product) {
 
   try {
 
@@ -40,55 +37,42 @@ async function recordProductView(
       "product_view_" + id;
 
     const lastView =
-      Number(
-        localStorage.getItem(key) || 0
-      );
+      Number(localStorage.getItem(key) || 0);
 
     const now =
       Date.now();
 
 
-    // منع تكرار مشاهدة نفس المنتج
-    // خلال 30 دقيقة
     if (
       lastView &&
       now - lastView < VIEW_COOLDOWN
     ) {
-
       return;
-
     }
 
 
-    // حفظ وقت المشاهدة على الجهاز
     localStorage.setItem(
       key,
       String(now)
     );
 
 
-    // تسجيل الحدث في Firebase
     await addDoc(
-      collection(
-        db,
-        "productEvents"
-      ),
+      collection(db, "productEvents"),
       {
 
         type: "view",
 
-        productId: id,
+        productId: String(id),
 
         productName:
-          product.name || "",
+          String(product.name || ""),
 
         price:
-          Number(
-            product.price || 0
-          ),
+          Number(product.price || 0),
 
         shopName:
-          product.shopName || "",
+          String(product.shopName || ""),
 
         createdAt:
           serverTimestamp()
@@ -105,8 +89,6 @@ async function recordProductView(
 
   } catch (error) {
 
-    // خطأ المشاهدة لا يؤثر
-    // على عمل الموقع
     console.error(
       "تعذر تسجيل مشاهدة المنتج:",
       error
@@ -121,65 +103,57 @@ async function recordProductView(
 // تسجيل إضافة المنتج للسلة
 // =====================================
 
-async function recordCartEvent(id, product, quantity) {
+async function recordCartEvent(
+  id,
+  product,
+  quantity
+) {
 
   try {
 
-    console.log("بدأ تسجيل cart");
+    console.log(
+      "بدأ تسجيل cart"
+    );
+
 
     const data = {
+
       type: "cart",
 
-      productId: String(id),
+      productId:
+        String(id),
 
-      productName: String(product.name || ""),
+      productName:
+        String(product.name || ""),
 
-      price: Number(product.price || 0),
+      price:
+        Number(product.price || 0),
 
-      quantity: Number(quantity || 1),
+      quantity:
+        Number(quantity || 1),
 
-      shopName: String(product.shopName || ""),
+      shopName:
+        String(product.shopName || ""),
 
-      createdAt: serverTimestamp()
+      createdAt:
+        serverTimestamp()
+
     };
 
-    console.log("بيانات cart:", data);
 
     await addDoc(
       collection(db, "productEvents"),
       data
     );
 
-    console.log("تم تسجيل cart بنجاح");
-
-    alert("🛒 تم تسجيل حدث السلة بنجاح");
-
-  } catch (error) {
-
-    console.error("خطأ تسجيل cart:", error);
-
-    alert(
-      "❌ حدث خطأ في تسجيل cart:\n\n" +
-      error.code +
-      "\n" +
-      error.message
-    );
-
-  }
-}
-    
-
 
     console.log(
-      "تم تسجيل إضافة المنتج للسلة:",
-      product.name
+      "تم تسجيل cart بنجاح"
     );
 
 
   } catch (error) {
 
-    // فشل تسجيل الحدث لا يمنع
-    // إضافة المنتج للسلة
     console.error(
       "تعذر تسجيل إضافة المنتج للسلة:",
       error
@@ -197,15 +171,11 @@ async function recordCartEvent(id, product, quantity) {
 function observeProductViews() {
 
   const cards =
-    document.querySelectorAll(
-      ".product"
-    );
+    document.querySelectorAll(".product");
 
 
   if (!cards.length) {
-
     return;
-
   }
 
 
@@ -217,12 +187,8 @@ function observeProductViews() {
         entries.forEach(
           entry => {
 
-            if (
-              !entry.isIntersecting
-            ) {
-
+            if (!entry.isIntersecting) {
               return;
-
             }
 
 
@@ -235,9 +201,7 @@ function observeProductViews() {
 
 
             if (!productId) {
-
               return;
-
             }
 
 
@@ -248,9 +212,7 @@ function observeProductViews() {
 
 
             if (!product) {
-
               return;
-
             }
 
 
@@ -260,11 +222,7 @@ function observeProductViews() {
             );
 
 
-            // لا نراقب نفس البطاقة
-            // مرة ثانية أثناء هذا التحميل
-            observer.unobserve(
-              card
-            );
+            observer.unobserve(card);
 
           }
         );
@@ -281,9 +239,7 @@ function observeProductViews() {
   cards.forEach(
     card => {
 
-      observer.observe(
-        card
-      );
+      observer.observe(card);
 
     }
   );
@@ -303,18 +259,13 @@ function loadProducts() {
 
   onSnapshot(
 
-    collection(
-      db,
-      "products"
-    ),
+    collection(db, "products"),
 
     (snap) => {
 
-      productsBox.innerHTML =
-        "";
+      productsBox.innerHTML = "";
 
-      window.productsData =
-        {};
+      window.productsData = {};
 
 
       if (snap.empty) {
@@ -333,7 +284,6 @@ function loadProducts() {
         `;
 
         return;
-
       }
 
 
@@ -361,9 +311,7 @@ function loadProducts() {
                 ? `
                   <img
                     src="${data.image}"
-                    alt="${
-                      data.name || "منتج"
-                    }"
+                    alt="${data.name || "منتج"}"
                     loading="lazy"
                   >
                 `
@@ -384,10 +332,7 @@ function loadProducts() {
 
 
             <h3>
-              ${
-                data.name ||
-                "بدون اسم"
-              }
+              ${data.name || "بدون اسم"}
             </h3>
 
 
@@ -403,9 +348,7 @@ function loadProducts() {
                     font-size:11px;
                     margin-bottom:5px;
                   ">
-                    📂 ${
-                      data.category
-                    }
+                    📂 ${data.category}
                   </div>
                 `
                 : ""
@@ -420,9 +363,7 @@ function loadProducts() {
 
               ${
                 data.shopName
-                  ? `🏪 ${
-                      data.shopName
-                    }`
+                  ? `🏪 ${data.shopName}`
                   : "🛒 سوق مباشر"
               }
 
@@ -473,9 +414,7 @@ function loadProducts() {
                     line-height:1.6;
                     margin:8px 2px;
                   ">
-                    ${
-                      data.description
-                    }
+                    ${data.description}
                   </p>
                 `
                 : ""
@@ -484,9 +423,7 @@ function loadProducts() {
 
             <button
               onclick="
-                addToCart(
-                  '${productDoc.id}'
-                )
+                addToCart('${productDoc.id}')
               "
               style="
                 background:
@@ -519,16 +456,13 @@ function loadProducts() {
       );
 
 
-      // بدء مراقبة المشاهدات
       observeProductViews();
 
     },
 
     (error) => {
 
-      console.error(
-        error
-      );
+      console.error(error);
 
 
       productsBox.innerHTML = `
@@ -541,8 +475,11 @@ function loadProducts() {
           color:#d32f2f;
         ">
 
-          ⚠️ حدث خطأ أثناء
-          تحميل المنتجات
+          ⚠️ حدث خطأ أثناء تحميل المنتجات
+
+          <br><br>
+
+          ${error.message}
 
         </div>
       `;
@@ -563,9 +500,7 @@ async function(id) {
 
   cart =
     JSON.parse(
-      localStorage.getItem(
-        "cart"
-      )
+      localStorage.getItem("cart")
     ) || [];
 
 
@@ -580,31 +515,34 @@ async function(id) {
     );
 
     return;
-
   }
 
 
-  // البحث عن المنتج
-  // إذا كان موجودًا
   const existingItem =
     cart.find(
-      item =>
-        item.id === id
+      item => item.id === id
     );
+
+
+  let quantity;
 
 
   if (existingItem) {
 
-    // زيادة الكمية
     existingItem.quantity =
       Number(
         existingItem.quantity || 1
       ) + 1;
 
+    quantity =
+      existingItem.quantity;
+
 
   } else {
 
-    // إضافة المنتج لأول مرة
+    quantity = 1;
+
+
     cart.push({
 
       id: id,
@@ -613,9 +551,7 @@ async function(id) {
         product.name || "",
 
       price:
-        Number(
-          product.price || 0
-        ),
+        Number(product.price || 0),
 
       image:
         product.image || "",
@@ -636,24 +572,19 @@ async function(id) {
   }
 
 
-  // حفظ السلة
   localStorage.setItem(
     "cart",
     JSON.stringify(cart)
   );
 
 
-  // تحديث العداد
   updateCartCount();
 
 
-  // تسجيل حدث إضافة للسلة
   await recordCartEvent(
     id,
     product,
-    existingItem
-      ? existingItem.quantity
-      : 1
+    quantity
   );
 
 
