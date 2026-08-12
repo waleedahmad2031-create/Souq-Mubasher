@@ -121,44 +121,53 @@ async function recordProductView(
 // تسجيل إضافة المنتج للسلة
 // =====================================
 
-async function recordCartEvent(
-  id,
-  product,
-  quantity
-) {
+async function recordCartEvent(id, product, quantity) {
 
   try {
 
+    console.log("بدأ تسجيل cart");
+
+    const data = {
+      type: "cart",
+
+      productId: String(id),
+
+      productName: String(product.name || ""),
+
+      price: Number(product.price || 0),
+
+      quantity: Number(quantity || 1),
+
+      shopName: String(product.shopName || ""),
+
+      createdAt: serverTimestamp()
+    };
+
+    console.log("بيانات cart:", data);
+
     await addDoc(
-      collection(
-        db,
-        "productEvents"
-      ),
-      {
-
-        type: "cart",
-
-        productId: id,
-
-        productName:
-          product.name || "",
-
-        price:
-          Number(
-            product.price || 0
-          ),
-
-        quantity:
-          Number(quantity || 1),
-
-        shopName:
-          product.shopName || "",
-
-        createdAt:
-          serverTimestamp()
-
-      }
+      collection(db, "productEvents"),
+      data
     );
+
+    console.log("تم تسجيل cart بنجاح");
+
+    alert("🛒 تم تسجيل حدث السلة بنجاح");
+
+  } catch (error) {
+
+    console.error("خطأ تسجيل cart:", error);
+
+    alert(
+      "❌ حدث خطأ في تسجيل cart:\n\n" +
+      error.code +
+      "\n" +
+      error.message
+    );
+
+  }
+}
+    
 
 
     console.log(
