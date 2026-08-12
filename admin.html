@@ -17,9 +17,9 @@ box-sizing:border-box;
 font-family:Tahoma,Arial,sans-serif;
 }
 
-html,body{
-overflow-x:hidden;
+body{
 background:#f5f5f5;
+overflow-x:hidden;
 }
 
 header{
@@ -39,14 +39,14 @@ padding:20px;
 
 .card{
 background:#fff;
-padding:15px;
+padding:18px;
 margin-bottom:20px;
 border-radius:12px;
 box-shadow:0 2px 6px rgba(0,0,0,.1);
 }
 
 h2{
-margin-bottom:12px;
+margin-bottom:15px;
 }
 
 input,
@@ -63,12 +63,12 @@ button{
 width:100%;
 padding:14px;
 margin-top:12px;
-background:#009688;
-color:#fff;
 border:none;
 border-radius:8px;
 font-size:17px;
 cursor:pointer;
+background:#009688;
+color:#fff;
 }
 
 button:hover{
@@ -95,6 +95,11 @@ background:#757575;
 background:#5e35b1;
 }
 
+.openArchive{
+background:#673ab7;
+font-size:18px;
+}
+
 .seller{
 background:#fff;
 padding:15px;
@@ -102,6 +107,7 @@ margin-bottom:15px;
 border-radius:10px;
 box-shadow:0 2px 5px rgba(0,0,0,.1);
 border-right:5px solid #009688;
+line-height:1.9;
 }
 
 .product{
@@ -110,6 +116,7 @@ padding:15px;
 margin-bottom:15px;
 border-radius:10px;
 box-shadow:0 2px 5px rgba(0,0,0,.1);
+line-height:1.9;
 overflow-wrap:anywhere;
 }
 
@@ -133,34 +140,33 @@ font-weight:bold;
 
 .orderBox{
 background:#fff;
-padding:12px;
-margin-bottom:12px;
+padding:15px;
+margin-bottom:15px;
 border-radius:10px;
 box-shadow:0 2px 5px rgba(0,0,0,.1);
 border-right:5px solid #009688;
 }
 
 .orderHeader{
-margin-bottom:8px;
-line-height:1.8;
+line-height:1.9;
+margin-bottom:10px;
 }
 
 .orderInfo{
 font-size:15px;
-line-height:1.9;
+line-height:2;
 }
 
 .productsList{
 background:#f5f5f5;
-padding:8px;
-margin-top:8px;
+padding:10px;
+margin-top:10px;
 border-radius:8px;
 }
 
 .productOrder{
-padding:7px 5px;
+padding:8px 5px;
 border-bottom:1px solid #ddd;
-font-size:15px;
 line-height:1.8;
 }
 
@@ -170,41 +176,42 @@ border-bottom:none;
 
 .totalBox{
 background:#e8f5e9;
-padding:10px;
+padding:12px;
 margin-top:10px;
 border-radius:8px;
-line-height:1.9;
-font-size:15px;
+line-height:2;
 }
 
 .finalTotal{
-font-size:19px;
+font-size:20px;
 font-weight:bold;
 color:#00897b;
 }
 
 .deliveryBox{
 background:#fff3e0;
-padding:9px;
-margin-top:8px;
+padding:10px;
+margin-top:10px;
 border-radius:8px;
-line-height:1.7;
-font-size:14px;
-}
-
-.archiveBox{
-background:#f3e5f5;
-padding:9px;
-margin-top:8px;
-border-radius:8px;
-line-height:1.7;
-font-size:14px;
+line-height:1.8;
 }
 
 hr{
 border:none;
 border-top:1px solid #ddd;
-margin:8px 0;
+margin:10px 0;
+}
+
+.sectionTitle{
+font-size:20px;
+font-weight:bold;
+margin-bottom:5px;
+}
+
+.sectionDescription{
+color:#666;
+margin-bottom:12px;
+line-height:1.7;
 }
 
 </style>
@@ -219,13 +226,20 @@ margin:8px 0;
 
 <div class="container">
 
-<!-- =========================
-     إدارة البائعين
-========================= -->
+
+<!-- =================================================
+     1 - إدارة البائعين
+================================================= -->
 
 <div class="card">
 
-<h2>👥 إدارة البائعين</h2>
+<div class="sectionTitle">
+👥 إدارة البائعين
+</div>
+
+<div class="sectionDescription">
+إدارة حسابات البائعين وحالتهم.
+</div>
 
 <div id="sellers">
 جاري تحميل البائعين...
@@ -234,15 +248,23 @@ margin:8px 0;
 </div>
 
 
-<!-- =========================
-     إضافة / تعديل منتج
-========================= -->
+<!-- =================================================
+     2 - إضافة المنتجات
+================================================= -->
 
 <div class="card">
 
-<h2 id="productFormTitle">
-➕ إضافة منتج جديد
-</h2>
+<div class="sectionTitle">
+➕ إضافة منتج
+</div>
+
+<div class="sectionDescription">
+إضافة منتج جديد أو تعديل منتج موجود.
+</div>
+
+<h3 id="productFormTitle">
+إضافة منتج جديد
+</h3>
 
 <input
 id="name"
@@ -276,7 +298,7 @@ placeholder="وصف المنتج"
 ></textarea>
 
 <button id="saveBtn">
-حفظ المنتج
+💾 حفظ المنتج
 </button>
 
 <button
@@ -290,13 +312,19 @@ style="display:none;"
 </div>
 
 
-<!-- =========================
-     المنتجات
-========================= -->
+<!-- =================================================
+     3 - قائمة المنتجات
+================================================= -->
 
 <div class="card">
 
-<h2>🛍️ المنتجات</h2>
+<div class="sectionTitle">
+🛍️ قائمة المنتجات
+</div>
+
+<div class="sectionDescription">
+جميع المنتجات الموجودة في سوق مباشر.
+</div>
 
 <div id="products">
 جاري تحميل المنتجات...
@@ -305,46 +333,50 @@ style="display:none;"
 </div>
 
 
-<!-- =========================
-     الطلبات
-========================= -->
+<!-- =================================================
+     4 - طلبات الزبائن
+================================================= -->
 
 <div class="card">
 
-<h2>📦 طلبات الزبائن</h2>
+<div class="sectionTitle">
+📦 طلبات الزبائن
+</div>
+
+<div class="sectionDescription">
+الطلبات الحالية فقط.
+</div>
 
 <div id="orders">
 جاري تحميل الطلبات...
 </div>
 
+</div>
+
+
+<!-- =================================================
+     5 - الأرشيف
+================================================= -->
+
 <div class="card">
 
-<h2>📚 أرشيف الطلبات</h2>
+<div class="sectionTitle">
+📚 أرشيف الطلبات
+</div>
+
+<div class="sectionDescription">
+الطلبات القديمة التي تم إنهاؤها وأرشفتها.
+</div>
 
 <button
+class="openArchive"
 onclick="location.href='archive.html'"
-style="
-background:#5e35b1;
-"
 >
 📚 فتح أرشيف الطلبات
 </button>
 
 </div>
 
-
-
-
-
-
-
-<h2>📚 أرشيف الطلبات القديمة</h2>
-
-<div id="archivedOrders">
-جاري تحميل الأرشيف...
-</div>
-
-</div>
 
 </div>
 
@@ -370,9 +402,9 @@ serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
-/* =====================================
+/* =================================================
    العناصر
-===================================== */
+================================================= */
 
 const saveBtn =
 document.getElementById("saveBtn");
@@ -392,20 +424,17 @@ document.getElementById("orders");
 const sellersBox =
 document.getElementById("sellers");
 
-const archivedOrdersBox =
-document.getElementById("archivedOrders");
 
-
-/* =====================================
-   حالة التعديل
-===================================== */
+/* =================================================
+   حالة تعديل المنتج
+================================================= */
 
 let editingProductId = null;
 
 
-/* =====================================
+/* =================================================
    البائعون
-===================================== */
+================================================= */
 
 async function loadSellers(){
 
@@ -537,18 +566,16 @@ sellersBox.innerHTML =
 }
 
 
-/* =====================================
+/* =================================================
    حذف البائع
-===================================== */
+================================================= */
 
 window.deleteSeller =
 async function(id){
 
-if(
-!confirm(
+if(!confirm(
 "⚠️ هل أنت متأكد من حذف هذا البائع؟"
-)
-){
+)){
 return;
 }
 
@@ -578,9 +605,9 @@ error.message
 };
 
 
-/* =====================================
+/* =================================================
    تغيير حالة البائع
-===================================== */
+================================================= */
 
 window.changeSellerStatus =
 async function(id,status){
@@ -624,9 +651,9 @@ alert(
 };
 
 
-/* =====================================
-   المنتجات
-===================================== */
+/* =================================================
+   تحميل المنتجات
+================================================= */
 
 async function loadProducts(){
 
@@ -667,7 +694,7 @@ ${data.name || ""}
 <p>
 💰 سعر الكرتون:
 ${Number(data.price) || 0}
-ريال
+ ريال
 </p>
 
 <p>
@@ -676,7 +703,7 @@ ${data.shopName || "مشتاق وليد"}
 </p>
 
 <p>
-🏙 المدينة:
+🏙️ المدينة:
 ${data.city || "-"}
 </p>
 
@@ -728,9 +755,9 @@ productsBox.innerHTML =
 }
 
 
-/* =====================================
+/* =================================================
    تعديل المنتج
-===================================== */
+================================================= */
 
 window.editProduct =
 async function(id){
@@ -753,32 +780,29 @@ return;
 
 }
 
-const productData =
+const data =
 snap.data();
 
-
 document.getElementById("name").value =
-productData.name || "";
+data.name || "";
 
 document.getElementById("price").value =
-productData.price || "";
+data.price || "";
 
 document.getElementById("city").value =
-productData.city || "";
+data.city || "";
 
 document.getElementById("phone").value =
-productData.phone || "";
+data.phone || "";
 
 document.getElementById("image").value =
-productData.image || "";
+data.image || "";
 
 document.getElementById("description").value =
-productData.description || "";
-
+data.description || "";
 
 editingProductId =
 id;
-
 
 productFormTitle.innerText =
 "✏️ تعديل المنتج";
@@ -788,7 +812,6 @@ saveBtn.innerText =
 
 cancelEditBtn.style.display =
 "block";
-
 
 productFormTitle
 .parentElement
@@ -810,9 +833,9 @@ error.message
 };
 
 
-/* =====================================
-   إلغاء تعديل المنتج
-===================================== */
+/* =================================================
+   إلغاء التعديل
+================================================= */
 
 cancelEditBtn.onclick =
 function(){
@@ -821,14 +844,13 @@ editingProductId =
 null;
 
 productFormTitle.innerText =
-"➕ إضافة منتج جديد";
+"إضافة منتج جديد";
 
 saveBtn.innerText =
-"حفظ المنتج";
+"💾 حفظ المنتج";
 
 cancelEditBtn.style.display =
 "none";
-
 
 document.getElementById("name").value="";
 document.getElementById("price").value="";
@@ -840,48 +862,36 @@ document.getElementById("description").value="";
 };
 
 
-/* =====================================
+/* =================================================
    إضافة / تعديل المنتج
-===================================== */
+================================================= */
 
 saveBtn.onclick =
 async function(){
 
 const name =
-document
-.getElementById("name")
-.value
-.trim();
+document.getElementById("name")
+.value.trim();
 
 const price =
-document
-.getElementById("price")
-.value
-.trim();
+document.getElementById("price")
+.value.trim();
 
 const city =
-document
-.getElementById("city")
-.value
-.trim();
+document.getElementById("city")
+.value.trim();
 
 const phone =
-document
-.getElementById("phone")
-.value
-.trim();
+document.getElementById("phone")
+.value.trim();
 
 const image =
-document
-.getElementById("image")
-.value
-.trim();
+document.getElementById("image")
+.value.trim();
 
 const description =
-document
-.getElementById("description")
-.value
-.trim();
+document.getElementById("description")
+.value.trim();
 
 
 if(!name){
@@ -894,9 +904,10 @@ return;
 
 }
 
-
 try{
 
+
+/* تعديل */
 
 if(editingProductId){
 
@@ -927,27 +938,19 @@ alert(
 "تم تعديل المنتج بنجاح ✅"
 );
 
-
 editingProductId =
 null;
 
 productFormTitle.innerText =
-"➕ إضافة منتج جديد";
+"إضافة منتج جديد";
 
 saveBtn.innerText =
-"حفظ المنتج";
+"💾 حفظ المنتج";
 
 cancelEditBtn.style.display =
 "none";
 
-
-document.getElementById("name").value="";
-document.getElementById("price").value="";
-document.getElementById("city").value="";
-document.getElementById("phone").value="";
-document.getElementById("image").value="";
-document.getElementById("description").value="";
-
+clearProductForm();
 
 loadProducts();
 
@@ -955,6 +958,8 @@ return;
 
 }
 
+
+/* إضافة */
 
 await addDoc(
 collection(db,"products"),
@@ -981,13 +986,7 @@ alert(
 "تم حفظ المنتج ✅"
 );
 
-
-document.getElementById("name").value="";
-document.getElementById("price").value="";
-document.getElementById("city").value="";
-document.getElementById("phone").value="";
-document.getElementById("image").value="";
-document.getElementById("description").value="";
+clearProductForm();
 
 loadProducts();
 
@@ -1005,18 +1004,32 @@ error.message
 };
 
 
-/* =====================================
-   حذف منتج
-===================================== */
+/* =================================================
+   تنظيف نموذج المنتج
+================================================= */
+
+function clearProductForm(){
+
+document.getElementById("name").value="";
+document.getElementById("price").value="";
+document.getElementById("city").value="";
+document.getElementById("phone").value="";
+document.getElementById("image").value="";
+document.getElementById("description").value="";
+
+}
+
+
+/* =================================================
+   حذف المنتج
+================================================= */
 
 window.deleteProduct =
 async function(id){
 
-if(
-!confirm(
+if(!confirm(
 "هل تريد حذف هذا المنتج؟"
-)
-){
+)){
 return;
 }
 
@@ -1046,9 +1059,9 @@ error.message
 };
 
 
-/* =====================================
-   حساب رسوم الكرتون
-===================================== */
+/* =================================================
+   رسوم التوصيل
+================================================= */
 
 function getDeliveryPerCarton(price){
 
@@ -1056,15 +1069,11 @@ price =
 Number(price) || 0;
 
 if(price < 1500){
-
 return 50;
-
 }
 
 if(price < 2000){
-
 return 70;
-
 }
 
 return 100;
@@ -1072,9 +1081,9 @@ return 100;
 }
 
 
-/* =====================================
-   الطلبات
-===================================== */
+/* =================================================
+   تحميل الطلبات الحالية
+================================================= */
 
 async function loadOrders(){
 
@@ -1091,7 +1100,7 @@ collection(db,"orders")
 if(snap.empty){
 
 ordersBox.innerHTML =
-"<p>لا توجد طلبات.</p>";
+"<p>لا توجد طلبات حالية.</p>";
 
 return;
 
@@ -1099,29 +1108,48 @@ return;
 
 ordersBox.innerHTML = "";
 
-snap.forEach(item=>{
+
+/* ترتيب الأحدث أولاً */
+
+const orders =
+snap.docs.sort((a,b)=>{
+
+const dateA =
+a.data().createdAt?.toDate
+? a.data().createdAt.toDate().getTime()
+: 0;
+
+const dateB =
+b.data().createdAt?.toDate
+? b.data().createdAt.toDate().getTime()
+: 0;
+
+return dateB - dateA;
+
+});
+
+
+orders.forEach(item=>{
 
 const data =
 item.data();
 
 
-/* ===============================
-   بيانات العميل
-=============================== */
+/* العميل */
 
 const customerName =
-data.name ||
 data.customerName ||
+data.name ||
 "بدون اسم";
 
 const customerPhone =
-data.phone ||
 data.customerPhone ||
+data.phone ||
 "-";
 
 const customerAddress =
-data.address ||
 data.customerAddress ||
+data.address ||
 "-";
 
 const city =
@@ -1138,15 +1166,12 @@ data.deliveryTime ||
 "غير محدد";
 
 
-/* ===============================
-   المنتجات
-=============================== */
+/* المنتجات */
 
 const products =
 Array.isArray(data.products)
 ? data.products
 : [];
-
 
 let productsHTML = "";
 
@@ -1171,10 +1196,8 @@ Number(product.quantity) > 0
 ? Number(product.quantity)
 : 1;
 
-
 const productTotal =
 price * quantity;
-
 
 const deliveryPerCarton =
 getDeliveryPerCarton(price);
@@ -1204,7 +1227,7 @@ productsHTML += `
 📦 الكراتين:
 <strong>${quantity}</strong>
 
-&nbsp;&nbsp;
+<br>
 
 💰 سعر الكرتون:
 <strong>${price} ريال</strong>
@@ -1216,9 +1239,7 @@ productsHTML += `
 });
 
 
-/* ===============================
-   الإجماليات
-=============================== */
+/* الإجماليات */
 
 const productsTotal =
 calculatedProductsTotal;
@@ -1231,20 +1252,12 @@ productsTotal +
 deliveryTotal;
 
 
-/* ===============================
-   الحالة والتاريخ
-=============================== */
-
-const status =
-data.status ||
-"جديد";
-
+/* التاريخ */
 
 const createdAt =
 data.createdAt?.toDate
 ? data.createdAt.toDate()
 : null;
-
 
 const createdAtText =
 createdAt
@@ -1261,6 +1274,13 @@ minute:"2-digit"
 : "غير متوفر";
 
 
+/* الحالة */
+
+const status =
+data.status ||
+"جديد";
+
+
 let statusButton = "";
 
 
@@ -1271,11 +1291,11 @@ statusButton = `
 <p style="
 background:#e8f5e9;
 color:#008000;
-padding:8px;
+padding:10px;
 border-radius:8px;
 font-weight:bold;
 text-align:center;
-margin-top:8px;
+margin-top:10px;
 ">
 
 ✅ تم التوصيل
@@ -1311,9 +1331,7 @@ onclick="changeStatus('${item.id}')"
 }
 
 
-/* ===============================
-   عرض الطلب
-=============================== */
+/* عرض الطلب */
 
 ordersBox.innerHTML += `
 
@@ -1331,6 +1349,7 @@ ${createdAtText}
 </p>
 
 </div>
+
 
 <div class="orderInfo">
 
@@ -1465,18 +1484,16 @@ ${error.message}
 }
 
 
-/* =====================================
+/* =================================================
    نقل الطلب إلى الأرشيف
-===================================== */
+================================================= */
 
 window.archiveOrder =
 async function(id){
 
-if(
-!confirm(
+if(!confirm(
 "هل تريد نقل هذا الطلب إلى الأرشيف؟"
-)
-){
+)){
 return;
 }
 
@@ -1498,14 +1515,12 @@ return;
 
 }
 
-
 const orderData =
 orderSnap.data();
 
 
 /*
-حفظ نسخة كاملة في الأرشيف
-بنفس رقم الطلب
+نسخ الطلب إلى الأرشيف
 */
 
 await setDoc(
@@ -1522,23 +1537,17 @@ serverTimestamp()
 
 
 /*
-بعد نجاح الحفظ فقط
-نحذف الطلب من الطلبات الحالية
+بعد نجاح النسخ نحذف الطلب الحالي
 */
 
-await deleteDoc(
-orderRef
-);
+await deleteDoc(orderRef);
 
 
 alert(
 "تم نقل الطلب إلى الأرشيف بنجاح 📚✅"
 );
 
-
 loadOrders();
-
-loadArchivedOrders();
 
 }catch(error){
 
@@ -1554,380 +1563,16 @@ error.message
 };
 
 
-/* =====================================
-   تحميل أرشيف الطلبات
-===================================== */
-
-async function loadArchivedOrders(){
-
-archivedOrdersBox.innerHTML =
-"جاري تحميل الأرشيف...";
-
-try{
-
-const snap =
-await getDocs(
-collection(db,"archivedOrders")
-);
-
-if(snap.empty){
-
-archivedOrdersBox.innerHTML =
-"<p>لا توجد طلبات مؤرشفة.</p>";
-
-return;
-
-}
-
-archivedOrdersBox.innerHTML = "";
-
-
-/*
-ترتيب الأرشيف من الأحدث إلى الأقدم
-*/
-
-const archivedOrders =
-snap.docs.sort((a,b)=>{
-
-const dateA =
-a.data().createdAt?.toDate
-? a.data().createdAt.toDate().getTime()
-: 0;
-
-const dateB =
-b.data().createdAt?.toDate
-? b.data().createdAt.toDate().getTime()
-: 0;
-
-return dateB - dateA;
-
-});
-
-
-archivedOrders.forEach(item=>{
-
-const data =
-item.data();
-
-
-const customerName =
-data.customerName ||
-data.name ||
-"بدون اسم";
-
-
-const customerPhone =
-data.customerPhone ||
-data.phone ||
-"-";
-
-
-const customerAddress =
-data.customerAddress ||
-data.address ||
-"-";
-
-
-const city =
-data.customerCity ||
-data.deliveryArea ||
-"إب";
-
-
-const deliveryTime =
-data.deliveryTime ||
-"غير محدد";
-
-
-const products =
-Array.isArray(data.products)
-? data.products
-: [];
-
-
-let productsHTML = "";
-
-let productsTotal = 0;
-
-let cartonsTotal = 0;
-
-
-products.forEach(product=>{
-
-const name =
-product.name ||
-"منتج";
-
-
-const price =
-Number(product.price) || 0;
-
-
-const quantity =
-Number(product.quantity) > 0
-? Number(product.quantity)
-: 1;
-
-
-productsTotal +=
-price * quantity;
-
-cartonsTotal +=
-quantity;
-
-
-productsHTML += `
-
-<div class="productOrder">
-
-🛍️ <strong>${name}</strong>
-
-<br>
-
-📦 الكراتين:
-<strong>${quantity}</strong>
-
-&nbsp;&nbsp;
-
-💰 سعر الكرتون:
-<strong>${price} ريال</strong>
-
-</div>
-
-`;
-
-});
-
-
-/*
-نستخدم القيم الأصلية المحفوظة
-ولا نعيد حساب الطلب القديم من أسعار المنتجات الحالية.
-*/
-
-const deliveryTotal =
-Number(data.deliveryFee) ||
-0;
-
-
-const total =
-Number(data.total) ||
-(productsTotal + deliveryTotal);
-
-
-let createdAt = null;
-
-if(data.createdAt){
-
-try{
-
-if(typeof data.createdAt.toDate === "function"){
-
-createdAt = data.createdAt.toDate();
-
-}else if(data.createdAt instanceof Date){
-
-createdAt = data.createdAt;
-
-}
-
-}catch(error){
-
-console.log("خطأ في قراءة تاريخ الطلب:", error);
-
-}
-
-}
-
-
-
-
-const createdAtText =
-createdAt
-? createdAt.toLocaleString(
-"ar-SA",
-{
-year:"numeric",
-month:"long",
-day:"numeric",
-hour:"numeric",
-minute:"2-digit"
-}
-)
-: "غير متوفر";
-
-
-const archivedAt =
-data.archivedAt?.toDate
-? data.archivedAt.toDate()
-: null;
-
-
-const archivedAtText =
-archivedAt
-? archivedAt.toLocaleString(
-"ar-SA",
-{
-year:"numeric",
-month:"long",
-day:"numeric",
-hour:"numeric",
-minute:"2-digit"
-}
-)
-: "غير متوفر";
-
-
-archivedOrdersBox.innerHTML += `
-
-<div class="orderBox">
-
-<div class="orderHeader">
-
-<h3>
-👤 ${customerName}
-</h3>
-
-<p>
-🕐 <strong>وقت إنشاء الطلب:</strong>
-${createdAtText}
-</p>
-
-<p>
-📚 <strong>وقت الأرشفة:</strong>
-${archivedAtText}
-</p>
-
-</div>
-
-
-<div class="orderInfo">
-
-📱 الجوال:
-${customerPhone}
-
-<br>
-
-📍 المدينة:
-${city}
-
-<br>
-
-🏠 العنوان:
-${customerAddress}
-
-<br>
-
-🕐 وقت التوصيل:
-${deliveryTime}
-
-</div>
-
-
-<hr>
-
-
-<strong>
-🛒 المنتجات:
-</strong>
-
-
-<div class="productsList">
-
-${
-productsHTML ||
-"<p>لا توجد منتجات</p>"
-}
-
-</div>
-
-
-<div class="totalBox">
-
-📦 <strong>
-إجمالي الكراتين:
-</strong>
-
-${cartonsTotal}
-
-<br>
-
-🛍️ <strong>
-مجموع المنتجات:
-</strong>
-
-${productsTotal} ريال
-
-<br>
-
-🚚 <strong>
-إجمالي التوصيل:
-</strong>
-
-${deliveryTotal} ريال
-
-<hr>
-
-<span class="finalTotal">
-
-💰 الإجمالي النهائي:
-${total} ريال
-
-</span>
-
-</div>
-
-
-<div class="archiveBox">
-
-📚 <strong>
-الطلب مؤرشف
-</strong>
-
-<br>
-
-هذا الطلب محفوظ في أرشيف سوق مباشر.
-
-</div>
-
-</div>
-
-`;
-
-});
-
-}catch(error){
-
-console.error(error);
-
-archivedOrdersBox.innerHTML = `
-
-<p>
-حدث خطأ أثناء تحميل الأرشيف.
-</p>
-
-<p>
-${error.message}
-</p>
-
-`;
-
-}
-
-}
-
-
-/* =====================================
-   حذف الطلب الحالي
-===================================== */
+/* =================================================
+   حذف طلب حالي
+================================================= */
 
 window.deleteOrder =
 async function(id){
 
-if(
-!confirm(
+if(!confirm(
 "هل تريد حذف هذا الطلب؟"
-)
-){
+)){
 return;
 }
 
@@ -1957,9 +1602,9 @@ error.message
 };
 
 
-/* =====================================
+/* =================================================
    تغيير حالة الطلب
-===================================== */
+================================================= */
 
 window.changeStatus =
 async function(id){
@@ -1992,9 +1637,9 @@ alert(
 };
 
 
-/* =====================================
+/* =================================================
    تشغيل لوحة الإدارة
-===================================== */
+================================================= */
 
 onAuthStateChanged(
 auth,
@@ -2010,8 +1655,11 @@ return;
 
 }
 
-
 if(
+user.email !==
+"waleedahmad@gmail.com" &&
+user.email !==
+"waleedahmadahmad@gmail.com" &&
 user.email !==
 "waleedahmad2031@gmail.com"
 ){
@@ -2030,8 +1678,6 @@ loadSellers();
 loadProducts();
 
 loadOrders();
-
-loadArchivedOrders();
 
 });
 
