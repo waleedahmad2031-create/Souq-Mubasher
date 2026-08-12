@@ -1230,7 +1230,21 @@ deliveryTotal;
 const status =
 data.status ||
 "جديد";
+const createdAt =
+data.createdAt?.toDate
+? data.createdAt.toDate()
+: null;
 
+const createdAtText =
+createdAt
+? createdAt.toLocaleString("ar-SA", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  })
+: "غير متوفر";
 let statusButton = "";
 
 
@@ -1285,7 +1299,10 @@ ordersBox.innerHTML += `
 <h3>
 👤 ${customerName}
 </h3>
-
+<p>
+🕐 <strong>وقت إنشاء الطلب:</strong>
+${createdAtText}
+</p>
 </div>
 
 <div class="orderInfo">
