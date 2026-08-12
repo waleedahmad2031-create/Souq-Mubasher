@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>إحصائيات المنتجات | سوق مباشر</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Tahoma,Arial,sans-serif;
+}
+
+body{
+background:#f5f5f5;
+color:#222;
+}
+
+header{
+background:#009688;
+color:white;
+padding:20px;
+text-align:center;
+font-size:25px;
+font-weight:bold;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+padding:20px;
+}
+
+.card{
+background:white;
+padding:18px;
+margin-bottom:18px;
+border-radius:14px;
+box-shadow:0 2px 7px rgba(0,0,0,.1);
+}
+
+.back{
+background:#757575;
+color:white;
+border:none;
+padding:13px;
+width:100%;
+border-radius:9px;
+font-size:17px;
+cursor:pointer;
+}
+
+.summary{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:10px;
+margin-top:15px;
+}
+
+.summary-box{
+background:#f7fafa;
+padding:18px 10px;
+border-radius:12px;
+text-align:center;
+}
+
+.summary-number{
+font-size:25px;
+font-weight:bold;
+color:#009688;
+margin-top:7px;
+}
+
+.summary-title{
+font-size:13px;
+color:#666;
+}
+
+.product{
+background:#fff;
+border:1px solid #eee;
+padding:16px;
+margin-top:15px;
+border-radius:13px;
+box-shadow:0 2px 5px rgba(0,0,0,.06);
+}
+
+.product h3{
+font-size:18px;
+margin-bottom:10px;
+}
+
+.info{
+line-height:2;
+font-size:14px;
+}
+
+.view{
+color:#00897b;
+font-weight:bold;
+}
+
+.cart{
+color:#673ab7;
+font-weight:bold;
+}
+
+.last{
+color:#777;
+font-size:12px;
+margin-top:8px;
+}
+
+.empty{
+text-align:center;
+padding:30px;
+color:#777;
+}
+
+.loading{
+text-align:center;
+padding:30px;
+color:#777;
+}
+
+@media(max-width:400px){
+
+.summary{
+grid-template-columns:1fr;
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+
+<header>
+
+📊 إحصائيات المنتجات
+
+</header>
+
+
+<div class="container">
+
+
+<!-- العودة -->
+
+<div class="card">
+
+<button
+class="back"
+onclick="location.href='admin.html'"
+>
+
+⬅️ العودة إلى لوحة الإدارة
+
+</button>
+
+</div>
+
+
+<!-- الملخص -->
+
+<div class="card">
+
+<h2>
+📈 ملخص الإحصائيات
+</h2>
+
+<div class="summary">
+
+
+<div class="summary-box">
+
+<div class="summary-title">
+👁️ إجمالي المشاهدات
+</div>
+
+<div
+id="totalViews"
+class="summary-number"
+>
+0
+</div>
+
+</div>
+
+
+<div class="summary-box">
+
+<div class="summary-title">
+🛒 إجمالي إضافات السلة
+</div>
+
+<div
+id="totalCarts"
+class="summary-number"
+>
+0
+</div>
+
+</div>
+
+
+<div class="summary-box">
+
+<div class="summary-title">
+📦 عدد المنتجات
+</div>
+
+<div
+id="totalProducts"
+class="summary-number"
+>
+0
+</div>
+
+</div>
+
+
+<div class="summary-box">
+
+<div class="summary-title">
+📊 إجمالي الأحداث
+</div>
+
+<div
+id="totalEvents"
+class="summary-number"
+>
+0
+</div>
+
+</div>
+
+
+</div>
+
+</div>
+
+
+<!-- المنتجات -->
+
+<div class="card">
+
+<h2>
+🛍️ إحصائيات كل منتج
+</h2>
+
+<div
+id="productsStats"
+class="loading"
+>
+
+جاري تحميل الإحصائيات...
+
+</div>
+
+</div>
+
+
+</div>
+
+
+<script type="module">
+
+
+import { db, auth } from "./firebase.js";
+
+
+import {
+
+collection,
+getDocs
+
+} from
+"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+import {
+
+onAuthStateChanged
+
+} from
+"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+
+
+/* =====================================
+   العناصر
+===================================== */
+
+const productsStats =
+document.getElementById(
+"productsStats"
+);
+
+const totalViews =
+document.getElementById(
+"totalViews"
+);
+
+const totalCarts =
+document.getElementById(
+"totalCarts"
+);
+
+const totalProducts =
+document.getElementById(
+"totalProducts"
+);
+
+const totalEvents =
+document.getElementById(
+"totalEvents"
+);
+
+
+
+/* =====================================
+   التحقق من المدير
+===================================== */
+
+const allowedEmails = [
+
+"waleedahmad@gmail.com",
+
+"waleedahmadahmad@gmail.com",
+
+"waleedahmad2031@gmail.com"
+
+];
+
+
+
+onAuthStateChanged(
+auth,
+(user)=>{
+
+if(!user){
+
+alert(
+"يجب تسجيل دخول المدير أولًا"
+);
+
+location.href =
+"login.html";
+
+return;
+
+}
+
+
+if(
+!allowedEmails.includes(
+user.email
+)
+){
+
+alert(
+"ليس لديك صلاحية دخول الإحصائيات"
+);
+
+location.href =
+"login.html";
+
+return;
+
+}
+
+
+loadStatistics();
+
+});
+
+
+
+/* =====================================
+   تحميل الإحصائيات
+===================================== */
+
+async function loadStatistics(){
+
+try{
+
+
+/* ===============================
+   تحميل الأحداث
+================================ */
+
+const eventsSnap =
+await getDocs(
+collection(
+db,
+"productEvents"
+)
+);
+
+
+/* ===============================
+   الإحصائيات
+================================ */
+
+const stats = {};
+
+let views = 0;
+
+let carts = 0;
+
+
+eventsSnap.forEach(
+(eventDoc)=>{
+
+const data =
+eventDoc.data();
+
+
+const productId =
+String(
+data.productId || ""
+);
+
+
+if(!productId){
+
+return;
+
+}
+
+
+/* إنشاء المنتج */
+
+if(!stats[productId]){
+
+stats[productId] = {
+
+productId:
+productId,
+
+productName:
+data.productName || "بدون اسم",
+
+price:
+Number(data.price || 0),
+
+shopName:
+data.shopName || "سوق مباشر",
+
+views:0,
+
+carts:0,
+
+lastActivity:null
+
+};
+
+}
+
+
+/* ===============================
+   مشاهدة
+================================ */
+
+if(
+data.type === "view"
+){
+
+stats[productId].views++;
+
+views++;
+
+}
+
+
+/* ===============================
+   سلة
+================================ */
+
+if(
+data.type === "cart"
+){
+
+stats[productId].carts++;
+
+carts++;
+
+}
+
+
+/* ===============================
+   آخر نشاط
+================================ */
+
+if(data.createdAt){
+
+try{
+
+const date =
+data.createdAt.toDate();
+
+if(
+!stats[productId].lastActivity ||
+date >
+stats[productId].lastActivity
+){
+
+stats[productId].lastActivity =
+date;
+
+}
+
+}catch(error){
+
+console.log(
+"تعذر قراءة التاريخ"
+);
+
+}
+
+}
+
+});
+
+
+
+/* ===============================
+   الملخص
+================================ */
+
+totalViews.innerText =
+views.toLocaleString();
+
+
+totalCarts.innerText =
+carts.toLocaleString();
+
+
+totalEvents.innerText =
+eventsSnap.size.toLocaleString();
+
+
+totalProducts.innerText =
+Object.keys(stats).length
+.toLocaleString();
+
+
+
+/* ===============================
+   لا توجد بيانات
+================================ */
+
+if(
+Object.keys(stats).length === 0
+){
+
+productsStats.innerHTML = `
+
+<div class="empty">
+
+📊 لا توجد إحصائيات حتى الآن.
+
+</div>
+
+`;
+
+return;
+
+}
+
+
+
+/* ===============================
+   ترتيب المنتجات
+================================ */
+
+const products =
+Object.values(stats)
+.sort(
+(a,b)=>
+(b.views + b.carts) -
+(a.views + a.carts)
+);
+
+
+
+/* ===============================
+   عرض المنتجات
+================================ */
+
+productsStats.innerHTML = "";
+
+
+products.forEach(
+(product)=>{
+
+
+let lastActivity =
+"لا يوجد";
+
+
+if(
+product.lastActivity
+){
+
+lastActivity =
+product.lastActivity
+.toLocaleString(
+"ar-SA"
+);
+
+}
+
+
+productsStats.innerHTML += `
+
+<div class="product">
+
+
+<h3>
+
+🛍️
+${escapeHtml(
+product.productName
+)}
+
+</h3>
+
+
+<div class="info">
+
+🏪
+<strong>
+المتجر:
+</strong>
+
+${escapeHtml(
+product.shopName
+)}
+
+<br>
+
+
+💰
+<strong>
+السعر:
+</strong>
+
+${product.price.toLocaleString()}
+ريال
+
+
+<br>
+
+
+<span class="view">
+
+👁️ المشاهدات:
+${product.views.toLocaleString()}
+
+</span>
+
+
+<br>
+
+
+<span class="cart">
+
+🛒 إضافات السلة:
+${product.carts.toLocaleString()}
+
+</span>
+
+
+<br>
+
+
+📊
+<strong>
+إجمالي التفاعل:
+</strong>
+
+${
+(
+product.views +
+product.carts
+).toLocaleString()
+}
+
+
+<div class="last">
+
+🕐 آخر نشاط:
+
+${lastActivity}
+
+</div>
+
+
+</div>
+
+</div>
+
+`;
+
+});
+
+
+}catch(error){
+
+console.error(error);
+
+
+productsStats.innerHTML = `
+
+<div class="empty">
+
+❌ حدث خطأ أثناء تحميل الإحصائيات
+
+<br><br>
+
+${error.message}
+
+</div>
+
+`;
+
+}
+
+}
+
+
+
+/* =====================================
+   حماية النصوص
+===================================== */
+
+function escapeHtml(text){
+
+return String(text)
+
+.replace(/&/g,"&amp;")
+
+.replace(/</g,"&lt;")
+
+.replace(/>/g,"&gt;")
+
+.replace(/"/g,"&quot;")
+
+.replace(/'/g,"&#039;");
+
+}
+
+
+</script>
+
+</body>
+
+  </html>
