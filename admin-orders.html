@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>طلبات الزبائن | سوق مباشر</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Tahoma,Arial,sans-serif;
+}
+
+body{
+background:#f5f5f5;
+overflow-x:hidden;
+}
+
+header{
+background:#009688;
+color:#fff;
+padding:18px;
+text-align:center;
+font-size:25px;
+font-weight:bold;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+padding:20px;
+}
+
+.card{
+background:#fff;
+padding:18px;
+border-radius:12px;
+box-shadow:0 2px 6px rgba(0,0,0,.1);
+}
+
+.back{
+background:#757575;
+}
+
+.orderBox{
+background:#fff;
+padding:15px;
+margin-bottom:15px;
+border-radius:10px;
+box-shadow:0 2px 5px rgba(0,0,0,.1);
+border-right:5px solid #009688;
+}
+
+.orderHeader{
+line-height:1.9;
+margin-bottom:10px;
+}
+
+.orderInfo{
+font-size:15px;
+line-height:2;
+}
+
+.productsList{
+background:#f5f5f5;
+padding:10px;
+margin-top:10px;
+border-radius:8px;
+}
+
+.productOrder{
+padding:8px 5px;
+border-bottom:1px solid #ddd;
+line-height:1.8;
+}
+
+.productOrder:last-child{
+border-bottom:none;
+}
+
+.totalBox{
+background:#e8f5e9;
+padding:12px;
+margin-top:10px;
+border-radius:8px;
+line-height:2;
+}
+
+.finalTotal{
+font-size:20px;
+font-weight:bold;
+color:#00897b;
+}
+
+.deliveryBox{
+background:#fff3e0;
+padding:10px;
+margin-top:10px;
+border-radius:8px;
+line-height:1.8;
+}
+
+button{
+width:100%;
+padding:14px;
+margin-top:12px;
+border:none;
+border-radius:8px;
+font-size:17px;
+cursor:pointer;
+color:#fff;
+}
+
+.status{
+background:#ff9800;
+}
+
+.archive{
+background:#5e35b1;
+}
+
+.delete{
+background:#e53935;
+}
+
+.back{
+background:#757575;
+}
+
+.empty{
+text-align:center;
+padding:30px;
+color:#777;
+}
+
+hr{
+border:none;
+border-top:1px solid #ddd;
+margin:10px 0;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+📦 طلبات الزبائن
+</header>
+
+<div class="container">
+
+<div class="card">
+
+<button
+class="back"
+onclick="location.href='admin.html'"
+>
+⬅️ العودة إلى لوحة الإدارة
+</button>
+
+<div id="orders">
+جاري تحميل الطلبات...
+</div>
+
+</div>
+
+</div>
+
+
+<script type="module">
+
+import { db, auth } from "./firebase.js";
+
+import {
+onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import {
+collection,
+getDocs,
+getDoc,
+deleteDoc,
+updateDoc,
+setDoc,
+doc,
+serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+const ordersBox =
+document.getElementById("orders");
+
+
+/* =====================================
+   رسوم التوصيل
+===================================== */
+
+function getDeliveryPerCarton(price){
+
+price =
+Number(price) || 0;
+
+if(price < 1500){
+return 50;
+}
+
+if(price < 2000){
+return 70;
+}
+
+return 100;
+
+}
+
+
+/* =====================================
+   تحميل الطلبات
+===================================== */
+
+async function loadOrders(){
+
+ordersBox.innerHTML =
+"جاري تحميل الطلبات...";
+
+try{
+
+const snap =
+await getDocs(
+collection(db,"orders")
+);
+
+if(snap.empty){
+
+ordersBox.innerHTML = `
+<div class="empty">
+📦 لا توجد طلبات حالية.
+</div>
+`;
+
+return;
+
+}
+
+ordersBox.innerHTML = "";
+
+
+/* الأحدث أولاً */
+
+const orders =
+snap.docs.sort((a,b)=>{
+
+const dateA =
+a.data().createdAt?.toDate
+? a.data().createdAt.toDate().getTime()
+: 0;
+
+const dateB =
+b.data().createdAt?.toDate
+? b.data().createdAt.toDate().getTime()
+: 0;
+
+return dateB - dateA;
+
+});
+
+
+orders.forEach(item=>{
+
+const data =
+item.data();
+
+
+/* =====================================
+   بيانات العميل
+===================================== */
+
+const customerName =
+data.customerName ||
+data.name ||
+"بدون اسم";
+
+const customerPhone =
+data.customerPhone ||
+data.phone ||
+"-";
+
+const customerAddress =
+data.customerAddress ||
+data.address ||
+"-";
+
+const city =
+data.customerCity ||
+data.deliveryArea ||
+"إب";
+
+const orderType =
+data.orderType ||
+"جملة";
+
+const deliveryTime =
+data.deliveryTime ||
+"غير محدد";
+
+
+/* =====================================
+   المنتجات
+===================================== */
+
+const products =
+Array.isArray(data.products)
+? data.products
+: [];
+
+
+let productsHTML = "";
+
+let calculatedDelivery = 0;
+
+let calculatedCartons = 0;
+
+let calculatedProductsTotal = 0;
+
+
+products.forEach(product=>{
+
+const name =
+product.name ||
+"منتج";
+
+const price =
+Number(product.price) || 0;
+
+const quantity =
+Number(product.quantity) > 0
+? Number(product.quantity)
+: 1;
+
+
+const productTotal =
+price * quantity;
+
+
+const deliveryPerCarton =
+getDeliveryPerCarton(price);
+
+const productDelivery =
+deliveryPerCarton * quantity;
+
+
+calculatedCartons +=
+quantity;
+
+calculatedProductsTotal +=
+productTotal;
+
+calculatedDelivery +=
+productDelivery;
+
+
+productsHTML += `
+
+<div class="productOrder">
+
+🛍️ <strong>
+${name}
+</strong>
+
+<br>
+
+📦 الكراتين:
+<strong>
+${quantity}
+</strong>
+
+<br>
+
+💰 سعر الكرتون:
+<strong>
+${price} ريال
+</strong>
+
+</div>
+
+`;
+
+});
+
+
+/* =====================================
+   الإجماليات
+===================================== */
+
+const productsTotal =
+calculatedProductsTotal;
+
+const deliveryTotal =
+calculatedDelivery;
+
+const total =
+productsTotal +
+deliveryTotal;
+
+
+/* =====================================
+   التاريخ
+===================================== */
+
+const createdAt =
+data.createdAt?.toDate
+? data.createdAt.toDate()
+: null;
+
+
+const createdAtText =
+createdAt
+? createdAt.toLocaleString(
+"ar-SA",
+{
+year:"numeric",
+month:"long",
+day:"numeric",
+hour:"numeric",
+minute:"2-digit"
+}
+)
+: "غير متوفر";
+
+
+/* =====================================
+   الحالة
+===================================== */
+
+const status =
+data.status ||
+"جديد";
+
+
+let statusButton = "";
+
+
+if(status === "تم التوصيل"){
+
+statusButton = `
+
+<p style="
+background:#e8f5e9;
+color:#008000;
+padding:10px;
+border-radius:8px;
+font-weight:bold;
+text-align:center;
+margin-top:10px;
+">
+
+✅ تم التوصيل
+
+</p>
+
+<button
+class="archive"
+onclick="archiveOrder('${item.id}')"
+>
+
+📚 نقل الطلب إلى الأرشيف
+
+</button>
+
+`;
+
+}else{
+
+statusButton = `
+
+<button
+class="status"
+onclick="changeStatus('${item.id}')"
+>
+
+🚚 تغيير الحالة إلى تم التوصيل
+
+</button>
+
+`;
+
+}
+
+
+/* =====================================
+   عرض الطلب
+===================================== */
+
+ordersBox.innerHTML += `
+
+<div class="orderBox">
+
+<div class="orderHeader">
+
+<h3>
+👤 ${customerName}
+</h3>
+
+<p>
+🕐 <strong>
+وقت إنشاء الطلب:
+</strong>
+
+${createdAtText}
+
+</p>
+
+</div>
+
+
+<div class="orderInfo">
+
+📱 الجوال:
+${customerPhone}
+
+<br>
+
+📍 المدينة:
+${city}
+
+<br>
+
+🏠 العنوان:
+${customerAddress}
+
+<br>
+
+📦 نوع الطلب:
+${orderType}
+
+<br>
+
+🕐 وقت التوصيل:
+${deliveryTime}
+
+</div>
+
+
+<hr>
+
+
+<strong>
+🛒 المنتجات:
+</strong>
+
+
+<div class="productsList">
+
+${
+productsHTML ||
+"<p>لا توجد منتجات</p>"
+}
+
+</div>
+
+
+<div class="totalBox">
+
+📦 <strong>
+إجمالي الكراتين:
+</strong>
+
+${calculatedCartons}
+
+<br>
+
+🛍️ <strong>
+مجموع المنتجات:
+</strong>
+
+${productsTotal} ريال
+
+<br>
+
+🚚 <strong>
+إجمالي التوصيل:
+</strong>
+
+${deliveryTotal} ريال
+
+<hr>
+
+<span class="finalTotal">
+
+💰 الإجمالي النهائي:
+${total} ريال
+
+</span>
+
+</div>
+
+
+<div class="deliveryBox">
+
+📋 <strong>
+حالة الطلب:
+</strong>
+
+${status}
+
+</div>
+
+
+${statusButton}
+
+
+<button
+class="delete"
+onclick="deleteOrder('${item.id}')"
+>
+
+🗑️ حذف الطلب
+
+</button>
+
+
+</div>
+
+`;
+
+});
+
+}catch(error){
+
+console.error(error);
+
+ordersBox.innerHTML = `
+
+<div class="empty">
+
+❌ حدث خطأ أثناء تحميل الطلبات.
+
+<br><br>
+
+${error.message}
+
+</div>
+
+`;
+
+}
+
+}
+
+
+/* =====================================
+   تغيير الحالة
+===================================== */
+
+window.changeStatus =
+async function(id){
+
+try{
+
+await updateDoc(
+doc(db,"orders",id),
+{
+status:"تم التوصيل"
+}
+);
+
+alert(
+"تم تغيير حالة الطلب إلى تم التوصيل ✅"
+);
+
+loadOrders();
+
+}catch(error){
+
+console.error(error);
+
+alert(
+"حدث خطأ أثناء تغيير حالة الطلب:\n" +
+error.message
+);
+
+}
+
+};
+
+
+/* =====================================
+   نقل إلى الأرشيف
+===================================== */
+
+window.archiveOrder =
+async function(id){
+
+if(!confirm(
+"هل تريد نقل هذا الطلب إلى الأرشيف؟"
+)){
+return;
+}
+
+try{
+
+const orderRef =
+doc(db,"orders",id);
+
+
+const orderSnap =
+await getDoc(orderRef);
+
+
+if(!orderSnap.exists()){
+
+alert(
+"لم يتم العثور على الطلب"
+);
+
+return;
+
+}
+
+
+const orderData =
+orderSnap.data();
+
+
+await setDoc(
+doc(db,"archivedOrders",id),
+{
+
+...orderData,
+
+archivedAt:
+serverTimestamp()
+
+}
+);
+
+
+await deleteDoc(
+orderRef
+);
+
+
+alert(
+"تم نقل الطلب إلى الأرشيف بنجاح 📚✅"
+);
+
+
+loadOrders();
+
+}catch(error){
+
+console.error(error);
+
+alert(
+"حدث خطأ أثناء نقل الطلب إلى الأرشيف:\n" +
+error.message
+);
+
+}
+
+};
+
+
+/* =====================================
+   حذف الطلب
+===================================== */
+
+window.deleteOrder =
+async function(id){
+
+if(!confirm(
+"هل تريد حذف هذا الطلب؟"
+)){
+return;
+}
+
+try{
+
+await deleteDoc(
+doc(db,"orders",id)
+);
+
+alert(
+"تم حذف الطلب ✅"
+);
+
+loadOrders();
+
+}catch(error){
+
+console.error(error);
+
+alert(
+"حدث خطأ أثناء حذف الطلب:\n" +
+error.message
+);
+
+}
+
+};
+
+
+/* =====================================
+   التحقق من المدير
+===================================== */
+
+onAuthStateChanged(
+auth,
+(user)=>{
+
+if(!user){
+
+alert(
+"يجب تسجيل دخول المدير أولاً"
+);
+
+return;
+
+}
+
+
+if(
+user.email !==
+"waleedahmad@gmail.com" &&
+user.email !==
+"waleedahmadahmad@gmail.com" &&
+user.email !==
+"waleedahmad2031@gmail.com"
+){
+
+alert(
+"ليس لديك صلاحية دخول طلبات الزبائن"
+);
+
+return;
+
+}
+
+
+loadOrders();
+
+});
+
+</script>
+
+</body>
+
+  </html>
