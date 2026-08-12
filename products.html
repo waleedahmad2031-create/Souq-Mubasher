@@ -58,11 +58,7 @@ margin-top:10px;
 border:1px solid #ccc;
 border-radius:8px;
 font-size:16px;
-background:#fff;
-}
-
-select{
-cursor:pointer;
+background:white;
 }
 
 button{
@@ -85,16 +81,8 @@ background:#00796b;
 background:#e53935;
 }
 
-.delete:hover{
-background:#c62828;
-}
-
 .cancel{
 background:#757575;
-}
-
-.cancel:hover{
-background:#616161;
 }
 
 .product{
@@ -119,12 +107,11 @@ display:block;
 .category{
 display:inline-block;
 background:#e8f5e9;
-color:#00796b;
-padding:5px 10px;
+color:#00897b;
+padding:4px 10px;
 border-radius:20px;
-font-size:13px;
+font-size:12px;
 margin:5px 0;
-font-weight:bold;
 }
 
 .empty{
@@ -145,18 +132,14 @@ line-height:1.7;
 
 <body>
 
-
 <header>
 🛍️ إدارة المنتجات
 </header>
 
-
 <div class="container">
 
 
-<!-- ===============================
-     العودة
-================================ -->
+<!-- العودة -->
 
 <div class="card">
 
@@ -170,9 +153,7 @@ onclick="location.href='admin.html'"
 </div>
 
 
-<!-- ===============================
-     إضافة / تعديل المنتج
-================================ -->
+<!-- إضافة / تعديل المنتج -->
 
 <div class="card">
 
@@ -198,9 +179,7 @@ placeholder="سعر الكرتون"
 >
 
 
-<!-- ===============================
-     القسم
-================================ -->
+<!-- القسم -->
 
 <select id="category">
 
@@ -208,24 +187,32 @@ placeholder="سعر الكرتون"
 📂 اختر قسم المنتج
 </option>
 
-<option value="مواد غذائية">
-🥫 مواد غذائية
+<option value="المواد الغذائية">
+🍚 المواد الغذائية
 </option>
 
-<option value="خضروات وفواكه">
-🥬 خضروات وفواكه
+<option value="الخضروات والفواكه">
+🥬 الخضروات والفواكه
 </option>
 
-<option value="عطور وزيوت">
-🧴 عطور وزيوت
+<option value="العطور">
+🌹 العطور
 </option>
 
-<option value="مستلزمات منزلية">
-🏠 مستلزمات منزلية
+<option value="الزيوت">
+🛢️ الزيوت
 </option>
 
-<option value="خدمات">
-🔧 خدمات
+<option value="الأدوات المنزلية">
+🏠 الأدوات المنزلية
+</option>
+
+<option value="الخدمات">
+🛠️ الخدمات
+</option>
+
+<option value="أخرى">
+📦 أخرى
 </option>
 
 </select>
@@ -271,9 +258,7 @@ style="display:none;"
 </div>
 
 
-<!-- ===============================
-     قائمة المنتجات
-================================ -->
+<!-- قائمة المنتجات -->
 
 <div class="card">
 
@@ -293,14 +278,11 @@ style="display:none;"
 
 <script type="module">
 
-
 import { db, auth } from "./firebase.js";
-
 
 import {
 onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
 
 import {
 collection,
@@ -313,7 +295,6 @@ doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
-
 /* =====================================
    العناصر
 ===================================== */
@@ -321,14 +302,11 @@ doc
 const saveBtn =
 document.getElementById("saveBtn");
 
-
 const cancelBtn =
 document.getElementById("cancelBtn");
 
-
 const formTitle =
 document.getElementById("formTitle");
-
 
 const productsBox =
 document.getElementById("products");
@@ -339,7 +317,6 @@ document.getElementById("products");
 ===================================== */
 
 let editingProductId = null;
-
 
 
 /* =====================================
@@ -365,7 +342,6 @@ document.getElementById("description").value = "";
 }
 
 
-
 /* =====================================
    تحميل المنتجات
 ===================================== */
@@ -375,7 +351,6 @@ async function loadProducts(){
 productsBox.innerHTML =
 "جاري تحميل المنتجات...";
 
-
 try{
 
 const snap =
@@ -383,23 +358,17 @@ await getDocs(
 collection(db,"products")
 );
 
-
 if(snap.empty){
 
 productsBox.innerHTML = `
-
 <div class="empty">
-
 🛍️ لا توجد منتجات حاليًا.
-
 </div>
-
 `;
 
 return;
 
 }
-
 
 productsBox.innerHTML = "";
 
@@ -415,108 +384,64 @@ productsBox.innerHTML += `
 <div class="product">
 
 <h3>
-
 ${data.name || "بدون اسم"}
-
 </h3>
-
 
 ${
 data.category
 ?
 `
 <div class="category">
-
 📂 ${data.category}
-
 </div>
-`
-:
-`
-<div class="category">
-
-📂 غير محدد
-
-</div>
-`
-}
-
-
-<p>
-
-💰 <strong>
-سعر الكرتون:
-</strong>
-
-${Number(data.price) || 0}
-
-ريال
-
-</p>
-
-
-<p>
-
-🏪 <strong>
-المتجر:
-</strong>
-
-${data.shopName || "مشتاق وليد"}
-
-</p>
-
-
-<p>
-
-🏙️ <strong>
-المدينة:
-</strong>
-
-${data.city || "-"}
-
-</p>
-
-
-<p>
-
-📱 <strong>
-التواصل:
-</strong>
-
-${data.phone || "-"}
-
-</p>
-
-
-${
-data.image
-?
-`
-
-<img
-src="${data.image}"
-alt="صورة المنتج"
->
-
 `
 :
 ""
 }
 
+<p>
+💰 <strong>سعر الكرتون:</strong>
+${Number(data.price) || 0}
+ريال
+</p>
 
 <p>
+🏪 <strong>المتجر:</strong>
+${data.shopName || "مشتاق وليد"}
+</p>
 
+<p>
+🏙️ <strong>المدينة:</strong>
+${data.city || "-"}
+</p>
+
+<p>
+📱 <strong>التواصل:</strong>
+${data.phone || "-"}
+</p>
+
+${
+data.image
+?
+`
+<img
+src="${data.image}"
+alt="صورة المنتج"
+>
+`
+:
+""
+}
+
+<p>
 📝 ${data.description || "لا يوجد وصف"}
-
 </p>
 
 
 <button
 onclick="editProduct('${item.id}')"
 >
-
 ✏️ تعديل المنتج
-
 </button>
 
 
@@ -524,11 +449,8 @@ onclick="editProduct('${item.id}')"
 class="delete"
 onclick="deleteProduct('${item.id}')"
 >
-
 🗑️ حذف المنتج
-
 </button>
-
 
 </div>
 
@@ -536,11 +458,9 @@ onclick="deleteProduct('${item.id}')"
 
 });
 
-
 }catch(error){
 
 console.error(error);
-
 
 productsBox.innerHTML = `
 
@@ -561,7 +481,6 @@ ${error.message}
 }
 
 
-
 /* =====================================
    تعديل المنتج
 ===================================== */
@@ -573,7 +492,6 @@ try{
 
 const productRef =
 doc(db,"products",id);
-
 
 const snap =
 await getDoc(productRef);
@@ -597,26 +515,20 @@ snap.data();
 document.getElementById("name").value =
 data.name || "";
 
-
 document.getElementById("price").value =
 data.price || "";
-
 
 document.getElementById("category").value =
 data.category || "";
 
-
 document.getElementById("city").value =
 data.city || "";
-
 
 document.getElementById("phone").value =
 data.phone || "";
 
-
 document.getElementById("image").value =
 data.image || "";
-
 
 document.getElementById("description").value =
 data.description || "";
@@ -629,10 +541,8 @@ id;
 formTitle.innerText =
 "✏️ تعديل المنتج";
 
-
 saveBtn.innerText =
 "💾 حفظ تعديل المنتج";
-
 
 cancelBtn.style.display =
 "block";
@@ -649,7 +559,6 @@ behavior:"smooth"
 
 console.error(error);
 
-
 alert(
 "حدث خطأ أثناء تحميل المنتج للتعديل:\n" +
 error.message
@@ -658,7 +567,6 @@ error.message
 }
 
 };
-
 
 
 /* =====================================
@@ -671,23 +579,18 @@ function(){
 editingProductId =
 null;
 
-
 formTitle.innerText =
 "➕ إضافة منتج جديد";
-
 
 saveBtn.innerText =
 "💾 حفظ المنتج";
 
-
 cancelBtn.style.display =
 "none";
-
 
 clearForm();
 
 };
-
 
 
 /* =====================================
@@ -697,48 +600,40 @@ clearForm();
 saveBtn.onclick =
 async function(){
 
-
 const name =
 document.getElementById("name")
 .value
 .trim();
-
 
 const price =
 document.getElementById("price")
 .value
 .trim();
 
-
 const category =
 document.getElementById("category")
 .value
 .trim();
-
 
 const city =
 document.getElementById("city")
 .value
 .trim();
 
-
 const phone =
 document.getElementById("phone")
 .value
 .trim();
-
 
 const image =
 document.getElementById("image")
 .value
 .trim();
 
-
 const description =
 document.getElementById("description")
 .value
 .trim();
-
 
 
 if(!name){
@@ -752,7 +647,6 @@ return;
 }
 
 
-
 if(!category){
 
 alert(
@@ -764,25 +658,21 @@ return;
 }
 
 
-
 try{
 
 
-
 /* ===============================
-   تعديل
+   تعديل المنتج
 ================================ */
 
 if(editingProductId){
 
 await updateDoc(
-
 doc(
 db,
 "products",
 editingProductId
 ),
-
 {
 
 name:name,
@@ -800,7 +690,6 @@ image:image,
 description:description
 
 }
-
 );
 
 
@@ -812,42 +701,30 @@ alert(
 editingProductId =
 null;
 
-
 formTitle.innerText =
 "➕ إضافة منتج جديد";
-
 
 saveBtn.innerText =
 "💾 حفظ المنتج";
 
-
 cancelBtn.style.display =
 "none";
 
-
 clearForm();
 
-
 loadProducts();
-
 
 return;
 
 }
 
 
-
 /* ===============================
-   إضافة
+   إضافة المنتج
 ================================ */
 
 await addDoc(
-
-collection(
-db,
-"products"
-),
-
+collection(db,"products"),
 {
 
 name:name,
@@ -867,7 +744,6 @@ description:description,
 shopName:"مشتاق وليد"
 
 }
-
 );
 
 
@@ -878,14 +754,12 @@ alert(
 
 clearForm();
 
-
 loadProducts();
 
 
 }catch(error){
 
 console.error(error);
-
 
 alert(
 "حدث خطأ أثناء حفظ المنتج:\n" +
@@ -897,7 +771,6 @@ error.message
 };
 
 
-
 /* =====================================
    حذف المنتج
 ===================================== */
@@ -905,27 +778,17 @@ error.message
 window.deleteProduct =
 async function(id){
 
-
 if(!confirm(
 "⚠️ هل تريد حذف هذا المنتج؟"
 )){
-
 return;
-
 }
-
 
 
 try{
 
 await deleteDoc(
-
-doc(
-db,
-"products",
-id
-)
-
+doc(db,"products",id)
 );
 
 
@@ -941,7 +804,6 @@ loadProducts();
 
 console.error(error);
 
-
 alert(
 "حدث خطأ أثناء حذف المنتج:\n" +
 error.message
@@ -952,17 +814,13 @@ error.message
 };
 
 
-
 /* =====================================
    التحقق من المدير
 ===================================== */
 
 onAuthStateChanged(
-
 auth,
-
 (user)=>{
-
 
 if(!user){
 
@@ -975,22 +833,13 @@ return;
 }
 
 
-
 if(
-
 user.email !==
-"waleedahmad@gmail.com"
-
-&&
-
+"waleedahmad@gmail.com" &&
 user.email !==
-"waleedahmadahmad@gmail.com"
-
-&&
-
+"waleedahmadahmad@gmail.com" &&
 user.email !==
 "waleedahmad2031@gmail.com"
-
 ){
 
 alert(
@@ -1002,7 +851,6 @@ return;
 }
 
 
-
 loadProducts();
 
 });
@@ -1011,4 +859,4 @@ loadProducts();
 
 </body>
 
-</html>
+     </html>
