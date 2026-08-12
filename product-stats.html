@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
@@ -101,6 +102,17 @@ line-height:2;
 font-size:14px;
 }
 
+.category{
+display:inline-block;
+background:#e8f5e9;
+color:#00897b;
+padding:4px 9px;
+border-radius:20px;
+font-size:12px;
+font-weight:bold;
+margin:4px 0;
+}
+
 .view{
 color:#00897b;
 font-weight:bold;
@@ -140,6 +152,7 @@ grid-template-columns:1fr;
 </style>
 
 </head>
+
 
 <body>
 
@@ -343,7 +356,6 @@ const allowedEmails = [
 ];
 
 
-
 onAuthStateChanged(
 auth,
 (user)=>{
@@ -409,6 +421,40 @@ db,
 
 
 /* ===============================
+   تحميل المنتجات
+================================ */
+
+const productsSnap =
+await getDocs(
+collection(
+db,
+"products"
+);
+
+
+/* ===============================
+   إنشاء خريطة المنتجات
+================================ */
+
+const productsMap = {};
+
+
+productsSnap.forEach(
+(productDoc)=>{
+
+const data =
+productDoc.data();
+
+
+productsMap[
+productDoc.id
+] = data;
+
+});
+
+
+
+/* ===============================
    الإحصائيات
 ================================ */
 
@@ -439,7 +485,19 @@ return;
 }
 
 
-/* إنشاء المنتج */
+/* ===============================
+   بيانات المنتج الأصلية
+================================ */
+
+const originalProduct =
+productsMap[
+productId
+] || {};
+
+
+/* ===============================
+   إنشاء المنتج
+================================ */
 
 if(!stats[productId]){
 
@@ -449,13 +507,26 @@ productId:
 productId,
 
 productName:
-data.productName || "بدون اسم",
+originalProduct.name ||
+data.productName ||
+"بدون اسم",
+
+category:
+originalProduct.category ||
+data.category ||
+"غير محدد",
 
 price:
-Number(data.price || 0),
+Number(
+originalProduct.price ??
+data.price ??
+0
+),
 
 shopName:
-data.shopName || "سوق مباشر",
+originalProduct.shopName ||
+data.shopName ||
+"سوق مباشر",
 
 views:0,
 
@@ -508,6 +579,7 @@ try{
 
 const date =
 data.createdAt.toDate();
+
 
 if(
 !stats[productId].lastActivity ||
@@ -639,6 +711,7 @@ product.productName
 
 <div class="info">
 
+
 🏪
 <strong>
 المتجر:
@@ -647,6 +720,25 @@ product.productName
 ${escapeHtml(
 product.shopName
 )}
+
+<br>
+
+
+📂
+<strong>
+القسم:
+</strong>
+
+<span class="category">
+
+${
+escapeHtml(
+product.category
+)
+}
+
+</span>
+
 
 <br>
 
@@ -766,4 +858,4 @@ return String(text)
 
 </body>
 
-  </html>
+   </html>
