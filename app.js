@@ -1,16 +1,184 @@
+
 import { db } from "./firebase.js";
 
 import {
   collection,
-  onSnapshot
+  onSnapshot,
+  addDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
-const productsBox = document.getElementById("products");
+const productsBox =
+  document.getElementById("products");
 
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
+let cart =
+  JSON.parse(localStorage.getItem("cart")) || [];
 
 window.productsData = {};
+
+
+// ===============================
+// إعدادات المشاهدة
+// ===============================
+
+const VIEW_COOLDOWN =
+  30 * 60 * 1000; // 30 دقيقة
+
+
+// ===============================
+// تسجيل مشاهدة المنتج
+// ===============================
+
+async function recordProductView(id, product) {
+
+  try {
+
+    const key =
+      "product_view_" + id;
+
+    const lastView =
+      Number(localStorage.getItem(key) || 0);
+
+    const now =
+      Date.now();
+
+
+    // منع تسجيل نفس المنتج
+    // أكثر من مرة خلال 30 دقيقة
+    if (
+      lastView &&
+      now - lastView < VIEW_COOLDOWN
+    ) {
+      return;
+    }
+
+
+    // حفظ وقت المشاهدة على الجهاز
+    localStorage.setItem(
+      key,
+      String(now)
+    );
+
+
+    // تسجيل الحدث في Firebase
+    await addDoc(
+      collection(db, "productEvents"),
+      {
+
+        type: "view",
+
+        productId: id,
+
+        productName:
+          product.name || "",
+
+        price:
+          Number(product.price || 0),
+
+        shopName:
+          product.shopName || "",
+
+        createdAt:
+          serverTimestamp()
+
+      }
+    );
+
+
+    console.log(
+      "تم تسجيل مشاهدة المنتج:",
+      product.name
+    );
+
+
+  } catch (error) {
+
+    // فشل تسجيل المشاهدة
+    // لا يؤثر على الموقع أو السلة
+    console.error(
+      "تعذر تسجيل مشاهدة المنتج:",
+      error
+    );
+
+  }
+
+}
+
+
+// ===============================
+// مراقبة ظهور المنتجات على الشاشة
+// ===============================
+
+function observeProductViews() {
+
+  const cards =
+    document.querySelectorAll(".product");
+
+
+  if (!cards.length) {
+    return;
+  }
+
+
+  const observer =
+    new IntersectionObserver(
+      (entries, observer) => {
+
+        entries.forEach(entry => {
+
+          if (!entry.isIntersecting) {
+            return;
+          }
+
+
+          const card =
+            entry.target;
+
+          const productId =
+            card.dataset.productId;
+
+
+          if (!productId) {
+            return;
+          }
+
+
+          const product =
+            window.productsData[productId];
+
+
+          if (!product) {
+            return;
+          }
+
+
+          recordProductView(
+            productId,
+            product
+          );
+
+
+          // لا نحتاج مراقبة البطاقة
+          // بعد أول ظهور
+          observer.unobserve(card);
+
+        });
+
+      },
+      {
+        threshold: 0.5
+      }
+    );
+
+
+  cards.forEach(card => {
+
+    observer.observe(card);
+
+  });
+
+}
 
 
 // ===============================
@@ -19,15 +187,20 @@ window.productsData = {};
 
 function loadProducts() {
 
-  productsBox.innerHTML = "جاري تحميل المنتجات...";
+  productsBox.innerHTML =
+    "جاري تحميل المنتجات...";
+
 
   onSnapshot(
+
     collection(db, "products"),
 
     (snap) => {
 
       productsBox.innerHTML = "";
+
       window.productsData = {};
+
 
       if (snap.empty) {
 
@@ -50,14 +223,21 @@ function loadProducts() {
 
       snap.forEach((productDoc) => {
 
-        const data = productDoc.data();
+        const data =
+          productDoc.data();
 
-        window.productsData[productDoc.id] = data;
+
+        window.productsData[
+          productDoc.id
+        ] = data;
 
 
         productsBox.innerHTML += `
 
-        <div class="product">
+        <div
+          class="product"
+          data-product-id="${productDoc.id}"
+        >
 
           ${
             data.image
@@ -142,7 +322,9 @@ function loadProducts() {
               color:#00897b;
               font-size:18px;
             ">
-              ${Number(data.price || 0).toLocaleString()}
+              ${Number(
+                data.price || 0
+              ).toLocaleString()}
               ريال
             </b>
 
@@ -168,7 +350,11 @@ function loadProducts() {
           <button
             onclick="addToCart('${productDoc.id}')"
             style="
-              background:linear-gradient(135deg,#009688,#00796b);
+              background:linear-gradient(
+                135deg,
+                #009688,
+                #00796b
+              );
               color:white;
               border:none;
               padding:11px 6px;
@@ -189,11 +375,17 @@ function loadProducts() {
 
       });
 
+
+      // بعد ظهور المنتجات
+      // نبدأ مراقبة المشاهدات
+      observeProductViews();
+
     },
 
     (error) => {
 
       console.error(error);
+
 
       productsBox.innerHTML = `
         <div style="
@@ -209,7 +401,9 @@ function loadProducts() {
       `;
 
     }
+
   );
+
 }
 
 
@@ -220,7 +414,9 @@ function loadProducts() {
 window.addToCart = function(id) {
 
   cart =
-    JSON.parse(localStorage.getItem("cart")) || [];
+    JSON.parse(
+      localStorage.getItem("cart")
+    ) || [];
 
 
   const product =
@@ -229,41 +425,50 @@ window.addToCart = function(id) {
 
   if (!product) {
 
-    alert("تعذر العثور على المنتج");
+    alert(
+      "تعذر العثور على المنتج"
+    );
 
     return;
   }
 
 
-  // البحث عن المنتج إذا كان موجودًا
   const existingItem =
-    cart.find(item => item.id === id);
+    cart.find(
+      item => item.id === id
+    );
 
 
   if (existingItem) {
 
-    // زيادة عدد الكراتين
     existingItem.quantity =
-      Number(existingItem.quantity || 1) + 1;
+      Number(
+        existingItem.quantity || 1
+      ) + 1;
 
   } else {
 
-    // إضافة المنتج لأول مرة
     cart.push({
 
       id: id,
 
-      name: product.name || "",
+      name:
+        product.name || "",
 
-      price: Number(product.price || 0),
+      price:
+        Number(product.price || 0),
 
-      image: product.image || "",
+      image:
+        product.image || "",
 
-      city: product.city || "",
+      city:
+        product.city || "",
 
-      description: product.description || "",
+      description:
+        product.description || "",
 
-      shopName: product.shopName || "",
+      shopName:
+        product.shopName || "",
 
       quantity: 1
 
@@ -281,29 +486,40 @@ window.addToCart = function(id) {
   updateCartCount();
 
 
-  alert("✅ تمت إضافة الكرتون إلى السلة");
+  alert(
+    "✅ تمت إضافة الكرتون إلى السلة"
+  );
 
 };
 
 
 // ===============================
-// عداد الكراتين في السلة
+// عداد الكراتين
 // ===============================
 
 function updateCartCount() {
 
   const count =
-    document.getElementById("cartCount");
+    document.getElementById(
+      "cartCount"
+    );
 
 
   if (count) {
 
     const totalQuantity =
       cart.reduce(
+
         (sum, item) =>
-          sum + Number(item.quantity || 1),
+          sum +
+          Number(
+            item.quantity || 1
+          ),
+
         0
+
       );
+
 
     count.innerText =
       totalQuantity;
@@ -314,7 +530,7 @@ function updateCartCount() {
 
 
 // ===============================
-// تشغيل
+// التشغيل
 // ===============================
 
 loadProducts();
