@@ -19,199 +19,77 @@ font-family:Tahoma,Arial,sans-serif;
 
 body{
 background:#f5f5f5;
-overflow-x:hidden;
 }
 
 header{
 background:#009688;
 color:#fff;
-padding:18px;
+padding:20px;
 text-align:center;
 font-size:26px;
 font-weight:bold;
 }
 
 .container{
-max-width:900px;
+max-width:700px;
 margin:auto;
 padding:20px;
 }
 
 .card{
 background:#fff;
-padding:18px;
-margin-bottom:20px;
+padding:20px;
+margin-bottom:18px;
 border-radius:12px;
 box-shadow:0 2px 6px rgba(0,0,0,.1);
 }
 
-h2{
-margin-bottom:15px;
+.title{
+font-size:21px;
+font-weight:bold;
+margin-bottom:8px;
 }
 
-input,
-textarea{
-width:100%;
-padding:12px;
-margin-top:10px;
-border:1px solid #ccc;
-border-radius:8px;
-font-size:16px;
+.description{
+color:#666;
+line-height:1.7;
+margin-bottom:12px;
 }
 
 button{
 width:100%;
-padding:14px;
-margin-top:12px;
+padding:15px;
+margin-top:10px;
 border:none;
-border-radius:8px;
-font-size:17px;
+border-radius:9px;
+font-size:18px;
 cursor:pointer;
-background:#009688;
 color:#fff;
+background:#009688;
 }
 
 button:hover{
 background:#00796b;
 }
 
-.delete{
-background:#e53935;
-}
-
-.status{
-background:#ff9800;
-}
-
-.activate{
+.products{
 background:#009688;
 }
 
-.cancelEdit{
-background:#757575;
+.orders{
+background:#ff9800;
 }
 
 .archive{
-background:#5e35b1;
-}
-
-.openArchive{
 background:#673ab7;
-font-size:18px;
 }
 
-.seller{
-background:#fff;
-padding:15px;
-margin-bottom:15px;
-border-radius:10px;
-box-shadow:0 2px 5px rgba(0,0,0,.1);
-border-right:5px solid #009688;
-line-height:1.9;
+.sellers{
+background:#3f51b5;
 }
 
-.product{
-background:#fff;
-padding:15px;
-margin-bottom:15px;
-border-radius:10px;
-box-shadow:0 2px 5px rgba(0,0,0,.1);
-line-height:1.9;
-overflow-wrap:anywhere;
-}
-
-.product img{
-width:120px;
-height:120px;
-object-fit:cover;
-border-radius:10px;
-margin-top:10px;
-}
-
-.active{
-color:#008000;
-font-weight:bold;
-}
-
-.inactive{
-color:#e53935;
-font-weight:bold;
-}
-
-.orderBox{
-background:#fff;
-padding:15px;
-margin-bottom:15px;
-border-radius:10px;
-box-shadow:0 2px 5px rgba(0,0,0,.1);
-border-right:5px solid #009688;
-}
-
-.orderHeader{
-line-height:1.9;
-margin-bottom:10px;
-}
-
-.orderInfo{
-font-size:15px;
-line-height:2;
-}
-
-.productsList{
-background:#f5f5f5;
-padding:10px;
-margin-top:10px;
-border-radius:8px;
-}
-
-.productOrder{
-padding:8px 5px;
-border-bottom:1px solid #ddd;
-line-height:1.8;
-}
-
-.productOrder:last-child{
-border-bottom:none;
-}
-
-.totalBox{
-background:#e8f5e9;
-padding:12px;
-margin-top:10px;
-border-radius:8px;
-line-height:2;
-}
-
-.finalTotal{
-font-size:20px;
-font-weight:bold;
-color:#00897b;
-}
-
-.deliveryBox{
-background:#fff3e0;
-padding:10px;
-margin-top:10px;
-border-radius:8px;
-line-height:1.8;
-}
-
-hr{
-border:none;
-border-top:1px solid #ddd;
-margin:10px 0;
-}
-
-.sectionTitle{
-font-size:20px;
-font-weight:bold;
-margin-bottom:5px;
-}
-
-.sectionDescription{
-color:#666;
-margin-bottom:12px;
-line-height:1.7;
+.logout{
+background:#e53935;
 }
 
 </style>
@@ -227,135 +105,46 @@ line-height:1.7;
 <div class="container">
 
 
-<!-- =================================================
-     1 - إدارة البائعين
-================================================= -->
+<!-- =========================
+     إضافة المنتجات
+========================= -->
 
 <div class="card">
 
-<div class="sectionTitle">
-👥 إدارة البائعين
-</div>
-
-<div class="sectionDescription">
-إدارة حسابات البائعين وحالتهم.
-</div>
-
-<div id="sellers">
-جاري تحميل البائعين...
-</div>
-
-</div>
-
-
-<!-- =================================================
-     2 - إضافة المنتجات
-================================================= -->
-<div class="card">
-
-<div class="sectionTitle">
+<div class="title">
 ➕ إضافة المنتجات
 </div>
 
-<div class="sectionDescription">
+<div class="description">
 إضافة وتعديل وحذف المنتجات.
 </div>
 
 <button
+class="products"
 onclick="location.href='products.html'"
 >
-➕ فتح قسم المنتجات
+➕ فتح قسم إضافة المنتجات
 </button>
 
 </div>
 
 
-<h3 id="productFormTitle">
-إضافة منتج جديد
-</h3>
-
-<input
-id="name"
-placeholder="اسم المنتج"
->
-
-<input
-id="price"
-type="number"
-placeholder="سعر الكرتون"
->
-
-<input
-id="city"
-placeholder="المدينة"
->
-
-<input
-id="phone"
-placeholder="رقم التواصل"
->
-
-<input
-id="image"
-placeholder="رابط الصورة"
->
-
-<textarea
-id="description"
-placeholder="وصف المنتج"
-></textarea>
-
-<button id="saveBtn">
-💾 حفظ المنتج
-</button>
-
-<button
-id="cancelEditBtn"
-class="cancelEdit"
-style="display:none;"
->
-إلغاء التعديل
-</button>
-
-</div>
-
-
-<!-- =================================================
-     3 - قائمة المنتجات
-================================================= -->
+<!-- =========================
+     الطلبات
+========================= -->
 
 <div class="card">
 
-<div class="sectionTitle">
-🛍️ قائمة المنتجات
-</div>
-
-<div class="sectionDescription">
-جميع المنتجات الموجودة في سوق مباشر.
-</div>
-
-<div id="products">
-جاري تحميل المنتجات...
-</div>
-
-</div>
-
-
-<!-- =================================================
-     4 - طلبات الزبائن
-================================================= -->
-
-<div class="card">
-
-<div class="sectionTitle">
+<div class="title">
 📦 طلبات الزبائن
 </div>
 
-<div class="sectionDescription">
-الطلبات الحالية فقط.
+<div class="description">
+عرض ومتابعة الطلبات الحالية.
 </div>
 
 <button
+class="orders"
 onclick="location.href='admin-orders.html'"
 >
 📦 فتح طلبات الزبائن
@@ -364,27 +153,65 @@ onclick="location.href='admin-orders.html'"
 </div>
 
 
-
-
-<!-- =================================================
-     5 - الأرشيف
-================================================= -->
+<!-- =========================
+     الأرشيف
+========================= -->
 
 <div class="card">
 
-<div class="sectionTitle">
+<div class="title">
 📚 أرشيف الطلبات
 </div>
 
-<div class="sectionDescription">
-الطلبات القديمة التي تم إنهاؤها وأرشفتها.
+<div class="description">
+الطلبات التي تم إنهاؤها ونقلها إلى الأرشيف.
 </div>
 
 <button
-class="openArchive"
+class="archive"
 onclick="location.href='archive.html'"
 >
-📚 فتح أرشيف الطلبات
+📚 فتح الأرشيف
+</button>
+
+</div>
+
+
+<!-- =========================
+     البائعون
+========================= -->
+
+<div class="card">
+
+<div class="title">
+👥 إدارة البائعين
+</div>
+
+<div class="description">
+إدارة حسابات البائعين وحالتهم.
+</div>
+
+<button
+class="sellers"
+onclick="location.href='admin-sellers.html'"
+>
+👥 فتح إدارة البائعين
+</button>
+
+</div>
+
+
+<!-- =========================
+     تسجيل الخروج
+========================= -->
+
+<div class="card">
+
+<button
+class="logout"
+onclick="logoutAdmin()"
+>
+🚪 تسجيل الخروج
 </button>
 
 </div>
@@ -395,1263 +222,17 @@ onclick="location.href='archive.html'"
 
 <script type="module">
 
-import { db, auth } from "./firebase.js";
+import { auth } from "./firebase.js";
 
 import {
-onAuthStateChanged
+onAuthStateChanged,
+signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-import {
-collection,
-addDoc,
-getDocs,
-getDoc,
-deleteDoc,
-updateDoc,
-setDoc,
-doc,
-serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-
-/* =================================================
-   العناصر
-================================================= */
-
-const saveBtn =
-document.getElementById("saveBtn");
-
-const cancelEditBtn =
-document.getElementById("cancelEditBtn");
-
-const productFormTitle =
-document.getElementById("productFormTitle");
-
-const productsBox =
-document.getElementById("products");
-
-const ordersBox =
-document.getElementById("orders");
-
-const sellersBox =
-document.getElementById("sellers");
-
-
-/* =================================================
-   حالة تعديل المنتج
-================================================= */
-
-let editingProductId = null;
-
-
-/* =================================================
-   البائعون
-================================================= */
-
-async function loadSellers(){
-
-sellersBox.innerHTML =
-"جاري تحميل البائعين...";
-
-try{
-
-const snap =
-await getDocs(
-collection(db,"sellers")
-);
-
-if(snap.empty){
-
-sellersBox.innerHTML =
-"<p>لا يوجد بائعون.</p>";
-
-return;
-
-}
-
-sellersBox.innerHTML = "";
-
-snap.forEach(item=>{
-
-const seller =
-item.data();
-
-const sellerId =
-item.id;
-
-const status =
-seller.status || "active";
-
-const statusText =
-status === "active"
-? "🟢 نشط"
-: "🔴 موقوف";
-
-const statusClass =
-status === "active"
-? "active"
-: "inactive";
-
-
-sellersBox.innerHTML += `
-
-<div class="seller">
-
-<h3>
-🏪 ${seller.shopName || "بدون اسم"}
-</h3>
-
-<p>
-📧 البريد:
-${seller.email || "-"}
-</p>
-
-<p>
-📱 الجوال:
-${seller.phone || "-"}
-</p>
-
-<p>
-💳 الاشتراك:
-${seller.subscription || "free"}
-</p>
-
-<p class="${statusClass}">
-الحالة:
-${statusText}
-</p>
-
-${
-status === "active"
-
-?
-
-`
-<button
-class="delete"
-onclick="changeSellerStatus(
-'${sellerId}',
-'inactive'
-)"
->
-🔴 إيقاف الحساب
-</button>
-`
-
-:
-
-`
-<button
-class="activate"
-onclick="changeSellerStatus(
-'${sellerId}',
-'active'
-)"
->
-🟢 تفعيل الحساب
-</button>
-`
-}
-
-<button
-class="delete"
-onclick="deleteSeller('${sellerId}')"
->
-🗑️ حذف البائع
-</button>
-
-</div>
-
-`;
-
-});
-
-}catch(error){
-
-console.error(error);
-
-sellersBox.innerHTML =
-"<p>حدث خطأ أثناء تحميل البائعين.</p>";
-
-}
-
-}
-
-
-/* =================================================
-   حذف البائع
-================================================= */
-
-window.deleteSeller =
-async function(id){
-
-if(!confirm(
-"⚠️ هل أنت متأكد من حذف هذا البائع؟"
-)){
-return;
-}
-
-try{
-
-await deleteDoc(
-doc(db,"sellers",id)
-);
-
-alert(
-"تم حذف البائع ✅"
-);
-
-loadSellers();
-
-}catch(error){
-
-console.error(error);
-
-alert(
-"حدث خطأ أثناء حذف البائع:\n" +
-error.message
-);
-
-}
-
-};
-
-
-/* =================================================
-   تغيير حالة البائع
-================================================= */
-
-window.changeSellerStatus =
-async function(id,status){
-
-const message =
-status === "inactive"
-? "هل تريد إيقاف هذا البائع؟"
-: "هل تريد تفعيل هذا البائع؟";
-
-if(!confirm(message)){
-return;
-}
-
-try{
-
-await updateDoc(
-doc(db,"sellers",id),
-{
-status:status
-}
-);
-
-alert(
-status === "inactive"
-? "تم إيقاف الحساب ✅"
-: "تم تفعيل الحساب ✅"
-);
-
-loadSellers();
-
-}catch(error){
-
-console.error(error);
-
-alert(
-"حدث خطأ أثناء تغيير حالة الحساب"
-);
-
-}
-
-};
-
-
-/* =================================================
-   تحميل المنتجات
-================================================= */
-
-async function loadProducts(){
-
-productsBox.innerHTML =
-"جاري تحميل المنتجات...";
-
-try{
-
-const snap =
-await getDocs(
-collection(db,"products")
-);
-
-if(snap.empty){
-
-productsBox.innerHTML =
-"<p>لا توجد منتجات.</p>";
-
-return;
-
-}
-
-productsBox.innerHTML = "";
-
-snap.forEach(item=>{
-
-const data =
-item.data();
-
-productsBox.innerHTML += `
-
-<div class="product">
-
-<h3>
-${data.name || ""}
-</h3>
-
-<p>
-💰 سعر الكرتون:
-${Number(data.price) || 0}
- ريال
-</p>
-
-<p>
-🏪 المتجر:
-${data.shopName || "مشتاق وليد"}
-</p>
-
-<p>
-🏙️ المدينة:
-${data.city || "-"}
-</p>
-
-${
-data.image
-?
-`
-<img
-src="${data.image}"
-alt="صورة المنتج"
->
-`
-:
-""
-}
-
-<p>
-${data.description || ""}
-</p>
-
-<button
-onclick="editProduct('${item.id}')"
->
-✏️ تعديل المنتج
-</button>
-
-<button
-class="delete"
-onclick="deleteProduct('${item.id}')"
->
-🗑️ حذف المنتج
-</button>
-
-</div>
-
-`;
-
-});
-
-}catch(error){
-
-console.error(error);
-
-productsBox.innerHTML =
-"<p>حدث خطأ أثناء تحميل المنتجات.</p>";
-
-}
-
-}
-
-
-/* =================================================
-   تعديل المنتج
-================================================= */
-
-window.editProduct =
-async function(id){
-
-try{
-
-const productRef =
-doc(db,"products",id);
-
-const snap =
-await getDoc(productRef);
-
-if(!snap.exists()){
-
-alert(
-"لم يتم العثور على المنتج"
-);
-
-return;
-
-}
-
-const data =
-snap.data();
-
-document.getElementById("name").value =
-data.name || "";
-
-document.getElementById("price").value =
-data.price || "";
-
-document.getElementById("city").value =
-data.city || "";
-
-document.getElementById("phone").value =
-data.phone || "";
-
-document.getElementById("image").value =
-data.image || "";
-
-document.getElementById("description").value =
-data.description || "";
-
-editingProductId =
-id;
-
-productFormTitle.innerText =
-"✏️ تعديل المنتج";
-
-saveBtn.innerText =
-"💾 حفظ تعديل المنتج";
-
-cancelEditBtn.style.display =
-"block";
-
-productFormTitle
-.parentElement
-.scrollIntoView({
-behavior:"smooth"
-});
-
-}catch(error){
-
-console.error(error);
-
-alert(
-"حدث خطأ أثناء تحميل المنتج للتعديل:\n" +
-error.message
-);
-
-}
-
-};
-
-
-/* =================================================
-   إلغاء التعديل
-================================================= */
-
-cancelEditBtn.onclick =
-function(){
-
-editingProductId =
-null;
-
-productFormTitle.innerText =
-"إضافة منتج جديد";
-
-saveBtn.innerText =
-"💾 حفظ المنتج";
-
-cancelEditBtn.style.display =
-"none";
-
-document.getElementById("name").value="";
-document.getElementById("price").value="";
-document.getElementById("city").value="";
-document.getElementById("phone").value="";
-document.getElementById("image").value="";
-document.getElementById("description").value="";
-
-};
-
-
-/* =================================================
-   إضافة / تعديل المنتج
-================================================= */
-
-saveBtn.onclick =
-async function(){
-
-const name =
-document.getElementById("name")
-.value.trim();
-
-const price =
-document.getElementById("price")
-.value.trim();
-
-const city =
-document.getElementById("city")
-.value.trim();
-
-const phone =
-document.getElementById("phone")
-.value.trim();
-
-const image =
-document.getElementById("image")
-.value.trim();
-
-const description =
-document.getElementById("description")
-.value.trim();
-
-
-if(!name){
-
-alert(
-"اكتب اسم المنتج"
-);
-
-return;
-
-}
-
-try{
-
-
-/* تعديل */
-
-if(editingProductId){
-
-await updateDoc(
-doc(
-db,
-"products",
-editingProductId
-),
-{
-
-name:name,
-
-price:Number(price) || 0,
-
-city:city,
-
-phone:phone,
-
-image:image,
-
-description:description
-
-}
-);
-
-alert(
-"تم تعديل المنتج بنجاح ✅"
-);
-
-editingProductId =
-null;
-
-productFormTitle.innerText =
-"إضافة منتج جديد";
-
-saveBtn.innerText =
-"💾 حفظ المنتج";
-
-cancelEditBtn.style.display =
-"none";
-
-clearProductForm();
-
-loadProducts();
-
-return;
-
-}
-
-
-/* إضافة */
-
-await addDoc(
-collection(db,"products"),
-{
-
-name:name,
-
-price:Number(price) || 0,
-
-city:city,
-
-phone:phone,
-
-image:image,
-
-description:description,
-
-shopName:"مشتاق وليد"
-
-}
-);
-
-alert(
-"تم حفظ المنتج ✅"
-);
-
-clearProductForm();
-
-loadProducts();
-
-}catch(error){
-
-console.error(error);
-
-alert(
-"حدث خطأ أثناء حفظ المنتج:\n" +
-error.message
-);
-
-}
-
-};
-
-
-/* =================================================
-   تنظيف نموذج المنتج
-================================================= */
-
-function clearProductForm(){
-
-document.getElementById("name").value="";
-document.getElementById("price").value="";
-document.getElementById("city").value="";
-document.getElementById("phone").value="";
-document.getElementById("image").value="";
-document.getElementById("description").value="";
-
-}
-
-
-/* =================================================
-   حذف المنتج
-================================================= */
-
-window.deleteProduct =
-async function(id){
-
-if(!confirm(
-"هل تريد حذف هذا المنتج؟"
-)){
-return;
-}
-
-try{
-
-await deleteDoc(
-doc(db,"products",id)
-);
-
-alert(
-"تم حذف المنتج ✅"
-);
-
-loadProducts();
-
-}catch(error){
-
-console.error(error);
-
-alert(
-"حدث خطأ أثناء حذف المنتج:\n" +
-error.message
-);
-
-}
-
-};
-
-
-/* =================================================
-   رسوم التوصيل
-================================================= */
-
-function getDeliveryPerCarton(price){
-
-price =
-Number(price) || 0;
-
-if(price < 1500){
-return 50;
-}
-
-if(price < 2000){
-return 70;
-}
-
-return 100;
-
-}
-
-
-/* =================================================
-   تحميل الطلبات الحالية
-================================================= */
-
-async function loadOrders(){
-
-ordersBox.innerHTML =
-"جاري تحميل الطلبات...";
-
-try{
-
-const snap =
-await getDocs(
-collection(db,"orders")
-);
-
-if(snap.empty){
-
-ordersBox.innerHTML =
-"<p>لا توجد طلبات حالية.</p>";
-
-return;
-
-}
-
-ordersBox.innerHTML = "";
-
-
-/* ترتيب الأحدث أولاً */
-
-const orders =
-snap.docs.sort((a,b)=>{
-
-const dateA =
-a.data().createdAt?.toDate
-? a.data().createdAt.toDate().getTime()
-: 0;
-
-const dateB =
-b.data().createdAt?.toDate
-? b.data().createdAt.toDate().getTime()
-: 0;
-
-return dateB - dateA;
-
-});
-
-
-orders.forEach(item=>{
-
-const data =
-item.data();
-
-
-/* العميل */
-
-const customerName =
-data.customerName ||
-data.name ||
-"بدون اسم";
-
-const customerPhone =
-data.customerPhone ||
-data.phone ||
-"-";
-
-const customerAddress =
-data.customerAddress ||
-data.address ||
-"-";
-
-const city =
-data.customerCity ||
-data.deliveryArea ||
-"إب";
-
-const orderType =
-data.orderType ||
-"جملة";
-
-const deliveryTime =
-data.deliveryTime ||
-"غير محدد";
-
-
-/* المنتجات */
-
-const products =
-Array.isArray(data.products)
-? data.products
-: [];
-
-let productsHTML = "";
-
-let calculatedDelivery = 0;
-
-let calculatedCartons = 0;
-
-let calculatedProductsTotal = 0;
-
-
-products.forEach(product=>{
-
-const name =
-product.name ||
-"منتج";
-
-const price =
-Number(product.price) || 0;
-
-const quantity =
-Number(product.quantity) > 0
-? Number(product.quantity)
-: 1;
-
-const productTotal =
-price * quantity;
-
-const deliveryPerCarton =
-getDeliveryPerCarton(price);
-
-const productDelivery =
-deliveryPerCarton * quantity;
-
-
-calculatedCartons +=
-quantity;
-
-calculatedProductsTotal +=
-productTotal;
-
-calculatedDelivery +=
-productDelivery;
-
-
-productsHTML += `
-
-<div class="productOrder">
-
-🛍️ <strong>${name}</strong>
-
-<br>
-
-📦 الكراتين:
-<strong>${quantity}</strong>
-
-<br>
-
-💰 سعر الكرتون:
-<strong>${price} ريال</strong>
-
-</div>
-
-`;
-
-});
-
-
-/* الإجماليات */
-
-const productsTotal =
-calculatedProductsTotal;
-
-const deliveryTotal =
-calculatedDelivery;
-
-const total =
-productsTotal +
-deliveryTotal;
-
-
-/* التاريخ */
-
-const createdAt =
-data.createdAt?.toDate
-? data.createdAt.toDate()
-: null;
-
-const createdAtText =
-createdAt
-? createdAt.toLocaleString(
-"ar-SA",
-{
-year:"numeric",
-month:"long",
-day:"numeric",
-hour:"numeric",
-minute:"2-digit"
-}
-)
-: "غير متوفر";
-
-
-/* الحالة */
-
-const status =
-data.status ||
-"جديد";
-
-
-let statusButton = "";
-
-
-if(status === "تم التوصيل"){
-
-statusButton = `
-
-<p style="
-background:#e8f5e9;
-color:#008000;
-padding:10px;
-border-radius:8px;
-font-weight:bold;
-text-align:center;
-margin-top:10px;
-">
-
-✅ تم التوصيل
-
-</p>
-
-<button
-class="archive"
-onclick="archiveOrder('${item.id}')"
->
-
-📚 نقل الطلب إلى الأرشيف
-
-</button>
-
-`;
-
-}else{
-
-statusButton = `
-
-<button
-class="status"
-onclick="changeStatus('${item.id}')"
->
-
-🚚 تغيير الحالة إلى تم التوصيل
-
-</button>
-
-`;
-
-}
-
-
-/* عرض الطلب */
-
-ordersBox.innerHTML += `
-
-<div class="orderBox">
-
-<div class="orderHeader">
-
-<h3>
-👤 ${customerName}
-</h3>
-
-<p>
-🕐 <strong>وقت إنشاء الطلب:</strong>
-${createdAtText}
-</p>
-
-</div>
-
-
-<div class="orderInfo">
-
-📱 الجوال:
-${customerPhone}
-
-<br>
-
-📍 المدينة:
-${city}
-
-<br>
-
-🏠 العنوان:
-${customerAddress}
-
-<br>
-
-📦 نوع الطلب:
-${orderType}
-
-<br>
-
-🕐 وقت التوصيل:
-${deliveryTime}
-
-</div>
-
-
-<hr>
-
-
-<strong>
-🛒 المنتجات:
-</strong>
-
-
-<div class="productsList">
-
-${
-productsHTML ||
-"<p>لا توجد منتجات</p>"
-}
-
-</div>
-
-
-<div class="totalBox">
-
-📦 <strong>
-إجمالي الكراتين:
-</strong>
-
-${calculatedCartons}
-
-<br>
-
-🛍️ <strong>
-مجموع المنتجات:
-</strong>
-
-${productsTotal} ريال
-
-<br>
-
-🚚 <strong>
-إجمالي التوصيل:
-</strong>
-
-${deliveryTotal} ريال
-
-<hr>
-
-<span class="finalTotal">
-
-💰 الإجمالي النهائي:
-${total} ريال
-
-</span>
-
-</div>
-
-
-<div class="deliveryBox">
-
-📋 <strong>
-حالة الطلب:
-</strong>
-
-${status}
-
-</div>
-
-
-${statusButton}
-
-
-<button
-class="delete"
-onclick="deleteOrder('${item.id}')"
->
-
-🗑️ حذف الطلب
-
-</button>
-
-
-</div>
-
-`;
-
-});
-
-}catch(error){
-
-console.error(error);
-
-ordersBox.innerHTML = `
-
-<p>
-حدث خطأ أثناء تحميل الطلبات.
-</p>
-
-<p>
-${error.message}
-</p>
-
-`;
-
-}
-
-}
-
-
-/* =================================================
-   نقل الطلب إلى الأرشيف
-================================================= */
-
-window.archiveOrder =
-async function(id){
-
-if(!confirm(
-"هل تريد نقل هذا الطلب إلى الأرشيف؟"
-)){
-return;
-}
-
-try{
-
-const orderRef =
-doc(db,"orders",id);
-
-const orderSnap =
-await getDoc(orderRef);
-
-if(!orderSnap.exists()){
-
-alert(
-"لم يتم العثور على الطلب"
-);
-
-return;
-
-}
-
-const orderData =
-orderSnap.data();
-
-
-/*
-نسخ الطلب إلى الأرشيف
-*/
-
-await setDoc(
-doc(db,"archivedOrders",id),
-{
-
-...orderData,
-
-archivedAt:
-serverTimestamp()
-
-}
-);
-
-
-/*
-بعد نجاح النسخ نحذف الطلب الحالي
-*/
-
-await deleteDoc(orderRef);
-
-
-alert(
-"تم نقل الطلب إلى الأرشيف بنجاح 📚✅"
-);
-
-loadOrders();
-
-}catch(error){
-
-console.error(error);
-
-alert(
-"حدث خطأ أثناء نقل الطلب إلى الأرشيف:\n" +
-error.message
-);
-
-}
-
-};
-
-
-/* =================================================
-   حذف طلب حالي
-================================================= */
-
-window.deleteOrder =
-async function(id){
-
-if(!confirm(
-"هل تريد حذف هذا الطلب؟"
-)){
-return;
-}
-
-try{
-
-await deleteDoc(
-doc(db,"orders",id)
-);
-
-alert(
-"تم حذف الطلب ✅"
-);
-
-loadOrders();
-
-}catch(error){
-
-console.error(error);
-
-alert(
-"حدث خطأ أثناء حذف الطلب:\n" +
-error.message
-);
-
-}
-
-};
-
-
-/* =================================================
-   تغيير حالة الطلب
-================================================= */
-
-window.changeStatus =
-async function(id){
-
-try{
-
-await updateDoc(
-doc(db,"orders",id),
-{
-status:"تم التوصيل"
-}
-);
-
-alert(
-"تم تغيير حالة الطلب إلى تم التوصيل ✅"
-);
-
-loadOrders();
-
-}catch(error){
-
-console.error(error);
-
-alert(
-"حدث خطأ أثناء تغيير حالة الطلب"
-);
-
-}
-
-};
-
-
-/* =================================================
-   تشغيل لوحة الإدارة
-================================================= */
+/* =========================
+   التأكد من دخول المدير
+========================= */
 
 onAuthStateChanged(
 auth,
@@ -1663,39 +244,73 @@ alert(
 "يجب تسجيل دخول المدير أولاً"
 );
 
+location.href="login.html";
+
 return;
 
 }
 
-if(
-user.email !==
-"waleedahmad@gmail.com" &&
-user.email !==
-"waleedahmadahmad@gmail.com" &&
-user.email !==
+
+const allowedEmails = [
+
+"waleedahmad@gmail.com",
+
+"waleedahmadahmad@gmail.com",
+
 "waleedahmad2031@gmail.com"
+
+];
+
+
+if(
+!allowedEmails.includes(
+user.email
+)
 ){
 
 alert(
 "ليس لديك صلاحية دخول لوحة الإدارة"
 );
 
+signOut(auth);
+
+location.href="login.html";
+
 return;
 
 }
 
-
-loadSellers();
-
-loadProducts();
-
-loadOrders();
-
 });
+
+
+/* =========================
+   تسجيل الخروج
+========================= */
+
+window.logoutAdmin =
+async function(){
+
+try{
+
+await signOut(auth);
+
+location.href="login.html";
+
+}catch(error){
+
+console.error(error);
+
+alert(
+"حدث خطأ أثناء تسجيل الخروج"
+);
+
+}
+
+};
 
 </script>
 
 </body>
 
-     </html>
+</html>
     
