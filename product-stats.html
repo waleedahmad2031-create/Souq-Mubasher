@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
@@ -123,6 +122,11 @@ color:#673ab7;
 font-weight:bold;
 }
 
+.assistant{
+color:#e65100;
+font-weight:bold;
+}
+
 .last{
 color:#777;
 font-size:12px;
@@ -191,8 +195,11 @@ onclick="location.href='admin.html'"
 📈 ملخص الإحصائيات
 </h2>
 
+
 <div class="summary">
 
+
+<!-- المشاهدات -->
 
 <div class="summary-box">
 
@@ -210,6 +217,8 @@ class="summary-number"
 </div>
 
 
+<!-- السلة -->
+
 <div class="summary-box">
 
 <div class="summary-title">
@@ -225,6 +234,8 @@ class="summary-number"
 
 </div>
 
+
+<!-- المنتجات -->
 
 <div class="summary-box">
 
@@ -242,6 +253,8 @@ class="summary-number"
 </div>
 
 
+<!-- الأحداث -->
+
 <div class="summary-box">
 
 <div class="summary-title">
@@ -250,6 +263,24 @@ class="summary-number"
 
 <div
 id="totalEvents"
+class="summary-number"
+>
+0
+</div>
+
+</div>
+
+
+<!-- طلبات المساعد -->
+
+<div class="summary-box">
+
+<div class="summary-title">
+🤖 طلبات المساعد
+</div>
+
+<div
+id="totalAssistantOrders"
 class="summary-number"
 >
 0
@@ -288,16 +319,26 @@ class="loading"
 
 <script type="module">
 
+
 import { db, auth } from "./firebase.js";
 
-import {
-  collection,
-  getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import {
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+collection,
+getDocs
+
+} from
+"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+import {
+
+onAuthStateChanged
+
+} from
+"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 
 
 /* =====================================
@@ -305,19 +346,40 @@ import {
 ===================================== */
 
 const productsStats =
-  document.getElementById("productsStats");
+document.getElementById(
+"productsStats"
+);
+
 
 const totalViews =
-  document.getElementById("totalViews");
+document.getElementById(
+"totalViews"
+);
+
 
 const totalCarts =
-  document.getElementById("totalCarts");
+document.getElementById(
+"totalCarts"
+);
+
 
 const totalProducts =
-  document.getElementById("totalProducts");
+document.getElementById(
+"totalProducts"
+);
+
 
 const totalEvents =
-  document.getElementById("totalEvents");
+document.getElementById(
+"totalEvents"
+);
+
+
+const totalAssistantOrders =
+document.getElementById(
+"totalAssistantOrders"
+);
+
 
 
 /* =====================================
@@ -326,143 +388,157 @@ const totalEvents =
 
 function showError(error){
 
-  console.error(
-    "خطأ الإحصائيات:",
-    error
-  );
+console.error(
+"خطأ الإحصائيات:",
+error
+);
 
-  productsStats.innerHTML = `
 
-    <div class="empty">
+productsStats.innerHTML = `
 
-      ❌ حدث خطأ أثناء تحميل الإحصائيات
+<div class="empty">
 
-      <br><br>
+❌ حدث خطأ أثناء تحميل الإحصائيات
 
-      <strong>
-        ${escapeHtml(
-          error.message ||
-          String(error)
-        )}
-      </strong>
+<br><br>
 
-      <br><br>
+<strong>
 
-      رمز الخطأ:
+${escapeHtml(
+error.message ||
+String(error)
+)}
 
-      <br>
+</strong>
 
-      ${escapeHtml(
-        error.code ||
-        "غير معروف"
-      )}
+<br><br>
 
-    </div>
+رمز الخطأ:
 
-  `;
+<br>
+
+${escapeHtml(
+error.code ||
+"غير معروف"
+)}
+
+</div>
+
+`;
 
 }
 
 
+
 /* =====================================
-   التحقق من المدير
+   المدير
 ===================================== */
 
 const allowedEmails = [
 
-  "waleedahmad@gmail.com",
+"waleedahmad@gmail.com",
 
-  "waleedahmadahmad@gmail.com",
+"waleedahmadahmad@gmail.com",
 
-  "waleedahmad2031@gmail.com"
+"waleedahmad2031@gmail.com"
 
 ];
 
 
+
 onAuthStateChanged(
-  auth,
-  async (user) => {
 
-    try {
+auth,
 
-      if(!user){
+async (user) => {
 
-        productsStats.innerHTML = `
-
-          <div class="empty">
-
-            🔐 يجب تسجيل دخول المدير أولًا.
-
-            <br><br>
-
-            <button
-              onclick="location.href='login.html'"
-              style="
-                background:#009688;
-                color:white;
-                border:none;
-                padding:12px 20px;
-                border-radius:8px;
-                font-size:16px;
-              "
-            >
-              تسجيل الدخول
-            </button>
-
-          </div>
-
-        `;
-
-        return;
-
-      }
+try{
 
 
-      if(
-        !allowedEmails.includes(
-          user.email
-        )
-      ){
+if(!user){
 
-        productsStats.innerHTML = `
+productsStats.innerHTML = `
 
-          <div class="empty">
+<div class="empty">
 
-            ❌ ليس لديك صلاحية دخول الإحصائيات.
+🔐 يجب تسجيل دخول المدير أولًا.
 
-          </div>
+<br><br>
 
-        `;
+<button
+onclick="location.href='login.html'"
+style="
+background:#009688;
+color:white;
+border:none;
+padding:12px 20px;
+border-radius:8px;
+font-size:16px;
+"
+>
 
-        return;
+تسجيل الدخول
 
-      }
+</button>
 
+</div>
 
-      /* المدير صحيح */
+`;
 
-      productsStats.innerHTML = `
+return;
 
-        <div class="loading">
-
-          ⏳ جاري قراءة بيانات الإحصائيات...
-
-        </div>
-
-      `;
-
-
-      await loadStatistics();
+}
 
 
-    } catch(error){
 
-      showError(error);
+if(
+!allowedEmails.includes(
+user.email
+)
+){
 
-    }
+productsStats.innerHTML = `
 
-  }
+<div class="empty">
+
+❌ ليس لديك صلاحية دخول الإحصائيات.
+
+</div>
+
+`;
+
+return;
+
+}
+
+
+
+/* المدير صحيح */
+
+productsStats.innerHTML = `
+
+<div class="loading">
+
+⏳ جاري قراءة بيانات الإحصائيات...
+
+</div>
+
+`;
+
+
+await loadStatistics();
+
+
+}catch(error){
+
+showError(error);
+
+}
+
+}
+
 );
+
 
 
 /* =====================================
@@ -471,463 +547,707 @@ onAuthStateChanged(
 
 async function loadStatistics(){
 
-  try {
+try{
 
-    console.log(
-      "1 - بدأ تحميل الإحصائيات"
-    );
 
+console.log(
+"1 - بدأ تحميل الإحصائيات"
+);
 
-    /* =================================
-       قراءة أحداث المنتجات
-    ================================= */
 
-    const eventsSnap =
-      await getDocs(
-        collection(
-          db,
-          "productEvents"
-        )
-      );
 
+/* =================================
+   أحداث المنتجات
+================================= */
 
-    console.log(
-      "2 - تم تحميل productEvents:",
-      eventsSnap.size
-    );
+const eventsSnap =
+await getDocs(
+collection(
+db,
+"productEvents"
+)
+);
 
 
-    /* =================================
-       قراءة المنتجات
-    ================================= */
+console.log(
+"2 - تم تحميل productEvents:",
+eventsSnap.size
+);
 
-    const productsSnap =
-      await getDocs(
-        collection(
-          db,
-          "products"
-        )
-      );
 
 
-    console.log(
-      "3 - تم تحميل products:",
-      productsSnap.size
-    );
+/* =================================
+   المنتجات
+================================= */
 
+const productsSnap =
+await getDocs(
+collection(
+db,
+"products"
+)
+);
 
-    /* =================================
-       خريطة المنتجات
-    ================================= */
 
-    const productsMap = {};
+console.log(
+"3 - تم تحميل products:",
+productsSnap.size
+);
 
 
-    productsSnap.forEach(
-      productDoc => {
 
-        productsMap[
-          productDoc.id
-        ] =
-          productDoc.data();
+/* =================================
+   طلبات المساعد
+================================= */
 
-      }
-    );
+const ordersSnap =
+await getDocs(
+collection(
+db,
+"orders"
+)
+);
 
 
-    /* =================================
-       الإحصائيات
-    ================================= */
+console.log(
+"4 - تم تحميل orders:",
+ordersSnap.size
+);
 
-    const stats = {};
 
-    let views = 0;
 
-    let carts = 0;
+/* =================================
+   خريطة المنتجات
+================================= */
 
+const productsMap = {};
 
-    eventsSnap.forEach(
-      eventDoc => {
 
-        const data =
-          eventDoc.data();
+productsSnap.forEach(
+productDoc => {
 
+productsMap[
+productDoc.id
+] =
+productDoc.data();
 
-        const productId =
-          String(
-            data.productId || ""
-          );
+});
 
 
-        if(!productId){
 
-          return;
+/* =================================
+   الإحصائيات
+================================= */
 
-        }
+const stats = {};
 
 
-        const originalProduct =
-          productsMap[
-            productId
-          ] || {};
+let views = 0;
 
+let carts = 0;
 
-        /* ===========================
-           إنشاء المنتج
-        =========================== */
+let assistantOrders = 0;
 
-        if(!stats[productId]){
 
-          stats[productId] = {
 
-            productId:
-              productId,
+/* =================================
+   أحداث المنتجات
+================================= */
 
-            productName:
-              originalProduct.name ||
-              data.productName ||
-              "بدون اسم",
+eventsSnap.forEach(
+eventDoc => {
 
-            category:
-              originalProduct.category ||
-              data.category ||
-              "غير محدد",
+const data =
+eventDoc.data();
 
-            price:
-              Number(
-                originalProduct.price ??
-                data.price ??
-                0
-              ),
 
-            shopName:
-              originalProduct.shopName ||
-              data.shopName ||
-              "سوق مباشر",
+const productId =
+String(
+data.productId || ""
+);
 
-            views:0,
 
-            carts:0,
+if(!productId){
 
-            lastActivity:null
-
-          };
-
-        }
-
-
-        /* ===========================
-           مشاهدة
-        =========================== */
-
-        if(
-          data.type === "view"
-        ){
-
-          stats[
-            productId
-          ].views++;
-
-          views++;
-
-        }
-
-
-        /* ===========================
-           سلة
-        =========================== */
-
-        if(
-          data.type === "cart"
-        ){
-
-          stats[
-            productId
-          ].carts++;
-
-          carts++;
-
-        }
-
-
-        /* ===========================
-           آخر نشاط
-        =========================== */
-
-        if(data.createdAt){
-
-          try{
-
-            const date =
-              data.createdAt.toDate();
-
-
-            if(
-              !stats[
-                productId
-              ].lastActivity ||
-
-              date >
-              stats[
-                productId
-              ].lastActivity
-            ){
-
-              stats[
-                productId
-              ].lastActivity =
-                date;
-
-            }
-
-          }catch(error){
-
-            console.log(
-              "تعذر قراءة التاريخ:",
-              error
-            );
-
-          }
-
-        }
-
-      }
-    );
-
-
-    /* =================================
-       الملخص
-    ================================= */
-
-    totalViews.innerText =
-      views.toLocaleString();
-
-
-    totalCarts.innerText =
-      carts.toLocaleString();
-
-
-    totalEvents.innerText =
-      eventsSnap.size.toLocaleString();
-
-
-    /*
-      عدد المنتجات الحقيقي
-      من مجموعة products
-    */
-
-    totalProducts.innerText =
-      productsSnap.size.toLocaleString();
-
-
-    /* =================================
-       لا توجد أحداث
-    ================================= */
-
-    if(
-      Object.keys(stats).length === 0
-    ){
-
-      productsStats.innerHTML = `
-
-        <div class="empty">
-
-          📊 لا توجد إحصائيات حتى الآن.
-
-          <br><br>
-
-          عدد أحداث Firebase:
-
-          ${eventsSnap.size}
-
-          <br><br>
-
-          افتح المتجر وشاهد منتجًا
-          أو أضفه للسلة.
-
-        </div>
-
-      `;
-
-      return;
-
-    }
-
-
-    /* =================================
-       ترتيب المنتجات
-    ================================= */
-
-    const products =
-      Object.values(stats)
-      .sort(
-        (a,b) =>
-          (
-            b.views +
-            b.carts
-          ) -
-          (
-            a.views +
-            a.carts
-          )
-      );
-
-
-    /* =================================
-       عرض المنتجات
-    ================================= */
-
-    productsStats.innerHTML = "";
-
-
-    products.forEach(
-      product => {
-
-        let lastActivity =
-          "لا يوجد";
-
-
-        if(
-          product.lastActivity
-        ){
-
-          lastActivity =
-            product.lastActivity
-              .toLocaleString(
-                "ar-SA"
-              );
-
-        }
-
-
-        productsStats.innerHTML += `
-
-          <div class="product">
-
-            <h3>
-
-              🛍️
-
-              ${escapeHtml(
-                product.productName
-              )}
-
-            </h3>
-
-
-            <div class="info">
-
-
-              🏪
-
-              <strong>
-                المتجر:
-              </strong>
-
-              ${escapeHtml(
-                product.shopName
-              )}
-
-              <br>
-
-
-              📂
-
-              <strong>
-                القسم:
-              </strong>
-
-              <span class="category">
-
-                ${escapeHtml(
-                  product.category
-                )}
-
-              </span>
-
-              <br>
-
-
-              💰
-
-              <strong>
-                السعر:
-              </strong>
-
-              ${Number(
-                product.price || 0
-              ).toLocaleString()}
-
-              ريال
-
-              <br>
-
-
-              <span class="view">
-
-                👁️ المشاهدات:
-
-                ${product.views.toLocaleString()}
-
-              </span>
-
-              <br>
-
-
-              <span class="cart">
-
-                🛒 إضافات السلة:
-
-                ${product.carts.toLocaleString()}
-
-              </span>
-
-              <br>
-
-
-              📊
-
-              <strong>
-                إجمالي التفاعل:
-              </strong>
-
-              ${(
-                product.views +
-                product.carts
-              ).toLocaleString()}
-
-
-              <div class="last">
-
-                🕐 آخر نشاط:
-
-                ${lastActivity}
-
-              </div>
-
-
-            </div>
-
-          </div>
-
-        `;
-
-      }
-    );
-
-
-    console.log(
-      "4 - تم عرض الإحصائيات بنجاح"
-    );
-
-
-  } catch(error){
-
-    showError(error);
-
-  }
+return;
 
 }
+
+
+const originalProduct =
+productsMap[
+productId
+] || {};
+
+
+
+/* ===============================
+   إنشاء المنتج
+================================ */
+
+if(!stats[productId]){
+
+stats[productId] = {
+
+productId:
+productId,
+
+productName:
+originalProduct.name ||
+data.productName ||
+"بدون اسم",
+
+category:
+originalProduct.category ||
+data.category ||
+"غير محدد",
+
+price:
+Number(
+originalProduct.price ??
+data.price ??
+0
+),
+
+shopName:
+originalProduct.shopName ||
+data.shopName ||
+"سوق مباشر",
+
+views:0,
+
+carts:0,
+
+assistantOrders:0,
+
+lastActivity:null
+
+};
+
+}
+
+
+
+/* ===============================
+   مشاهدة
+================================ */
+
+if(
+data.type === "view"
+){
+
+stats[
+productId
+].views++;
+
+views++;
+
+}
+
+
+
+/* ===============================
+   سلة
+================================ */
+
+if(
+data.type === "cart"
+){
+
+stats[
+productId
+].carts++;
+
+carts++;
+
+}
+
+
+
+/* ===============================
+   آخر نشاط
+================================ */
+
+if(data.createdAt){
+
+try{
+
+const date =
+data.createdAt.toDate();
+
+
+if(
+!stats[
+productId
+].lastActivity ||
+
+date >
+stats[
+productId
+].lastActivity
+){
+
+stats[
+productId
+].lastActivity =
+date;
+
+}
+
+}catch(error){
+
+console.log(
+"تعذر قراءة التاريخ:",
+error
+);
+
+}
+
+}
+
+}
+
+);
+
+
+
+/* =================================
+   طلبات المساعد
+================================= */
+
+ordersSnap.forEach(
+orderDoc => {
+
+const order =
+orderDoc.data();
+
+
+/*
+   نتحقق أن الطلب جاء
+   من المساعد الذكي
+*/
+
+if(
+order.source !==
+"طلب بواسطة المساعد الذكي"
+){
+
+return;
+
+}
+
+
+assistantOrders++;
+
+
+
+/*
+   قراءة منتجات الطلب
+*/
+
+const orderProducts =
+Array.isArray(
+order.products
+)
+?
+order.products
+:
+[];
+
+
+orderProducts.forEach(
+product => {
+
+
+const productId =
+String(
+product.id || ""
+);
+
+
+if(!productId){
+
+return;
+
+}
+
+
+/*
+   إذا المنتج غير موجود في
+   أحداث المشاهدة والسلة
+   ننشئ له إحصائية
+*/
+
+if(!stats[productId]){
+
+const originalProduct =
+productsMap[
+productId
+] || {};
+
+
+stats[productId] = {
+
+productId:
+productId,
+
+productName:
+originalProduct.name ||
+product.name ||
+"بدون اسم",
+
+category:
+originalProduct.category ||
+product.category ||
+"غير محدد",
+
+price:
+Number(
+originalProduct.price ??
+product.price ??
+0
+),
+
+shopName:
+originalProduct.shopName ||
+product.shopName ||
+"سوق مباشر",
+
+views:0,
+
+carts:0,
+
+assistantOrders:0,
+
+lastActivity:null
+
+};
+
+}
+
+
+
+/*
+   طلب مساعد واحد للمنتج
+*/
+
+stats[
+productId
+].assistantOrders++;
+
+
+
+/*
+   آخر نشاط من الطلب
+*/
+
+if(order.createdAt){
+
+try{
+
+const date =
+order.createdAt.toDate();
+
+
+if(
+!stats[
+productId
+].lastActivity ||
+
+date >
+stats[
+productId
+].lastActivity
+){
+
+stats[
+productId
+].lastActivity =
+date;
+
+}
+
+}catch(error){
+
+console.log(
+"تعذر قراءة تاريخ الطلب:",
+error
+);
+
+}
+
+}
+
+});
+
+}
+
+);
+
+
+
+/* =================================
+   الملخص
+================================= */
+
+totalViews.innerText =
+views.toLocaleString();
+
+
+totalCarts.innerText =
+carts.toLocaleString();
+
+
+totalEvents.innerText =
+eventsSnap.size.toLocaleString();
+
+
+totalProducts.innerText =
+productsSnap.size.toLocaleString();
+
+
+totalAssistantOrders.innerText =
+assistantOrders.toLocaleString();
+
+
+
+/* =================================
+   لا توجد بيانات
+================================= */
+
+if(
+Object.keys(stats).length === 0
+){
+
+productsStats.innerHTML = `
+
+<div class="empty">
+
+📊 لا توجد إحصائيات حتى الآن.
+
+<br><br>
+
+افتح المتجر وشاهد منتجًا
+أو أضفه للسلة أو نفذ طلبًا
+عن طريق المساعد.
+
+</div>
+
+`;
+
+return;
+
+}
+
+
+
+/* =================================
+   ترتيب المنتجات
+================================= */
+
+const products =
+Object.values(stats)
+.sort(
+
+(a,b) =>
+
+(
+b.views +
+b.carts +
+b.assistantOrders
+)
+-
+
+(
+a.views +
+a.carts +
+a.assistantOrders
+)
+
+);
+
+
+
+/* =================================
+   عرض المنتجات
+================================= */
+
+productsStats.innerHTML = "";
+
+
+products.forEach(
+product => {
+
+
+let lastActivity =
+"لا يوجد";
+
+
+if(
+product.lastActivity
+){
+
+lastActivity =
+product.lastActivity
+.toLocaleString(
+"ar-SA"
+);
+
+}
+
+
+
+productsStats.innerHTML += `
+
+<div class="product">
+
+
+<h3>
+
+🛍️
+
+${escapeHtml(
+product.productName
+)}
+
+</h3>
+
+
+
+<div class="info">
+
+
+🏪
+
+<strong>
+المتجر:
+</strong>
+
+${escapeHtml(
+product.shopName
+)}
+
+<br>
+
+
+
+📂
+
+<strong>
+القسم:
+</strong>
+
+<span class="category">
+
+${escapeHtml(
+product.category
+)}
+
+</span>
+
+<br>
+
+
+
+💰
+
+<strong>
+السعر:
+</strong>
+
+${Number(
+product.price || 0
+).toLocaleString()}
+
+ريال
+
+<br>
+
+
+
+<span class="view">
+
+👁️ المشاهدات:
+
+${product.views.toLocaleString()}
+
+</span>
+
+<br>
+
+
+
+<span class="cart">
+
+🛒 إضافات السلة:
+
+${product.carts.toLocaleString()}
+
+</span>
+
+<br>
+
+
+
+<span class="assistant">
+
+🤖 طلبات المساعد:
+
+${product.assistantOrders.toLocaleString()}
+
+</span>
+
+<br>
+
+
+
+📊
+
+<strong>
+إجمالي التفاعل:
+</strong>
+
+${(
+product.views +
+product.carts +
+product.assistantOrders
+).toLocaleString()}
+
+
+
+<div class="last">
+
+🕐 آخر نشاط:
+
+${lastActivity}
+
+</div>
+
+
+</div>
+
+</div>
+
+`;
+
+});
+
+
+
+console.log(
+"5 - تم عرض الإحصائيات بنجاح"
+);
+
+
+
+}catch(error){
+
+showError(error);
+
+}
+
+}
+
 
 
 /* =====================================
@@ -936,42 +1256,41 @@ async function loadStatistics(){
 
 function escapeHtml(text){
 
-  return String(
-    text ?? ""
-  )
+return String(
+text ?? ""
+)
 
-  .replace(
-    /&/g,
-    "&amp;"
-  )
+.replace(
+/&/g,
+"&amp;"
+)
 
-  .replace(
-    /</g,
-    "&lt;"
-  )
+.replace(
+/</g,
+"&lt;"
+)
 
-  .replace(
-    />/g,
-    "&gt;"
-  )
+.replace(
+/>/g,
+"&gt;"
+)
 
-  .replace(
-    /"/g,
-    "&quot;"
-  )
+.replace(
+/"/g,
+"&quot;"
+)
 
-  .replace(
-    /'/g,
-    "&#039;"
-  );
+.replace(
+/'/g,
+"&#039;"
+);
 
 }
 
-       </script>
 
-
+</script>
 
 
 </body>
 
-   </html>
+</html>
