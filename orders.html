@@ -51,6 +51,15 @@ margin:15px 0;
 line-height:1.9;
 }
 
+.deliveryNotice{
+background:#fff8e1;
+padding:15px;
+border-radius:10px;
+margin:15px 0;
+line-height:1.9;
+font-size:16px;
+}
+
 .totalBox{
 background:#f5f5f5;
 padding:15px;
@@ -71,8 +80,7 @@ padding-top:10px;
 }
 
 input,
-textarea,
-select{
+textarea{
 width:100%;
 padding:12px;
 margin-top:12px;
@@ -131,10 +139,16 @@ cursor:not-allowed;
 📦 <strong>نوع الطلب:</strong>
 طلب جملة
 
+</div>
+
+
+<div class="deliveryNotice">
+
+🕐 <strong>موعد التوصيل:</strong>
+
 <br>
 
-🌙 <strong>التوصيل المسائي:</strong>
-من بعد المغرب حتى الساعة 10 مساءً
+سيتم تجهيز طلبك أولًا، وبعد جاهزية الطلب سيتم التواصل معك لتأكيد وقت التوصيل المناسب.
 
 </div>
 
@@ -163,19 +177,6 @@ placeholder="📍 الحي - مثال: السبل، السحول، إب القد
 id="customerAddress"
 placeholder="العنوان بالتفصيل داخل مدينة إب"
 ></textarea>
-
-
-<select id="deliveryTime">
-
-<option value="">
-اختر وقت التوصيل
-</option>
-
-<option value="مساءً - من بعد المغرب حتى 10 مساءً">
-🌙 مساءً - من بعد المغرب حتى 10 مساءً
-</option>
-
-</select>
 
 
 <div class="totalBox">
@@ -385,12 +386,6 @@ document.getElementById(
 ).value.trim();
 
 
-const deliveryTime =
-document.getElementById(
-"deliveryTime"
-).value;
-
-
 /* =====================================
    التحقق من البيانات
 ===================================== */
@@ -399,12 +394,11 @@ if(
 !name ||
 !phone ||
 !district ||
-!address ||
-!deliveryTime
+!address
 ){
 
 alert(
-"يرجى تعبئة جميع البيانات واختيار وقت التوصيل"
+"يرجى تعبئة جميع بيانات العميل"
 );
 
 return;
@@ -498,7 +492,7 @@ orderType:
 "جملة",
 
 deliveryTime:
-String(deliveryTime),
+"بعد تجهيز الطلب والتواصل مع العميل لتأكيد وقت التوصيل",
 
 deliveryFee:
 Number(deliveryTotal),
@@ -579,7 +573,8 @@ const message =
 🏘️ الحي: ${district}
 🏠 العنوان: ${address}
 
-🕐 التوصيل: ${deliveryTime}
+🕐 موعد التوصيل:
+بعد تجهيز الطلب سيتم التواصل مع العميل لتأكيد وقت التوصيل.
 
 📦 المنتجات:
 ${productsMessage}
@@ -619,6 +614,7 @@ localStorage.removeItem("cart");
 
 alert(
 "✅ تم تسجيل طلبك بنجاح\n\n" +
+"سيتم التواصل معك بعد تجهيز الطلب لتأكيد وقت التوصيل.\n\n" +
 "رقم الطلب:\n" +
 orderRef.id
 );
@@ -667,4 +663,4 @@ alert(
 
 </body>
 
-   </html>
+</html>
