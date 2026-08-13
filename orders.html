@@ -4,7 +4,7 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>إتمام الطلب | سوق مباشر</title>
 
@@ -128,7 +128,6 @@ cursor:not-allowed;
 بيانات العميل
 </h2>
 
-
 <div class="infoBox">
 
 📍 <strong>منطقة التوصيل:</strong>
@@ -141,7 +140,6 @@ cursor:not-allowed;
 
 </div>
 
-
 <div class="deliveryNotice">
 
 🕐 <strong>موعد التوصيل:</strong>
@@ -152,12 +150,10 @@ cursor:not-allowed;
 
 </div>
 
-
 <input
 id="customerName"
 placeholder="اسم العميل"
 >
-
 
 <input
 id="customerPhone"
@@ -165,12 +161,10 @@ placeholder="رقم الجوال"
 type="tel"
 >
 
-
 <input
 id="deliveryDistrict"
 placeholder="📍 الحي - مثال: السبل، السحول، إب القديمة"
 >
-
 
 <div class="totalBox">
 
@@ -181,7 +175,6 @@ placeholder="📍 الحي - مثال: السبل، السحول، إب القد
 </strong>
 </p>
 
-
 <p>
 🛍️ مجموع المنتجات:
 <strong>
@@ -189,14 +182,12 @@ placeholder="📍 الحي - مثال: السبل، السحول، إب القد
 </strong>
 </p>
 
-
 <p>
 🚚 رسوم التوصيل:
 <strong>
 <span id="deliveryTotal">0</span> ريال
 </strong>
 </p>
-
 
 <p class="finalTotal">
 
@@ -208,7 +199,6 @@ placeholder="📍 الحي - مثال: السبل، السحول، إب القد
 </p>
 
 </div>
-
 
 <button id="sendOrder">
 إرسال طلب الجملة
@@ -241,7 +231,7 @@ localStorage.getItem("cart")
 
 
 /* =====================================
-   حساب رسوم التوصيل للكرتون
+   حساب رسوم التوصيل
 ===================================== */
 
 function getDeliveryFee(price){
@@ -282,14 +272,11 @@ Number(item.quantity) > 0
 ? Number(item.quantity)
 : 1;
 
-
 productsTotal +=
 price * quantity;
 
-
 deliveryTotal +=
 getDeliveryFee(price) * quantity;
-
 
 cartonsTotal +=
 quantity;
@@ -310,18 +297,15 @@ document.getElementById(
 ).textContent =
 cartonsTotal;
 
-
 document.getElementById(
 "productsTotal"
 ).textContent =
 productsTotal.toLocaleString();
 
-
 document.getElementById(
 "deliveryTotal"
 ).textContent =
 deliveryTotal.toLocaleString();
-
 
 document.getElementById(
 "totalPrice"
@@ -346,29 +330,22 @@ document.getElementById(
 sendOrder.onclick =
 async () => {
 
-
-/* منع الضغط المتكرر */
-
 if(sendOrder.disabled){
 return;
 }
 
 
-/* =====================================
-   بيانات العميل
-===================================== */
+/* بيانات العميل */
 
 const name =
 document.getElementById(
 "customerName"
 ).value.trim();
 
-
 const phone =
 document.getElementById(
 "customerPhone"
 ).value.trim();
-
 
 const district =
 document.getElementById(
@@ -376,9 +353,7 @@ document.getElementById(
 ).value.trim();
 
 
-/* =====================================
-   التحقق من البيانات
-===================================== */
+/* التحقق */
 
 if(
 !name ||
@@ -406,8 +381,6 @@ return;
 }
 
 
-/* تعطيل الزر مؤقتًا */
-
 sendOrder.disabled = true;
 
 sendOrder.textContent =
@@ -418,7 +391,7 @@ try{
 
 
 /* =====================================
-   تجهيز المنتجات للحفظ
+   تجهيز المنتجات
 ===================================== */
 
 const products =
@@ -454,7 +427,7 @@ Number(item.quantity) > 0
 
 
 /* =====================================
-   حفظ الطلب في Firebase
+   بيانات الطلب
 ===================================== */
 
 const orderData = {
@@ -467,6 +440,20 @@ String(phone),
 
 customerCity:
 "إب",
+
+/*
+مهم جدًا:
+هذا هو الحقل الذي تطلبه
+Firestore Rules
+*/
+
+customerAddress:
+String(district),
+
+/*
+نحتفظ أيضًا بالحقل القديم
+حتى لا نخرب أي صفحة تستخدمه
+*/
 
 deliveryDistrict:
 String(district),
@@ -505,7 +492,7 @@ serverTimestamp()
 
 
 /* =====================================
-   إرسال إلى orders
+   حفظ الطلب
 ===================================== */
 
 const orderRef =
@@ -516,13 +503,13 @@ orderData
 
 
 console.log(
-"تم حفظ الطلب:",
+"✅ تم حفظ الطلب:",
 orderRef.id
 );
 
 
 /* =====================================
-   إنشاء رسالة المنتجات
+   رسالة المنتجات
 ===================================== */
 
 let productsMessage = "";
@@ -536,7 +523,6 @@ Number(item.quantity) > 0
 ? Number(item.quantity)
 : 1;
 
-
 productsMessage +=
 `${index + 1}. ${
 item.name || "منتج"
@@ -546,7 +532,7 @@ item.name || "منتج"
 
 
 /* =====================================
-   رسالة واتساب
+   واتساب
 ===================================== */
 
 const message =
@@ -574,10 +560,6 @@ ${productsMessage}
 ${orderRef.id}`;
 
 
-/* =====================================
-   فتح واتساب
-===================================== */
-
 window.open(
 `https://wa.me/966550496391?text=${
 encodeURIComponent(message)
@@ -586,16 +568,12 @@ encodeURIComponent(message)
 );
 
 
-/* =====================================
-   حذف السلة
-===================================== */
+/* حذف السلة */
 
 localStorage.removeItem("cart");
 
 
-/* =====================================
-   رسالة النجاح
-===================================== */
+/* نجاح */
 
 alert(
 "✅ تم تسجيل طلبك بنجاح\n\n" +
@@ -605,9 +583,7 @@ orderRef.id
 );
 
 
-/* =====================================
-   العودة للرئيسية
-===================================== */
+/* العودة */
 
 location.href =
 "index.html";
@@ -619,11 +595,6 @@ console.error(
 "❌ خطأ حفظ الطلب:",
 error
 );
-
-
-/* =====================================
-   إظهار الخطأ الحقيقي
-===================================== */
 
 sendOrder.disabled = false;
 
