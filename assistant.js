@@ -912,13 +912,23 @@ async function saveOrder() {
       Number(finalTotal),
 
     status:
-      "جديد",
+  "جديد",
 
-    source:
-      "طلب بواسطة المساعد الذكي",
+source:
+  "طلب بواسطة المساعد الذكي",
 
-    createdAt:
-      serverTimestamp()
+assistantOrder:
+  true,
+
+createdAt:
+  serverTimestamp()
+      
+
+
+      
+
+    
+      
 
   };
 
