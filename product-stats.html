@@ -142,15 +142,14 @@ color:#d32f2f;
 font-weight:bold;
 }
 
+.assistant{
+color:#1565c0;
+font-weight:bold;
+}
+
 .empty{
 text-align:center;
 padding:25px;
-color:#777;
-}
-
-.loading{
-text-align:center;
-padding:30px;
 color:#777;
 }
 
@@ -178,8 +177,6 @@ grid-template-columns:1fr;
 <div class="container">
 
 
-<!-- العودة -->
-
 <div class="card">
 
 <button
@@ -193,10 +190,6 @@ onclick="location.href='orders.html'"
 
 </div>
 
-
-<!-- =========================
-     اختيار الشهر
-========================= -->
 
 <div class="card">
 
@@ -217,10 +210,6 @@ class="monthSelect"
 
 </div>
 
-
-<!-- =========================
-     الملخص
-========================= -->
 
 <div class="card">
 
@@ -319,7 +308,7 @@ class="summary-number"
 
 <div
 id="assistantOrders"
-class="summary-number"
+class="summary-number assistant"
 >
 0
 </div>
@@ -331,10 +320,6 @@ class="summary-number"
 
 </div>
 
-
-<!-- =========================
-     أكثر المنتجات طلبًا
-========================= -->
 
 <div class="card">
 
@@ -351,10 +336,6 @@ class="summary-number"
 </div>
 
 
-<!-- =========================
-     المنتجات سريعة الحركة
-========================= -->
-
 <div class="card">
 
 <h2>
@@ -369,10 +350,6 @@ class="summary-number"
 
 </div>
 
-
-<!-- =========================
-     الأحياء
-========================= -->
 
 <div class="card">
 
@@ -389,10 +366,6 @@ class="summary-number"
 </div>
 
 
-<!-- =========================
-     أوقات زيادة الطلب
-========================= -->
-
 <div class="card">
 
 <h2>
@@ -408,10 +381,6 @@ class="summary-number"
 </div>
 
 
-<!-- =========================
-     المنتجات التي تشتري معًا
-========================= -->
-
 <div class="card">
 
 <h2>
@@ -426,10 +395,6 @@ class="summary-number"
 
 </div>
 
-
-<!-- =========================
-     إحصائيات المنتجات
-========================= -->
 
 <div class="card">
 
@@ -472,9 +437,8 @@ onAuthStateChanged
 "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 
-
 /* =====================================
-   المدير
+   حسابات المدير
 ===================================== */
 
 const allowedEmails = [
@@ -486,7 +450,6 @@ const allowedEmails = [
 "waleedahmad2031@gmail.com"
 
 ];
-
 
 
 /* =====================================
@@ -533,7 +496,6 @@ const productsStats =
 document.getElementById("productsStats");
 
 
-
 /* =====================================
    البيانات
 ===================================== */
@@ -545,7 +507,6 @@ let allOrders = [];
 let productsMap = {};
 
 let availableMonths = [];
-
 
 
 /* =====================================
@@ -599,9 +560,8 @@ await loadData();
 );
 
 
-
 /* =====================================
-   قراءة البيانات
+   تحميل البيانات
 ===================================== */
 
 async function loadData(){
@@ -642,7 +602,7 @@ db,
 );
 
 
-/* حفظ الأحداث */
+/* الأحداث */
 
 allEvents = [];
 
@@ -656,7 +616,7 @@ doc.data()
 });
 
 
-/* حفظ الطلبات */
+/* الطلبات */
 
 allOrders = [];
 
@@ -685,28 +645,18 @@ doc.data();
 });
 
 
-/* عدد المنتجات */
-
 totalProducts.innerText =
 productsSnap.size.toLocaleString();
 
 
-/* إنشاء الأشهر */
-
 createMonths();
 
-
-/* عرض الشهر الحالي */
 
 const now =
 new Date();
 
 const currentMonth =
-now.getFullYear() +
-"-" +
-String(
-now.getMonth() + 1
-).padStart(2,"0");
+getMonthKey(now);
 
 
 if(
@@ -719,11 +669,6 @@ monthSelect.value =
 currentMonth;
 
 }else{
-
-/*
-إذا لم توجد بيانات للشهر الحالي
-نضيفه حتى يبدأ التسجيل فيه
-*/
 
 availableMonths.unshift(
 currentMonth
@@ -757,14 +702,10 @@ currentMonth;
 }
 
 
-/* تشغيل الإحصائيات */
-
 loadStatistics(
 currentMonth
 );
 
-
-/* تغيير الشهر */
 
 monthSelect.onchange =
 function(){
@@ -778,9 +719,7 @@ this.value
 
 }catch(error){
 
-console.error(
-error
-);
+console.error(error);
 
 productsStats.innerHTML = `
 
@@ -804,17 +743,14 @@ String(error)
 }
 
 
-
 /* =====================================
-   إنشاء قائمة الأشهر
+   إنشاء الأشهر
 ===================================== */
 
 function createMonths(){
 
 const months = new Set();
 
-
-/* من الأحداث */
 
 allEvents.forEach(
 event => {
@@ -835,8 +771,6 @@ getMonthKey(date)
 });
 
 
-/* من الطلبات */
-
 allOrders.forEach(
 order => {
 
@@ -856,21 +790,16 @@ getMonthKey(date)
 });
 
 
-/* ترتيب الأحدث أولًا */
-
 availableMonths =
 Array.from(months)
 .sort()
 .reverse();
 
 
-/* إذا لا توجد بيانات */
-
-const now =
-new Date();
-
 const currentMonth =
-getMonthKey(now);
+getMonthKey(
+new Date()
+);
 
 
 if(
@@ -885,8 +814,6 @@ currentMonth
 
 }
 
-
-/* عرض القائمة */
 
 monthSelect.innerHTML = "";
 
@@ -912,7 +839,6 @@ option
 });
 
 }
-
 
 
 /* =====================================
@@ -964,7 +890,6 @@ return null;
 }
 
 
-
 /* =====================================
    مفتاح الشهر
 ===================================== */
@@ -983,7 +908,6 @@ date.getMonth() + 1
 );
 
 }
-
 
 
 /* =====================================
@@ -1045,9 +969,8 @@ year;
 }
 
 
-
 /* =====================================
-   تحميل إحصائيات شهر معين
+   الإحصائيات
 ===================================== */
 
 function loadStatistics(
@@ -1057,9 +980,7 @@ selectedMonth
 try{
 
 
-/* ================================
-   فلترة الأحداث
-================================ */
+/* الأحداث */
 
 const events =
 allEvents.filter(
@@ -1085,9 +1006,7 @@ selectedMonth
 );
 
 
-/* ================================
-   فلترة الطلبات
-================================ */
+/* الطلبات */
 
 const orders =
 allOrders.filter(
@@ -1113,19 +1032,35 @@ selectedMonth
 );
 
 
-
-/* ================================
-   إحصائيات المنتجات
-================================ */
-
 const stats = {};
-
 
 let views = 0;
 
 let carts = 0;
 
+let totalOrderValue = 0;
 
+let assistantCount = 0;
+
+
+/* الأحياء */
+
+const areas = {};
+
+
+/* الأوقات */
+
+const times = {};
+
+
+/* المنتجات معًا */
+
+const pairs = {};
+
+
+/* =====================================
+   الأحداث
+===================================== */
 
 events.forEach(
 event => {
@@ -1154,17 +1089,20 @@ id:id,
 
 name:
 original.name ||
+original.اسم ||
 event.productName ||
 "منتج",
 
 category:
 original.category ||
+original.القسم ||
 event.category ||
 "غير محدد",
 
 price:
 Number(
 original.price ??
+original.سعر ??
 event.price ??
 0
 ),
@@ -1182,8 +1120,6 @@ quantity:0
 }
 
 
-/* مشاهدة */
-
 if(
 event.type ===
 "view"
@@ -1195,8 +1131,6 @@ views++;
 
 }
 
-
-/* سلة */
 
 if(
 event.type ===
@@ -1212,34 +1146,9 @@ carts++;
 });
 
 
-
-/* ================================
+/* =====================================
    الطلبات
-================================ */
-
-let orderCount =
-orders.length;
-
-let totalOrderValue = 0;
-
-let assistantCount = 0;
-
-
-/* الأحياء */
-
-const areas = {};
-
-
-/* الأوقات */
-
-const times = {};
-
-
-/* المنتجات معًا */
-
-const pairs = {};
-
-
+===================================== */
 
 orders.forEach(
 order => {
@@ -1254,9 +1163,17 @@ totalOrderValue +=
 orderTotal;
 
 
-/* المساعد */
+/*
+   حساب طلبات المساعد
+
+   ندعم الشكلين:
+   assistantOrder: true
+   أو
+   source: "طلب بواسطة المساعد الذكي"
+*/
 
 if(
+order.assistantOrder === true ||
 order.source ===
 "طلب بواسطة المساعد الذكي"
 ){
@@ -1266,9 +1183,9 @@ assistantCount++;
 }
 
 
-/* ==============================
-   الحي
-============================== */
+/* =====================================
+   الأحياء
+===================================== */
 
 const area =
 String(
@@ -1288,10 +1205,9 @@ areas[area] || 0
 }
 
 
-
-/* ==============================
-   وقت الطلب
-============================== */
+/* =====================================
+   الوقت
+===================================== */
 
 const orderDate =
 getDateFromTimestamp(
@@ -1348,10 +1264,9 @@ times[label] || 0
 }
 
 
-
-/* ==============================
+/* =====================================
    منتجات الطلب
-============================== */
+===================================== */
 
 const orderProducts =
 Array.isArray(
@@ -1432,10 +1347,9 @@ ids.push(id);
 });
 
 
-
-/* ==============================
-   المنتجات المشتركة
-============================== */
+/* =====================================
+   المنتجات التي معًا
+===================================== */
 
 const uniqueIds =
 [
@@ -1455,17 +1369,15 @@ j < uniqueIds.length;
 j++
 ){
 
-const a =
-uniqueIds[i];
-
-const b =
-uniqueIds[j];
+const pair =
+[
+uniqueIds[i],
+uniqueIds[j]
+].sort();
 
 
 const key =
-[a,b]
-.sort()
-.join("|");
+pair.join("|");
 
 
 pairs[key] =
@@ -1480,10 +1392,9 @@ pairs[key] || 0
 });
 
 
-
-/* ================================
-   عرض الملخص
-================================ */
+/* =====================================
+   الملخص
+===================================== */
 
 totalViews.innerText =
 views.toLocaleString();
@@ -1492,17 +1403,17 @@ totalCarts.innerText =
 carts.toLocaleString();
 
 totalOrders.innerText =
-orderCount.toLocaleString();
+orders.length.toLocaleString();
 
 assistantOrders.innerText =
 assistantCount.toLocaleString();
 
 
 const average =
-orderCount > 0
+orders.length > 0
 ?
 totalOrderValue /
-orderCount
+orders.length
 :
 0;
 
@@ -1515,10 +1426,9 @@ average
 " ريال";
 
 
-
-/* ================================
+/* =====================================
    أكثر المنتجات طلبًا
-================================ */
+===================================== */
 
 const top =
 Object.values(stats)
@@ -1526,6 +1436,10 @@ Object.values(stats)
 (a,b) =>
 b.quantity -
 a.quantity
+)
+.filter(
+product =>
+product.quantity > 0
 )
 .slice(
 0,
@@ -1545,8 +1459,7 @@ topProducts.innerHTML = `
 
 }else{
 
-topProducts.innerHTML =
-"";
+topProducts.innerHTML = "";
 
 
 top.forEach(
@@ -1557,17 +1470,11 @@ topProducts.innerHTML += `
 <div class="stat">
 
 <span class="rank">
-
 ${index + 1}️⃣
-
 </span>
 
 <strong>
-
-${escapeHtml(
-product.name
-)}
-
+${escapeHtml(product.name)}
 </strong>
 
 <br>
@@ -1575,9 +1482,7 @@ product.name
 📦 الكمية المطلوبة:
 
 <strong>
-
 ${product.quantity.toLocaleString()}
-
 </strong>
 
 كرتون
@@ -1587,9 +1492,7 @@ ${product.quantity.toLocaleString()}
 🧾 عدد الطلبات:
 
 <strong>
-
 ${product.orders.toLocaleString()}
-
 </strong>
 
 </div>
@@ -1601,10 +1504,9 @@ ${product.orders.toLocaleString()}
 }
 
 
-
-/* ================================
-   سريعة الحركة
-================================ */
+/* =====================================
+   المنتجات سريعة الحركة
+===================================== */
 
 const fast =
 Object.values(stats)
@@ -1644,8 +1546,7 @@ fastProducts.innerHTML = `
 
 }else{
 
-fastProducts.innerHTML =
-"";
+fastProducts.innerHTML = "";
 
 
 fast.forEach(
@@ -1656,17 +1557,11 @@ fastProducts.innerHTML += `
 <div class="product">
 
 <span class="fast">
-
 🔥 ${index + 1}.
-
 </span>
 
 <strong>
-
-${escapeHtml(
-product.name
-)}
-
+${escapeHtml(product.name)}
 </strong>
 
 <br><br>
@@ -1674,9 +1569,7 @@ product.name
 👁️ المشاهدات:
 
 <span class="view">
-
 ${product.views.toLocaleString()}
-
 </span>
 
 <br>
@@ -1684,9 +1577,7 @@ ${product.views.toLocaleString()}
 🛒 السلة:
 
 <span class="cart">
-
 ${product.carts.toLocaleString()}
-
 </span>
 
 <br>
@@ -1694,9 +1585,7 @@ ${product.carts.toLocaleString()}
 📦 الطلب:
 
 <span class="orders">
-
 ${product.quantity.toLocaleString()}
-
 </span>
 
 كرتون
@@ -1710,19 +1599,15 @@ ${product.quantity.toLocaleString()}
 }
 
 
-
-/* ================================
+/* =====================================
    الأحياء
-================================ */
+===================================== */
 
 const areaList =
-Object.entries(
-areas
-)
+Object.entries(areas)
 .sort(
 (a,b) =>
-b[1] -
-a[1]
+b[1] - a[1]
 )
 .slice(
 0,
@@ -1742,8 +1627,7 @@ topAreas.innerHTML = `
 
 }else{
 
-topAreas.innerHTML =
-"";
+topAreas.innerHTML = "";
 
 
 areaList.forEach(
@@ -1754,19 +1638,13 @@ topAreas.innerHTML += `
 <div class="stat">
 
 <span class="rank">
-
 ${index + 1}️⃣
-
 </span>
 
 🏠
 
 <strong>
-
-${escapeHtml(
-item[0]
-)}
-
+${escapeHtml(item[0])}
 </strong>
 
 <br>
@@ -1774,9 +1652,7 @@ item[0]
 📦 عدد الطلبات:
 
 <strong>
-
 ${item[1].toLocaleString()}
-
 </strong>
 
 </div>
@@ -1788,19 +1664,15 @@ ${item[1].toLocaleString()}
 }
 
 
-
-/* ================================
-   الأوقات
-================================ */
+/* =====================================
+   أوقات الطلب
+===================================== */
 
 const timeList =
-Object.entries(
-times
-)
+Object.entries(times)
 .sort(
 (a,b) =>
-b[1] -
-a[1]
+b[1] - a[1]
 );
 
 
@@ -1816,8 +1688,7 @@ topTimes.innerHTML = `
 
 }else{
 
-topTimes.innerHTML =
-"";
+topTimes.innerHTML = "";
 
 
 timeList.forEach(
@@ -1828,17 +1699,11 @@ topTimes.innerHTML += `
 <div class="stat">
 
 <span class="rank">
-
 ${index + 1}️⃣
-
 </span>
 
 <strong>
-
-${escapeHtml(
-item[0]
-)}
-
+${escapeHtml(item[0])}
 </strong>
 
 <br>
@@ -1846,9 +1711,7 @@ item[0]
 🧾 عدد الطلبات:
 
 <strong>
-
 ${item[1].toLocaleString()}
-
 </strong>
 
 </div>
@@ -1860,19 +1723,15 @@ ${item[1].toLocaleString()}
 }
 
 
-
-/* ================================
-   المنتجات المشتركة
-================================ */
+/* =====================================
+   المنتجات التي تشتري معًا
+===================================== */
 
 const pairList =
-Object.entries(
-pairs
-)
+Object.entries(pairs)
 .sort(
 (a,b) =>
-b[1] -
-a[1]
+b[1] - a[1]
 )
 .slice(
 0,
@@ -1893,8 +1752,7 @@ togetherProducts.innerHTML = `
 
 }else{
 
-togetherProducts.innerHTML =
-"";
+togetherProducts.innerHTML = "";
 
 
 pairList.forEach(
@@ -1916,31 +1774,25 @@ togetherProducts.innerHTML += `
 <div class="stat">
 
 <span class="rank">
-
 ${index + 1}️⃣
-
 </span>
 
 🛍️
 
 <strong>
-
 ${escapeHtml(
 productA?.name ||
 "منتج"
 )}
-
 </strong>
 
 +
 
 <strong>
-
 ${escapeHtml(
 productB?.name ||
 "منتج"
 )}
-
 </strong>
 
 <br>
@@ -1948,9 +1800,7 @@ productB?.name ||
 🧾 تكررت معًا:
 
 <strong>
-
 ${item[1].toLocaleString()}
-
 </strong>
 
 طلبات
@@ -1964,15 +1814,12 @@ ${item[1].toLocaleString()}
 }
 
 
-
-/* ================================
+/* =====================================
    إحصائيات كل منتج
-================================ */
+===================================== */
 
 const productList =
-Object.values(
-stats
-)
+Object.values(stats)
 .sort(
 (a,b) =>
 
@@ -2005,8 +1852,7 @@ productsStats.innerHTML = `
 
 }else{
 
-productsStats.innerHTML =
-"";
+productsStats.innerHTML = "";
 
 
 productList.forEach(
@@ -2029,11 +1875,9 @@ product.name
 📂 القسم:
 
 <strong>
-
 ${escapeHtml(
 product.category
 )}
-
 </strong>
 
 <br>
@@ -2055,9 +1899,7 @@ product.price || 0
 👁️ المشاهدات:
 
 <span class="view">
-
 ${product.views.toLocaleString()}
-
 </span>
 
 <br>
@@ -2065,9 +1907,7 @@ ${product.views.toLocaleString()}
 🛒 إضافات السلة:
 
 <span class="cart">
-
 ${product.carts.toLocaleString()}
-
 </span>
 
 <br>
@@ -2075,9 +1915,7 @@ ${product.carts.toLocaleString()}
 📦 الكمية المطلوبة:
 
 <span class="orders">
-
 ${product.quantity.toLocaleString()}
-
 </span>
 
 كرتون
@@ -2087,9 +1925,7 @@ ${product.quantity.toLocaleString()}
 🧾 عدد الطلبات:
 
 <strong>
-
 ${product.orders.toLocaleString()}
-
 </strong>
 
 </div>
@@ -2099,6 +1935,7 @@ ${product.orders.toLocaleString()}
 });
 
 }
+
 
 }catch(error){
 
@@ -2127,7 +1964,6 @@ String(error)
 }
 
 }
-
 
 
 /* =====================================
