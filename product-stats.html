@@ -60,6 +60,15 @@ h2{
 margin-bottom:15px;
 }
 
+.monthSelect{
+width:100%;
+padding:14px;
+border:1px solid #ccc;
+border-radius:9px;
+font-size:17px;
+background:white;
+}
+
 .summary{
 display:grid;
 grid-template-columns:repeat(2,1fr);
@@ -157,9 +166,7 @@ grid-template-columns:1fr;
 
 </head>
 
-
 <body>
-
 
 <header>
 
@@ -170,6 +177,8 @@ grid-template-columns:1fr;
 
 <div class="container">
 
+
+<!-- العودة -->
 
 <div class="card">
 
@@ -183,6 +192,12 @@ onclick="location.href='orders.html'"
 </button>
 
 </div>
+
+
+<!-- =========================
+     اختيار الشهر
+========================= -->
+
 <div class="card">
 
 <h2>
@@ -191,21 +206,17 @@ onclick="location.href='orders.html'"
 
 <select
 id="monthSelect"
-style="
-width:100%;
-padding:13px;
-border:1px solid #ccc;
-border-radius:9px;
-font-size:17px;
-background:white;
-"
+class="monthSelect"
 >
+
 <option value="">
 جاري تحميل الأشهر...
 </option>
+
 </select>
 
 </div>
+
 
 <!-- =========================
      الملخص
@@ -475,16 +486,15 @@ const allowedEmails = [
 "waleedahmad2031@gmail.com"
 
 ];
-const monthSelect =
-document.getElementById("monthSelect");
 
-let allEvents = [];
-let allOrders = [];
 
 
 /* =====================================
    العناصر
 ===================================== */
+
+const monthSelect =
+document.getElementById("monthSelect");
 
 const totalViews =
 document.getElementById("totalViews");
@@ -521,6 +531,20 @@ document.getElementById("togetherProducts");
 
 const productsStats =
 document.getElementById("productsStats");
+
+
+
+/* =====================================
+   البيانات
+===================================== */
+
+let allEvents = [];
+
+let allOrders = [];
+
+let productsMap = {};
+
+let availableMonths = [];
 
 
 
@@ -568,7 +592,7 @@ return;
 }
 
 
-await loadStatistics();
+await loadData();
 
 }
 
@@ -577,17 +601,15 @@ await loadStatistics();
 
 
 /* =====================================
-   تحميل الإحصائيات
+   قراءة البيانات
 ===================================== */
 
-async function loadStatistics(){
+async function loadData(){
 
 try{
 
 
-/* =====================================
-   قراءة الأحداث
-===================================== */
+/* الأحداث */
 
 const eventsSnap =
 await getDocs(
@@ -598,9 +620,7 @@ db,
 );
 
 
-/* =====================================
-   قراءة المنتجات
-===================================== */
+/* المنتجات */
 
 const productsSnap =
 await getDocs(
@@ -611,9 +631,7 @@ db,
 );
 
 
-/* =====================================
-   قراءة الطلبات
-===================================== */
+/* الطلبات */
 
 const ordersSnap =
 await getDocs(
@@ -624,13 +642,37 @@ db,
 );
 
 
+/* حفظ الأحداث */
 
-/* =====================================
-   خريطة المنتجات
-===================================== */
+allEvents = [];
 
-const productsMap = {};
+eventsSnap.forEach(
+doc => {
 
+allEvents.push(
+doc.data()
+);
+
+});
+
+
+/* حفظ الطلبات */
+
+allOrders = [];
+
+ordersSnap.forEach(
+doc => {
+
+allOrders.push(
+doc.data()
+);
+
+});
+
+
+/* المنتجات */
+
+productsMap = {};
 
 productsSnap.forEach(
 doc => {
@@ -643,10 +685,438 @@ doc.data();
 });
 
 
+/* عدد المنتجات */
+
+totalProducts.innerText =
+productsSnap.size.toLocaleString();
+
+
+/* إنشاء الأشهر */
+
+createMonths();
+
+
+/* عرض الشهر الحالي */
+
+const now =
+new Date();
+
+const currentMonth =
+now.getFullYear() +
+"-" +
+String(
+now.getMonth() + 1
+).padStart(2,"0");
+
+
+if(
+availableMonths.includes(
+currentMonth
+)
+){
+
+monthSelect.value =
+currentMonth;
+
+}else{
+
+/*
+إذا لم توجد بيانات للشهر الحالي
+نضيفه حتى يبدأ التسجيل فيه
+*/
+
+availableMonths.unshift(
+currentMonth
+);
+
+monthSelect.innerHTML = "";
+
+availableMonths.forEach(
+month => {
+
+const option =
+document.createElement(
+"option"
+);
+
+option.value =
+month;
+
+option.textContent =
+formatMonth(month);
+
+monthSelect.appendChild(
+option
+);
+
+});
+
+monthSelect.value =
+currentMonth;
+
+}
+
+
+/* تشغيل الإحصائيات */
+
+loadStatistics(
+currentMonth
+);
+
+
+/* تغيير الشهر */
+
+monthSelect.onchange =
+function(){
+
+loadStatistics(
+this.value
+);
+
+};
+
+
+}catch(error){
+
+console.error(
+error
+);
+
+productsStats.innerHTML = `
+
+<div class="empty">
+
+❌ حدث خطأ أثناء تحميل البيانات.
+
+<br><br>
+
+${escapeHtml(
+error.message ||
+String(error)
+)}
+
+</div>
+
+`;
+
+}
+
+}
+
+
 
 /* =====================================
-   إحصائيات المنتجات
+   إنشاء قائمة الأشهر
 ===================================== */
+
+function createMonths(){
+
+const months = new Set();
+
+
+/* من الأحداث */
+
+allEvents.forEach(
+event => {
+
+const date =
+getDateFromTimestamp(
+event.createdAt
+);
+
+if(date){
+
+months.add(
+getMonthKey(date)
+);
+
+}
+
+});
+
+
+/* من الطلبات */
+
+allOrders.forEach(
+order => {
+
+const date =
+getDateFromTimestamp(
+order.createdAt
+);
+
+if(date){
+
+months.add(
+getMonthKey(date)
+);
+
+}
+
+});
+
+
+/* ترتيب الأحدث أولًا */
+
+availableMonths =
+Array.from(months)
+.sort()
+.reverse();
+
+
+/* إذا لا توجد بيانات */
+
+const now =
+new Date();
+
+const currentMonth =
+getMonthKey(now);
+
+
+if(
+!availableMonths.includes(
+currentMonth
+)
+){
+
+availableMonths.unshift(
+currentMonth
+);
+
+}
+
+
+/* عرض القائمة */
+
+monthSelect.innerHTML = "";
+
+
+availableMonths.forEach(
+month => {
+
+const option =
+document.createElement(
+"option"
+);
+
+option.value =
+month;
+
+option.textContent =
+formatMonth(month);
+
+monthSelect.appendChild(
+option
+);
+
+});
+
+}
+
+
+
+/* =====================================
+   تحويل التاريخ
+===================================== */
+
+function getDateFromTimestamp(
+timestamp
+){
+
+if(!timestamp){
+
+return null;
+
+}
+
+
+try{
+
+if(
+typeof timestamp.toDate ===
+"function"
+){
+
+return timestamp.toDate();
+
+}
+
+
+if(
+timestamp instanceof Date
+){
+
+return timestamp;
+
+}
+
+
+return new Date(
+timestamp
+);
+
+}catch(error){
+
+return null;
+
+}
+
+}
+
+
+
+/* =====================================
+   مفتاح الشهر
+===================================== */
+
+function getMonthKey(
+date
+){
+
+return date.getFullYear() +
+"-" +
+String(
+date.getMonth() + 1
+).padStart(
+2,
+"0"
+);
+
+}
+
+
+
+/* =====================================
+   اسم الشهر
+===================================== */
+
+function formatMonth(
+month
+){
+
+const parts =
+month.split("-");
+
+const year =
+Number(parts[0]);
+
+const monthNumber =
+Number(parts[1]);
+
+
+const names = [
+
+"يناير",
+
+"فبراير",
+
+"مارس",
+
+"أبريل",
+
+"مايو",
+
+"يونيو",
+
+"يوليو",
+
+"أغسطس",
+
+"سبتمبر",
+
+"أكتوبر",
+
+"نوفمبر",
+
+"ديسمبر"
+
+];
+
+
+return (
+names[
+monthNumber - 1
+] ||
+""
+) +
+" " +
+year;
+
+}
+
+
+
+/* =====================================
+   تحميل إحصائيات شهر معين
+===================================== */
+
+function loadStatistics(
+selectedMonth
+){
+
+try{
+
+
+/* ================================
+   فلترة الأحداث
+================================ */
+
+const events =
+allEvents.filter(
+event => {
+
+const date =
+getDateFromTimestamp(
+event.createdAt
+);
+
+if(!date){
+
+return false;
+
+}
+
+return (
+getMonthKey(date) ===
+selectedMonth
+);
+
+}
+);
+
+
+/* ================================
+   فلترة الطلبات
+================================ */
+
+const orders =
+allOrders.filter(
+order => {
+
+const date =
+getDateFromTimestamp(
+order.createdAt
+);
+
+if(!date){
+
+return false;
+
+}
+
+return (
+getMonthKey(date) ===
+selectedMonth
+);
+
+}
+);
+
+
+
+/* ================================
+   إحصائيات المنتجات
+================================ */
 
 const stats = {};
 
@@ -657,16 +1127,12 @@ let carts = 0;
 
 
 
-eventsSnap.forEach(
-eventDoc => {
-
-const data =
-eventDoc.data();
-
+events.forEach(
+event => {
 
 const id =
 String(
-data.productId || ""
+event.productId || ""
 );
 
 
@@ -688,18 +1154,18 @@ id:id,
 
 name:
 original.name ||
-data.productName ||
+event.productName ||
 "منتج",
 
 category:
 original.category ||
-data.category ||
+event.category ||
 "غير محدد",
 
 price:
 Number(
 original.price ??
-data.price ??
+event.price ??
 0
 ),
 
@@ -716,10 +1182,11 @@ quantity:0
 }
 
 
-/* المشاهدة */
+/* مشاهدة */
 
 if(
-data.type === "view"
+event.type ===
+"view"
 ){
 
 stats[id].views++;
@@ -729,10 +1196,11 @@ views++;
 }
 
 
-/* السلة */
+/* سلة */
 
 if(
-data.type === "cart"
+event.type ===
+"cart"
 ){
 
 stats[id].carts++;
@@ -745,12 +1213,12 @@ carts++;
 
 
 
-/* =====================================
+/* ================================
    الطلبات
-===================================== */
+================================ */
 
 let orderCount =
-ordersSnap.size;
+orders.length;
 
 let totalOrderValue = 0;
 
@@ -773,11 +1241,8 @@ const pairs = {};
 
 
 
-ordersSnap.forEach(
-orderDoc => {
-
-const order =
-orderDoc.data();
+orders.forEach(
+order => {
 
 
 const orderTotal =
@@ -801,9 +1266,9 @@ assistantCount++;
 }
 
 
-/* =================================
+/* ==============================
    الحي
-================================= */
+============================== */
 
 const area =
 String(
@@ -816,32 +1281,37 @@ order.address ||
 if(area){
 
 areas[area] =
-(areas[area] || 0) + 1;
+(
+areas[area] || 0
+) + 1;
 
 }
 
 
 
-/* =================================
+/* ==============================
    وقت الطلب
-================================= */
+============================== */
 
-if(order.createdAt){
+const orderDate =
+getDateFromTimestamp(
+order.createdAt
+);
 
-try{
 
-const date =
-order.createdAt.toDate();
-
+if(orderDate){
 
 const hour =
-date.getHours();
+orderDate.getHours();
 
 
 let label;
 
 
-if(hour >= 5 && hour < 12){
+if(
+hour >= 5 &&
+hour < 12
+){
 
 label =
 "🌅 الصباح";
@@ -871,21 +1341,17 @@ label =
 
 
 times[label] =
-(times[label] || 0) + 1;
-
-}catch(error){
-
-console.log(error);
-
-}
+(
+times[label] || 0
+) + 1;
 
 }
 
 
 
-/* =================================
+/* ==============================
    منتجات الطلب
-================================= */
+============================== */
 
 const orderProducts =
 Array.isArray(
@@ -902,6 +1368,7 @@ const ids = [];
 
 orderProducts.forEach(
 product => {
+
 
 const id =
 String(
@@ -966,23 +1433,25 @@ ids.push(id);
 
 
 
-/* =================================
+/* ==============================
    المنتجات المشتركة
-================================= */
+============================== */
 
 const uniqueIds =
-[...new Set(ids)];
+[
+...new Set(ids)
+];
 
 
 for(
-let i=0;
-i<uniqueIds.length;
+let i = 0;
+i < uniqueIds.length;
 i++
 ){
 
 for(
-let j=i+1;
-j<uniqueIds.length;
+let j = i + 1;
+j < uniqueIds.length;
 j++
 ){
 
@@ -994,11 +1463,15 @@ uniqueIds[j];
 
 
 const key =
-[a,b].sort().join("|");
+[a,b]
+.sort()
+.join("|");
 
 
 pairs[key] =
-(pairs[key] || 0) + 1;
+(
+pairs[key] || 0
+) + 1;
 
 }
 
@@ -1008,18 +1481,15 @@ pairs[key] =
 
 
 
-/* =====================================
-   الملخص
-===================================== */
+/* ================================
+   عرض الملخص
+================================ */
 
 totalViews.innerText =
 views.toLocaleString();
 
 totalCarts.innerText =
 carts.toLocaleString();
-
-totalProducts.innerText =
-productsSnap.size.toLocaleString();
 
 totalOrders.innerText =
 orderCount.toLocaleString();
@@ -1031,7 +1501,8 @@ assistantCount.toLocaleString();
 const average =
 orderCount > 0
 ?
-totalOrderValue / orderCount
+totalOrderValue /
+orderCount
 :
 0;
 
@@ -1045,26 +1516,32 @@ average
 
 
 
-/* =====================================
+/* ================================
    أكثر المنتجات طلبًا
-===================================== */
+================================ */
 
 const top =
 Object.values(stats)
 .sort(
-(a,b)=>
+(a,b) =>
 b.quantity -
 a.quantity
 )
-.slice(0,10);
+.slice(
+0,
+10
+);
 
 
 if(!top.length){
 
-topProducts.innerHTML =
-`<div class="empty">
-لا توجد طلبات حتى الآن.
-</div>`;
+topProducts.innerHTML = `
+<div class="empty">
+
+لا توجد طلبات في هذا الشهر.
+
+</div>
+`;
 
 }else{
 
@@ -1073,7 +1550,7 @@ topProducts.innerHTML =
 
 
 top.forEach(
-(product,index)=>{
+(product,index) => {
 
 topProducts.innerHTML += `
 
@@ -1086,7 +1563,11 @@ ${index + 1}️⃣
 </span>
 
 <strong>
-${escapeHtml(product.name)}
+
+${escapeHtml(
+product.name
+)}
+
 </strong>
 
 <br>
@@ -1094,7 +1575,9 @@ ${escapeHtml(product.name)}
 📦 الكمية المطلوبة:
 
 <strong>
+
 ${product.quantity.toLocaleString()}
+
 </strong>
 
 كرتون
@@ -1104,7 +1587,9 @@ ${product.quantity.toLocaleString()}
 🧾 عدد الطلبات:
 
 <strong>
+
 ${product.orders.toLocaleString()}
+
 </strong>
 
 </div>
@@ -1117,66 +1602,101 @@ ${product.orders.toLocaleString()}
 
 
 
-/* =====================================
+/* ================================
    سريعة الحركة
-===================================== */
+================================ */
 
 const fast =
 Object.values(stats)
 .sort(
-(a,b)=>
+(a,b) =>
+
 (
 b.views +
 b.carts * 3 +
 b.quantity * 5
 )
+
 -
+
 (
 a.views +
 a.carts * 3 +
 a.quantity * 5
 )
+
 )
-.slice(0,10);
+.slice(
+0,
+10
+);
 
 
-fastProducts.innerHTML = "";
+if(!fast.length){
+
+fastProducts.innerHTML = `
+<div class="empty">
+
+لا توجد بيانات لهذا الشهر.
+
+</div>
+`;
+
+}else{
+
+fastProducts.innerHTML =
+"";
 
 
 fast.forEach(
-(product,index)=>{
+(product,index) => {
 
 fastProducts.innerHTML += `
 
 <div class="product">
 
 <span class="fast">
+
 🔥 ${index + 1}.
+
 </span>
 
 <strong>
-${escapeHtml(product.name)}
+
+${escapeHtml(
+product.name
+)}
+
 </strong>
 
 <br><br>
 
 👁️ المشاهدات:
+
 <span class="view">
+
 ${product.views.toLocaleString()}
+
 </span>
 
 <br>
 
 🛒 السلة:
+
 <span class="cart">
+
 ${product.carts.toLocaleString()}
+
 </span>
 
 <br>
 
 📦 الطلب:
+
 <span class="orders">
+
 ${product.quantity.toLocaleString()}
+
 </span>
 
 كرتون
@@ -1187,26 +1707,38 @@ ${product.quantity.toLocaleString()}
 
 });
 
+}
 
 
-/* =====================================
+
+/* ================================
    الأحياء
-===================================== */
+================================ */
 
 const areaList =
-Object.entries(areas)
-.sort(
-(a,b)=>b[1]-a[1]
+Object.entries(
+areas
 )
-.slice(0,10);
+.sort(
+(a,b) =>
+b[1] -
+a[1]
+)
+.slice(
+0,
+10
+);
 
 
 if(!areaList.length){
 
-topAreas.innerHTML =
-`<div class="empty">
-لا توجد بيانات أحياء حتى الآن.
-</div>`;
+topAreas.innerHTML = `
+<div class="empty">
+
+لا توجد بيانات أحياء لهذا الشهر.
+
+</div>
+`;
 
 }else{
 
@@ -1215,27 +1747,36 @@ topAreas.innerHTML =
 
 
 areaList.forEach(
-(item,index)=>{
+(item,index) => {
 
 topAreas.innerHTML += `
 
 <div class="stat">
 
 <span class="rank">
+
 ${index + 1}️⃣
+
 </span>
 
 🏠
 
 <strong>
-${escapeHtml(item[0])}
+
+${escapeHtml(
+item[0]
+)}
+
 </strong>
 
 <br>
 
 📦 عدد الطلبات:
+
 <strong>
+
 ${item[1].toLocaleString()}
+
 </strong>
 
 </div>
@@ -1248,40 +1789,66 @@ ${item[1].toLocaleString()}
 
 
 
-/* =====================================
+/* ================================
    الأوقات
-===================================== */
+================================ */
 
 const timeList =
-Object.entries(times)
+Object.entries(
+times
+)
 .sort(
-(a,b)=>b[1]-a[1]
+(a,b) =>
+b[1] -
+a[1]
 );
 
 
-topTimes.innerHTML = "";
+if(!timeList.length){
+
+topTimes.innerHTML = `
+<div class="empty">
+
+لا توجد طلبات لهذا الشهر.
+
+</div>
+`;
+
+}else{
+
+topTimes.innerHTML =
+"";
 
 
 timeList.forEach(
-(item,index)=>{
+(item,index) => {
 
 topTimes.innerHTML += `
 
 <div class="stat">
 
 <span class="rank">
+
 ${index + 1}️⃣
+
 </span>
 
 <strong>
-${escapeHtml(item[0])}
+
+${escapeHtml(
+item[0]
+)}
+
 </strong>
 
 <br>
 
 🧾 عدد الطلبات:
+
 <strong>
+
 ${item[1].toLocaleString()}
+
 </strong>
 
 </div>
@@ -1290,26 +1857,39 @@ ${item[1].toLocaleString()}
 
 });
 
+}
 
 
-/* =====================================
+
+/* ================================
    المنتجات المشتركة
-===================================== */
+================================ */
 
 const pairList =
-Object.entries(pairs)
-.sort(
-(a,b)=>b[1]-a[1]
+Object.entries(
+pairs
 )
-.slice(0,10);
+.sort(
+(a,b) =>
+b[1] -
+a[1]
+)
+.slice(
+0,
+10
+);
 
 
 if(!pairList.length){
 
-togetherProducts.innerHTML =
-`<div class="empty">
-لم يشترِ العملاء منتجات متعددة في طلب واحد حتى الآن.
-</div>`;
+togetherProducts.innerHTML = `
+<div class="empty">
+
+لم يشترِ العملاء منتجات متعددة
+في هذا الشهر حتى الآن.
+
+</div>
+`;
 
 }else{
 
@@ -1318,7 +1898,7 @@ togetherProducts.innerHTML =
 
 
 pairList.forEach(
-(item,index)=>{
+(item,index) => {
 
 const ids =
 item[0].split("|");
@@ -1336,30 +1916,41 @@ togetherProducts.innerHTML += `
 <div class="stat">
 
 <span class="rank">
+
 ${index + 1}️⃣
+
 </span>
 
 🛍️
 
 <strong>
+
 ${escapeHtml(
-productA?.name || "منتج"
+productA?.name ||
+"منتج"
 )}
+
 </strong>
 
 +
 
 <strong>
+
 ${escapeHtml(
-productB?.name || "منتج"
+productB?.name ||
+"منتج"
 )}
+
 </strong>
 
 <br>
 
 🧾 تكررت معًا:
+
 <strong>
+
 ${item[1].toLocaleString()}
+
 </strong>
 
 طلبات
@@ -1374,78 +1965,119 @@ ${item[1].toLocaleString()}
 
 
 
-/* =====================================
+/* ================================
    إحصائيات كل منتج
-===================================== */
+================================ */
 
 const productList =
-Object.values(stats)
+Object.values(
+stats
+)
 .sort(
-(a,b)=>
+(a,b) =>
+
 (
 b.views +
 b.carts +
 b.quantity
 )
+
 -
+
 (
 a.views +
 a.carts +
 a.quantity
 )
+
 );
 
 
-productsStats.innerHTML = "";
+if(!productList.length){
+
+productsStats.innerHTML = `
+<div class="empty">
+
+لا توجد بيانات منتجات لهذا الشهر.
+
+</div>
+`;
+
+}else{
+
+productsStats.innerHTML =
+"";
 
 
 productList.forEach(
-product=>{
+product => {
 
 productsStats.innerHTML += `
 
 <div class="product">
 
 <h3>
+
 🛍️
-${escapeHtml(product.name)}
+
+${escapeHtml(
+product.name
+)}
+
 </h3>
 
 📂 القسم:
+
 <strong>
-${escapeHtml(product.category)}
+
+${escapeHtml(
+product.category
+)}
+
 </strong>
 
 <br>
 
 💰 السعر:
+
 <strong>
+
 ${Number(
 product.price || 0
-).toLocaleString()
-}
+).toLocaleString()}
+
 ريال
+
 </strong>
 
 <br><br>
 
 👁️ المشاهدات:
+
 <span class="view">
+
 ${product.views.toLocaleString()}
+
 </span>
 
 <br>
 
 🛒 إضافات السلة:
+
 <span class="cart">
+
 ${product.carts.toLocaleString()}
+
 </span>
 
 <br>
 
 📦 الكمية المطلوبة:
+
 <span class="orders">
+
 ${product.quantity.toLocaleString()}
+
 </span>
 
 كرتون
@@ -1453,8 +2085,11 @@ ${product.quantity.toLocaleString()}
 <br>
 
 🧾 عدد الطلبات:
+
 <strong>
+
 ${product.orders.toLocaleString()}
+
 </strong>
 
 </div>
@@ -1463,6 +2098,7 @@ ${product.orders.toLocaleString()}
 
 });
 
+}
 
 }catch(error){
 
@@ -1470,7 +2106,6 @@ console.error(
 "خطأ الإحصائيات:",
 error
 );
-
 
 productsStats.innerHTML = `
 
@@ -1534,7 +2169,6 @@ text ?? ""
 
 </script>
 
-
 </body>
 
-   </html>
+     </html>
