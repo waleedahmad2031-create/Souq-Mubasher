@@ -150,6 +150,15 @@ placeholder="رقم الجوال"
 type="tel"
 >
 
+
+<!-- الحي -->
+
+<input
+id="deliveryDistrict"
+placeholder="📍 الحي - مثال: السبل، السحول، إب القديمة"
+>
+
+
 <textarea
 id="customerAddress"
 placeholder="العنوان بالتفصيل داخل مدينة إب"
@@ -364,6 +373,12 @@ document.getElementById(
 ).value.trim();
 
 
+const district =
+document.getElementById(
+"deliveryDistrict"
+).value.trim();
+
+
 const address =
 document.getElementById(
 "customerAddress"
@@ -383,6 +398,7 @@ document.getElementById(
 if(
 !name ||
 !phone ||
+!district ||
 !address ||
 !deliveryTime
 ){
@@ -472,6 +488,9 @@ customerCity:
 customerAddress:
 String(address),
 
+deliveryDistrict:
+String(district),
+
 deliveryArea:
 "مدينة إب",
 
@@ -557,6 +576,7 @@ const message =
 📱 الجوال: ${phone}
 
 📍 إب
+🏘️ الحي: ${district}
 🏠 العنوان: ${address}
 
 🕐 التوصيل: ${deliveryTime}
@@ -647,4 +667,4 @@ alert(
 
 </body>
 
-</html>
+   </html>
