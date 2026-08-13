@@ -98,6 +98,11 @@ button:hover{
 background:#00796b;
 }
 
+button:disabled{
+background:#999;
+cursor:not-allowed;
+}
+
 </style>
 
 </head>
@@ -219,13 +224,19 @@ serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
+/* =====================================
+   قراءة السلة
+===================================== */
+
 const cart =
-JSON.parse(localStorage.getItem("cart")) || [];
+JSON.parse(
+localStorage.getItem("cart")
+) || [];
 
 
-// =====================================
-// حساب رسوم التوصيل للكرتون
-// =====================================
+/* =====================================
+   حساب رسوم التوصيل للكرتون
+===================================== */
 
 function getDeliveryFee(price){
 
@@ -244,9 +255,9 @@ return 100;
 }
 
 
-// =====================================
-// حساب الطلب
-// =====================================
+/* =====================================
+   حساب الطلب
+===================================== */
 
 let productsTotal = 0;
 
@@ -265,11 +276,14 @@ Number(item.quantity) > 0
 ? Number(item.quantity)
 : 1;
 
+
 productsTotal +=
 price * quantity;
 
+
 deliveryTotal +=
 getDeliveryFee(price) * quantity;
+
 
 cartonsTotal +=
 quantity;
@@ -281,53 +295,90 @@ const finalTotal =
 productsTotal + deliveryTotal;
 
 
-// =====================================
-// عرض الحساب
-// =====================================
+/* =====================================
+   عرض الحساب
+===================================== */
 
-document.getElementById("cartonsTotal").textContent =
+document.getElementById(
+"cartonsTotal"
+).textContent =
 cartonsTotal;
 
-document.getElementById("productsTotal").textContent =
-productsTotal;
 
-document.getElementById("deliveryTotal").textContent =
-deliveryTotal;
-
-document.getElementById("totalPrice").textContent =
-finalTotal;
+document.getElementById(
+"productsTotal"
+).textContent =
+productsTotal.toLocaleString();
 
 
-// =====================================
-// إرسال الطلب
-// =====================================
+document.getElementById(
+"deliveryTotal"
+).textContent =
+deliveryTotal.toLocaleString();
 
-document.getElementById("sendOrder").onclick =
+
+document.getElementById(
+"totalPrice"
+).textContent =
+finalTotal.toLocaleString();
+
+
+/* =====================================
+   زر إرسال الطلب
+===================================== */
+
+const sendOrder =
+document.getElementById(
+"sendOrder"
+);
+
+
+/* =====================================
+   إرسال الطلب
+===================================== */
+
+sendOrder.onclick =
 async () => {
 
 
+/* منع الضغط المتكرر */
+
+if(sendOrder.disabled){
+return;
+}
+
+
+/* =====================================
+   بيانات العميل
+===================================== */
+
 const name =
-document.getElementById("customerName")
-.value
-.trim();
+document.getElementById(
+"customerName"
+).value.trim();
 
 
 const phone =
-document.getElementById("customerPhone")
-.value
-.trim();
+document.getElementById(
+"customerPhone"
+).value.trim();
 
 
 const address =
-document.getElementById("customerAddress")
-.value
-.trim();
+document.getElementById(
+"customerAddress"
+).value.trim();
 
 
 const deliveryTime =
-document.getElementById("deliveryTime")
-.value;
+document.getElementById(
+"deliveryTime"
+).value;
 
+
+/* =====================================
+   التحقق من البيانات
+===================================== */
 
 if(
 !name ||
@@ -347,80 +398,159 @@ return;
 
 if(cart.length === 0){
 
-alert("السلة فارغة");
+alert(
+"السلة فارغة"
+);
 
 return;
 
 }
 
 
+/* تعطيل الزر مؤقتًا */
+
+sendOrder.disabled = true;
+
+sendOrder.textContent =
+"⏳ جاري تسجيل الطلب...";
+
+
 try{
 
 
-// =====================================
-// حفظ الطلب في Firebase
-// =====================================
+/* =====================================
+   تجهيز المنتجات للحفظ
+===================================== */
 
+const products =
+cart.map(item => ({
+
+id:
+String(item.id || ""),
+
+name:
+String(item.name || ""),
+
+price:
+Number(item.price || 0),
+
+image:
+String(item.image || ""),
+
+city:
+String(item.city || ""),
+
+description:
+String(item.description || ""),
+
+shopName:
+String(item.shopName || ""),
+
+quantity:
+Number(item.quantity) > 0
+? Number(item.quantity)
+: 1
+
+}));
+
+
+/* =====================================
+   حفظ الطلب في Firebase
+===================================== */
+
+const orderData = {
+
+customerName:
+String(name),
+
+customerPhone:
+String(phone),
+
+customerCity:
+"إب",
+
+customerAddress:
+String(address),
+
+deliveryArea:
+"مدينة إب",
+
+orderType:
+"جملة",
+
+deliveryTime:
+String(deliveryTime),
+
+deliveryFee:
+Number(deliveryTotal),
+
+cartonsTotal:
+Number(cartonsTotal),
+
+products:
+products,
+
+productsTotal:
+Number(productsTotal),
+
+total:
+Number(finalTotal),
+
+status:
+"جديد",
+
+createdAt:
+serverTimestamp()
+
+};
+
+
+/* =====================================
+   إرسال إلى orders
+===================================== */
+
+const orderRef =
 await addDoc(
 collection(db,"orders"),
-{
-
-customerName:name,
-
-customerPhone:phone,
-
-customerCity:"إب",
-
-customerAddress:address,
-
-deliveryArea:"مدينة إب",
-
-orderType:"جملة",
-
-deliveryTime:deliveryTime,
-
-deliveryFee:deliveryTotal,
-
-cartonsTotal:cartonsTotal,
-
-products:cart,
-
-productsTotal:productsTotal,
-
-total:finalTotal,
-
-status:"جديد",
-
-createdAt:serverTimestamp()
-
-}
+orderData
 );
 
 
-// =====================================
-// إنشاء قائمة المنتجات المختصرة
-// =====================================
+console.log(
+"تم حفظ الطلب:",
+orderRef.id
+);
+
+
+/* =====================================
+   إنشاء رسالة المنتجات
+===================================== */
 
 let productsMessage = "";
 
-cart.forEach((item,index) => {
+
+products.forEach(
+(item,index) => {
 
 const quantity =
 Number(item.quantity) > 0
 ? Number(item.quantity)
 : 1;
 
+
 productsMessage +=
-`${index + 1}. ${item.name || "منتج"} × ${quantity} كرتون\n`;
+`${index + 1}. ${
+item.name || "منتج"
+} × ${quantity} كرتون\n`;
 
 });
 
 
-// =====================================
-// رسالة واتساب مختصرة
-// =====================================
+/* =====================================
+   رسالة واتساب
+===================================== */
 
-let message =
+const message =
 `🛒 طلب جملة جديد - سوق مباشر
 
 👤 العميل: ${name}
@@ -438,32 +568,75 @@ ${productsMessage}
 🛍️ مجموع المنتجات: ${productsTotal} ريال
 🚚 التوصيل: ${deliveryTotal} ريال
 
-💰 الإجمالي النهائي: ${finalTotal} ريال`;
+💰 الإجمالي النهائي: ${finalTotal} ريال
 
+🆔 رقم الطلب:
+${orderRef.id}`;
+
+
+/* =====================================
+   فتح واتساب
+===================================== */
 
 window.open(
-`https://wa.me/966550496391?text=${encodeURIComponent(message)}`,
+`https://wa.me/966550496391?text=${
+encodeURIComponent(message)
+}`,
 "_blank"
 );
 
 
+/* =====================================
+   حذف السلة
+===================================== */
+
 localStorage.removeItem("cart");
 
 
+/* =====================================
+   رسالة النجاح
+===================================== */
+
 alert(
-"تم إرسال طلب الجملة بنجاح ✅"
+"✅ تم تسجيل طلبك بنجاح\n\n" +
+"رقم الطلب:\n" +
+orderRef.id
 );
 
 
-location.href="index.html";
+/* =====================================
+   العودة للرئيسية
+===================================== */
+
+location.href =
+"index.html";
 
 
 }catch(error){
 
-console.error(error);
+console.error(
+"❌ خطأ حفظ الطلب:",
+error
+);
+
+
+/* =====================================
+   إظهار الخطأ الحقيقي
+===================================== */
+
+sendOrder.disabled = false;
+
+sendOrder.textContent =
+"إرسال طلب الجملة";
+
 
 alert(
-"حدث خطأ أثناء إرسال الطلب، حاول مرة أخرى"
+"❌ حدث خطأ أثناء حفظ الطلب\n\n" +
+"الكود:\n" +
+(error.code || "غير معروف") +
+"\n\n" +
+"الرسالة:\n" +
+(error.message || "لا توجد رسالة")
 );
 
 }
