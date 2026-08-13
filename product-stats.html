@@ -4,9 +4,9 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 
-<title>إحصائيات المنتجات | سوق مباشر</title>
+<title>إحصائيات سوق مباشر</title>
 
 <style>
 
@@ -32,7 +32,7 @@ font-weight:bold;
 }
 
 .container{
-max-width:900px;
+max-width:950px;
 margin:auto;
 padding:20px;
 }
@@ -56,11 +56,14 @@ font-size:17px;
 cursor:pointer;
 }
 
+h2{
+margin-bottom:15px;
+}
+
 .summary{
 display:grid;
 grid-template-columns:repeat(2,1fr);
 gap:10px;
-margin-top:15px;
 }
 
 .summary-box{
@@ -82,34 +85,32 @@ font-size:13px;
 color:#666;
 }
 
+.stat{
+background:#fafafa;
+border:1px solid #eee;
+padding:13px;
+margin-top:10px;
+border-radius:10px;
+line-height:1.9;
+}
+
+.rank{
+font-size:18px;
+font-weight:bold;
+color:#009688;
+}
+
 .product{
 background:#fff;
 border:1px solid #eee;
-padding:16px;
-margin-top:15px;
-border-radius:13px;
-box-shadow:0 2px 5px rgba(0,0,0,.06);
+padding:15px;
+margin-top:12px;
+border-radius:12px;
+box-shadow:0 2px 5px rgba(0,0,0,.05);
 }
 
 .product h3{
-font-size:18px;
-margin-bottom:10px;
-}
-
-.info{
-line-height:2;
-font-size:14px;
-}
-
-.category{
-display:inline-block;
-background:#e8f5e9;
-color:#00897b;
-padding:4px 9px;
-border-radius:20px;
-font-size:12px;
-font-weight:bold;
-margin:4px 0;
+margin-bottom:8px;
 }
 
 .view{
@@ -122,20 +123,19 @@ color:#673ab7;
 font-weight:bold;
 }
 
-.assistant{
+.orders{
 color:#e65100;
 font-weight:bold;
 }
 
-.last{
-color:#777;
-font-size:12px;
-margin-top:8px;
+.fast{
+color:#d32f2f;
+font-weight:bold;
 }
 
 .empty{
 text-align:center;
-padding:30px;
+padding:25px;
 color:#777;
 }
 
@@ -163,7 +163,7 @@ grid-template-columns:1fr;
 
 <header>
 
-📊 إحصائيات المنتجات
+📊 إحصائيات سوق مباشر
 
 </header>
 
@@ -171,23 +171,23 @@ grid-template-columns:1fr;
 <div class="container">
 
 
-<!-- العودة -->
-
 <div class="card">
 
 <button
 class="back"
-onclick="location.href='admin.html'"
+onclick="location.href='orders.html'"
 >
 
-⬅️ العودة إلى لوحة الإدارة
+⬅️ العودة إلى الطلبات
 
 </button>
 
 </div>
 
 
-<!-- الملخص -->
+<!-- =========================
+     الملخص
+========================= -->
 
 <div class="card">
 
@@ -195,11 +195,8 @@ onclick="location.href='admin.html'"
 📈 ملخص الإحصائيات
 </h2>
 
-
 <div class="summary">
 
-
-<!-- المشاهدات -->
 
 <div class="summary-box">
 
@@ -217,12 +214,10 @@ class="summary-number"
 </div>
 
 
-<!-- السلة -->
-
 <div class="summary-box">
 
 <div class="summary-title">
-🛒 إجمالي إضافات السلة
+🛒 إضافات السلة
 </div>
 
 <div
@@ -234,8 +229,6 @@ class="summary-number"
 
 </div>
 
-
-<!-- المنتجات -->
 
 <div class="summary-box">
 
@@ -253,16 +246,14 @@ class="summary-number"
 </div>
 
 
-<!-- الأحداث -->
-
 <div class="summary-box">
 
 <div class="summary-title">
-📊 إجمالي الأحداث
+🧾 عدد الطلبات
 </div>
 
 <div
-id="totalEvents"
+id="totalOrders"
 class="summary-number"
 >
 0
@@ -271,7 +262,21 @@ class="summary-number"
 </div>
 
 
-<!-- طلبات المساعد -->
+<div class="summary-box">
+
+<div class="summary-title">
+💰 متوسط قيمة الطلب
+</div>
+
+<div
+id="averageOrder"
+class="summary-number"
+>
+0 ريال
+</div>
+
+</div>
+
 
 <div class="summary-box">
 
@@ -280,7 +285,7 @@ class="summary-number"
 </div>
 
 <div
-id="totalAssistantOrders"
+id="assistantOrders"
 class="summary-number"
 >
 0
@@ -294,7 +299,104 @@ class="summary-number"
 </div>
 
 
-<!-- المنتجات -->
+<!-- =========================
+     أكثر المنتجات طلبًا
+========================= -->
+
+<div class="card">
+
+<h2>
+📦 أكثر المنتجات طلبًا
+</h2>
+
+<div id="topProducts">
+
+جاري التحميل...
+
+</div>
+
+</div>
+
+
+<!-- =========================
+     المنتجات سريعة الحركة
+========================= -->
+
+<div class="card">
+
+<h2>
+🔥 المنتجات سريعة الحركة
+</h2>
+
+<div id="fastProducts">
+
+جاري التحميل...
+
+</div>
+
+</div>
+
+
+<!-- =========================
+     الأحياء
+========================= -->
+
+<div class="card">
+
+<h2>
+🏠 الأحياء التي يأتي منها أكبر طلب
+</h2>
+
+<div id="topAreas">
+
+جاري التحميل...
+
+</div>
+
+</div>
+
+
+<!-- =========================
+     أوقات زيادة الطلب
+========================= -->
+
+<div class="card">
+
+<h2>
+🕐 أوقات زيادة الطلب
+</h2>
+
+<div id="topTimes">
+
+جاري التحميل...
+
+</div>
+
+</div>
+
+
+<!-- =========================
+     المنتجات التي تشتري معًا
+========================= -->
+
+<div class="card">
+
+<h2>
+🛒 المنتجات التي يشتريها الناس معًا
+</h2>
+
+<div id="togetherProducts">
+
+جاري التحميل...
+
+</div>
+
+</div>
+
+
+<!-- =========================
+     إحصائيات المنتجات
+========================= -->
 
 <div class="card">
 
@@ -302,12 +404,9 @@ class="summary-number"
 🛍️ إحصائيات كل منتج
 </h2>
 
-<div
-id="productsStats"
-class="loading"
->
+<div id="productsStats">
 
-جاري تحميل الإحصائيات...
+جاري التحميل...
 
 </div>
 
@@ -342,95 +441,6 @@ onAuthStateChanged
 
 
 /* =====================================
-   العناصر
-===================================== */
-
-const productsStats =
-document.getElementById(
-"productsStats"
-);
-
-
-const totalViews =
-document.getElementById(
-"totalViews"
-);
-
-
-const totalCarts =
-document.getElementById(
-"totalCarts"
-);
-
-
-const totalProducts =
-document.getElementById(
-"totalProducts"
-);
-
-
-const totalEvents =
-document.getElementById(
-"totalEvents"
-);
-
-
-const totalAssistantOrders =
-document.getElementById(
-"totalAssistantOrders"
-);
-
-
-
-/* =====================================
-   إظهار الخطأ
-===================================== */
-
-function showError(error){
-
-console.error(
-"خطأ الإحصائيات:",
-error
-);
-
-
-productsStats.innerHTML = `
-
-<div class="empty">
-
-❌ حدث خطأ أثناء تحميل الإحصائيات
-
-<br><br>
-
-<strong>
-
-${escapeHtml(
-error.message ||
-String(error)
-)}
-
-</strong>
-
-<br><br>
-
-رمز الخطأ:
-
-<br>
-
-${escapeHtml(
-error.code ||
-"غير معروف"
-)}
-
-</div>
-
-`;
-
-}
-
-
-
-/* =====================================
    المدير
 ===================================== */
 
@@ -446,49 +456,71 @@ const allowedEmails = [
 
 
 
+/* =====================================
+   العناصر
+===================================== */
+
+const totalViews =
+document.getElementById("totalViews");
+
+const totalCarts =
+document.getElementById("totalCarts");
+
+const totalProducts =
+document.getElementById("totalProducts");
+
+const totalOrders =
+document.getElementById("totalOrders");
+
+const averageOrder =
+document.getElementById("averageOrder");
+
+const assistantOrders =
+document.getElementById("assistantOrders");
+
+const topProducts =
+document.getElementById("topProducts");
+
+const fastProducts =
+document.getElementById("fastProducts");
+
+const topAreas =
+document.getElementById("topAreas");
+
+const topTimes =
+document.getElementById("topTimes");
+
+const togetherProducts =
+document.getElementById("togetherProducts");
+
+const productsStats =
+document.getElementById("productsStats");
+
+
+
+/* =====================================
+   التحقق من المدير
+===================================== */
+
 onAuthStateChanged(
 
 auth,
 
-async (user) => {
-
-try{
-
+async user => {
 
 if(!user){
 
 productsStats.innerHTML = `
-
 <div class="empty">
 
 🔐 يجب تسجيل دخول المدير أولًا.
 
-<br><br>
-
-<button
-onclick="location.href='login.html'"
-style="
-background:#009688;
-color:white;
-border:none;
-padding:12px 20px;
-border-radius:8px;
-font-size:16px;
-"
->
-
-تسجيل الدخول
-
-</button>
-
 </div>
-
 `;
 
 return;
 
 }
-
 
 
 if(
@@ -498,13 +530,11 @@ user.email
 ){
 
 productsStats.innerHTML = `
-
 <div class="empty">
 
 ❌ ليس لديك صلاحية دخول الإحصائيات.
 
 </div>
-
 `;
 
 return;
@@ -512,28 +542,7 @@ return;
 }
 
 
-
-/* المدير صحيح */
-
-productsStats.innerHTML = `
-
-<div class="loading">
-
-⏳ جاري قراءة بيانات الإحصائيات...
-
-</div>
-
-`;
-
-
 await loadStatistics();
-
-
-}catch(error){
-
-showError(error);
-
-}
 
 }
 
@@ -550,15 +559,9 @@ async function loadStatistics(){
 try{
 
 
-console.log(
-"1 - بدأ تحميل الإحصائيات"
-);
-
-
-
-/* =================================
-   أحداث المنتجات
-================================= */
+/* =====================================
+   قراءة الأحداث
+===================================== */
 
 const eventsSnap =
 await getDocs(
@@ -569,16 +572,9 @@ db,
 );
 
 
-console.log(
-"2 - تم تحميل productEvents:",
-eventsSnap.size
-);
-
-
-
-/* =================================
-   المنتجات
-================================= */
+/* =====================================
+   قراءة المنتجات
+===================================== */
 
 const productsSnap =
 await getDocs(
@@ -589,16 +585,9 @@ db,
 );
 
 
-console.log(
-"3 - تم تحميل products:",
-productsSnap.size
-);
-
-
-
-/* =================================
-   طلبات المساعد
-================================= */
+/* =====================================
+   قراءة الطلبات
+===================================== */
 
 const ordersSnap =
 await getDocs(
@@ -609,35 +598,29 @@ db,
 );
 
 
-console.log(
-"4 - تم تحميل orders:",
-ordersSnap.size
-);
 
-
-
-/* =================================
+/* =====================================
    خريطة المنتجات
-================================= */
+===================================== */
 
 const productsMap = {};
 
 
 productsSnap.forEach(
-productDoc => {
+doc => {
 
 productsMap[
-productDoc.id
+doc.id
 ] =
-productDoc.data();
+doc.data();
 
 });
 
 
 
-/* =================================
-   الإحصائيات
-================================= */
+/* =====================================
+   إحصائيات المنتجات
+===================================== */
 
 const stats = {};
 
@@ -646,13 +629,7 @@ let views = 0;
 
 let carts = 0;
 
-let assistantOrders = 0;
 
-
-
-/* =================================
-   أحداث المنتجات
-================================= */
 
 eventsSnap.forEach(
 eventDoc => {
@@ -661,159 +638,114 @@ const data =
 eventDoc.data();
 
 
-const productId =
+const id =
 String(
 data.productId || ""
 );
 
 
-if(!productId){
+if(!id){
 
 return;
 
 }
 
 
-const originalProduct =
-productsMap[
-productId
-] || {};
+if(!stats[id]){
 
+const original =
+productsMap[id] || {};
 
+stats[id] = {
 
-/* ===============================
-   إنشاء المنتج
-================================ */
+id:id,
 
-if(!stats[productId]){
-
-stats[productId] = {
-
-productId:
-productId,
-
-productName:
-originalProduct.name ||
+name:
+original.name ||
 data.productName ||
-"بدون اسم",
+"منتج",
 
 category:
-originalProduct.category ||
+original.category ||
 data.category ||
 "غير محدد",
 
 price:
 Number(
-originalProduct.price ??
+original.price ??
 data.price ??
 0
 ),
-
-shopName:
-originalProduct.shopName ||
-data.shopName ||
-"سوق مباشر",
 
 views:0,
 
 carts:0,
 
-assistantOrders:0,
+orders:0,
 
-lastActivity:null
+quantity:0
 
 };
 
 }
 
 
-
-/* ===============================
-   مشاهدة
-================================ */
+/* المشاهدة */
 
 if(
 data.type === "view"
 ){
 
-stats[
-productId
-].views++;
+stats[id].views++;
 
 views++;
 
 }
 
 
-
-/* ===============================
-   سلة
-================================ */
+/* السلة */
 
 if(
 data.type === "cart"
 ){
 
-stats[
-productId
-].carts++;
+stats[id].carts++;
 
 carts++;
 
 }
 
-
-
-/* ===============================
-   آخر نشاط
-================================ */
-
-if(data.createdAt){
-
-try{
-
-const date =
-data.createdAt.toDate();
-
-
-if(
-!stats[
-productId
-].lastActivity ||
-
-date >
-stats[
-productId
-].lastActivity
-){
-
-stats[
-productId
-].lastActivity =
-date;
-
-}
-
-}catch(error){
-
-console.log(
-"تعذر قراءة التاريخ:",
-error
-);
-
-}
-
-}
-
-}
-
-);
+});
 
 
 
-/* =================================
-   طلبات المساعد
-================================= */
+/* =====================================
+   الطلبات
+===================================== */
+
+let orderCount =
+ordersSnap.size;
+
+let totalOrderValue = 0;
+
+let assistantCount = 0;
+
+
+/* الأحياء */
+
+const areas = {};
+
+
+/* الأوقات */
+
+const times = {};
+
+
+/* المنتجات معًا */
+
+const pairs = {};
+
+
 
 ordersSnap.forEach(
 orderDoc => {
@@ -822,28 +754,112 @@ const order =
 orderDoc.data();
 
 
-/*
-   نتحقق أن الطلب جاء
-   من المساعد الذكي
-*/
+const orderTotal =
+Number(
+order.total || 0
+);
+
+totalOrderValue +=
+orderTotal;
+
+
+/* المساعد */
 
 if(
-order.source !==
+order.source ===
 "طلب بواسطة المساعد الذكي"
 ){
 
-return;
+assistantCount++;
 
 }
 
 
-assistantOrders++;
+/* =================================
+   الحي
+================================= */
+
+const area =
+String(
+order.customerAddress ||
+order.address ||
+"غير محدد"
+).trim();
+
+
+if(area){
+
+areas[area] =
+(areas[area] || 0) + 1;
+
+}
 
 
 
-/*
-   قراءة منتجات الطلب
-*/
+/* =================================
+   وقت الطلب
+================================= */
+
+if(order.createdAt){
+
+try{
+
+const date =
+order.createdAt.toDate();
+
+
+const hour =
+date.getHours();
+
+
+let label;
+
+
+if(hour >= 5 && hour < 12){
+
+label =
+"🌅 الصباح";
+
+}else if(
+hour >= 12 &&
+hour < 17
+){
+
+label =
+"☀️ الظهر والعصر";
+
+}else if(
+hour >= 17 &&
+hour < 22
+){
+
+label =
+"🌙 المساء";
+
+}else{
+
+label =
+"🌃 الليل";
+
+}
+
+
+times[label] =
+(times[label] || 0) + 1;
+
+}catch(error){
+
+console.log(error);
+
+}
+
+}
+
+
+
+/* =================================
+   منتجات الطلب
+================================= */
 
 const orderProducts =
 Array.isArray(
@@ -855,124 +871,108 @@ order.products
 [];
 
 
+const ids = [];
+
+
 orderProducts.forEach(
 product => {
 
-
-const productId =
+const id =
 String(
 product.id || ""
 );
 
 
-if(!productId){
+if(!id){
 
 return;
 
 }
 
 
-/*
-   إذا المنتج غير موجود في
-   أحداث المشاهدة والسلة
-   ننشئ له إحصائية
-*/
+if(!stats[id]){
 
-if(!stats[productId]){
+stats[id] = {
 
-const originalProduct =
-productsMap[
-productId
-] || {};
+id:id,
 
-
-stats[productId] = {
-
-productId:
-productId,
-
-productName:
-originalProduct.name ||
+name:
 product.name ||
-"بدون اسم",
+"منتج",
 
 category:
-originalProduct.category ||
 product.category ||
 "غير محدد",
 
 price:
 Number(
-originalProduct.price ??
-product.price ??
-0
+product.price || 0
 ),
-
-shopName:
-originalProduct.shopName ||
-product.shopName ||
-"سوق مباشر",
 
 views:0,
 
 carts:0,
 
-assistantOrders:0,
+orders:0,
 
-lastActivity:null
+quantity:0
 
 };
 
 }
 
 
-
-/*
-   طلب مساعد واحد للمنتج
-*/
-
-stats[
-productId
-].assistantOrders++;
+const quantity =
+Number(
+product.quantity || 1
+);
 
 
+stats[id].orders++;
 
-/*
-   آخر نشاط من الطلب
-*/
-
-if(order.createdAt){
-
-try{
-
-const date =
-order.createdAt.toDate();
+stats[id].quantity +=
+quantity;
 
 
-if(
-!stats[
-productId
-].lastActivity ||
+ids.push(id);
 
-date >
-stats[
-productId
-].lastActivity
+});
+
+
+
+/* =================================
+   المنتجات المشتركة
+================================= */
+
+const uniqueIds =
+[...new Set(ids)];
+
+
+for(
+let i=0;
+i<uniqueIds.length;
+i++
 ){
 
-stats[
-productId
-].lastActivity =
-date;
+for(
+let j=i+1;
+j<uniqueIds.length;
+j++
+){
 
-}
+const a =
+uniqueIds[i];
 
-}catch(error){
+const b =
+uniqueIds[j];
 
-console.log(
-"تعذر قراءة تاريخ الطلب:",
-error
-);
+
+const key =
+[a,b].sort().join("|");
+
+
+pairs[key] =
+(pairs[key] || 0) + 1;
 
 }
 
@@ -980,251 +980,456 @@ error
 
 });
 
-}
-
-);
 
 
-
-/* =================================
+/* =====================================
    الملخص
-================================= */
+===================================== */
 
 totalViews.innerText =
 views.toLocaleString();
 
-
 totalCarts.innerText =
 carts.toLocaleString();
-
-
-totalEvents.innerText =
-eventsSnap.size.toLocaleString();
-
 
 totalProducts.innerText =
 productsSnap.size.toLocaleString();
 
+totalOrders.innerText =
+orderCount.toLocaleString();
 
-totalAssistantOrders.innerText =
-assistantOrders.toLocaleString();
+assistantOrders.innerText =
+assistantCount.toLocaleString();
+
+
+const average =
+orderCount > 0
+?
+totalOrderValue / orderCount
+:
+0;
+
+
+averageOrder.innerText =
+Math.round(
+average
+).toLocaleString()
++
+" ريال";
 
 
 
-/* =================================
-   لا توجد بيانات
-================================= */
+/* =====================================
+   أكثر المنتجات طلبًا
+===================================== */
 
-if(
-Object.keys(stats).length === 0
-){
+const top =
+Object.values(stats)
+.sort(
+(a,b)=>
+b.quantity -
+a.quantity
+)
+.slice(0,10);
 
-productsStats.innerHTML = `
 
-<div class="empty">
+if(!top.length){
 
-📊 لا توجد إحصائيات حتى الآن.
+topProducts.innerHTML =
+`<div class="empty">
+لا توجد طلبات حتى الآن.
+</div>`;
 
-<br><br>
+}else{
 
-افتح المتجر وشاهد منتجًا
-أو أضفه للسلة أو نفذ طلبًا
-عن طريق المساعد.
+topProducts.innerHTML =
+"";
+
+
+top.forEach(
+(product,index)=>{
+
+topProducts.innerHTML += `
+
+<div class="stat">
+
+<span class="rank">
+
+${index + 1}️⃣
+
+</span>
+
+<strong>
+${escapeHtml(product.name)}
+</strong>
+
+<br>
+
+📦 الكمية المطلوبة:
+
+<strong>
+${product.quantity.toLocaleString()}
+</strong>
+
+كرتون
+
+<br>
+
+🧾 عدد الطلبات:
+
+<strong>
+${product.orders.toLocaleString()}
+</strong>
 
 </div>
 
 `;
 
-return;
+});
 
 }
 
 
 
-/* =================================
-   ترتيب المنتجات
-================================= */
+/* =====================================
+   سريعة الحركة
+===================================== */
 
-const products =
+const fast =
 Object.values(stats)
 .sort(
-
-(a,b) =>
-
+(a,b)=>
 (
 b.views +
-b.carts +
-b.assistantOrders
+b.carts * 3 +
+b.quantity * 5
 )
 -
-
 (
 a.views +
-a.carts +
-a.assistantOrders
+a.carts * 3 +
+a.quantity * 5
 )
+)
+.slice(0,10);
 
+
+fastProducts.innerHTML = "";
+
+
+fast.forEach(
+(product,index)=>{
+
+fastProducts.innerHTML += `
+
+<div class="product">
+
+<span class="fast">
+🔥 ${index + 1}.
+</span>
+
+<strong>
+${escapeHtml(product.name)}
+</strong>
+
+<br><br>
+
+👁️ المشاهدات:
+<span class="view">
+${product.views.toLocaleString()}
+</span>
+
+<br>
+
+🛒 السلة:
+<span class="cart">
+${product.carts.toLocaleString()}
+</span>
+
+<br>
+
+📦 الطلب:
+<span class="orders">
+${product.quantity.toLocaleString()}
+</span>
+
+كرتون
+
+</div>
+
+`;
+
+});
+
+
+
+/* =====================================
+   الأحياء
+===================================== */
+
+const areaList =
+Object.entries(areas)
+.sort(
+(a,b)=>b[1]-a[1]
+)
+.slice(0,10);
+
+
+if(!areaList.length){
+
+topAreas.innerHTML =
+`<div class="empty">
+لا توجد بيانات أحياء حتى الآن.
+</div>`;
+
+}else{
+
+topAreas.innerHTML =
+"";
+
+
+areaList.forEach(
+(item,index)=>{
+
+topAreas.innerHTML += `
+
+<div class="stat">
+
+<span class="rank">
+${index + 1}️⃣
+</span>
+
+🏠
+
+<strong>
+${escapeHtml(item[0])}
+</strong>
+
+<br>
+
+📦 عدد الطلبات:
+<strong>
+${item[1].toLocaleString()}
+</strong>
+
+</div>
+
+`;
+
+});
+
+}
+
+
+
+/* =====================================
+   الأوقات
+===================================== */
+
+const timeList =
+Object.entries(times)
+.sort(
+(a,b)=>b[1]-a[1]
 );
 
 
+topTimes.innerHTML = "";
 
-/* =================================
-   عرض المنتجات
-================================= */
+
+timeList.forEach(
+(item,index)=>{
+
+topTimes.innerHTML += `
+
+<div class="stat">
+
+<span class="rank">
+${index + 1}️⃣
+</span>
+
+<strong>
+${escapeHtml(item[0])}
+</strong>
+
+<br>
+
+🧾 عدد الطلبات:
+<strong>
+${item[1].toLocaleString()}
+</strong>
+
+</div>
+
+`;
+
+});
+
+
+
+/* =====================================
+   المنتجات المشتركة
+===================================== */
+
+const pairList =
+Object.entries(pairs)
+.sort(
+(a,b)=>b[1]-a[1]
+)
+.slice(0,10);
+
+
+if(!pairList.length){
+
+togetherProducts.innerHTML =
+`<div class="empty">
+لم يشترِ العملاء منتجات متعددة في طلب واحد حتى الآن.
+</div>`;
+
+}else{
+
+togetherProducts.innerHTML =
+"";
+
+
+pairList.forEach(
+(item,index)=>{
+
+const ids =
+item[0].split("|");
+
+
+const productA =
+stats[ids[0]];
+
+const productB =
+stats[ids[1]];
+
+
+togetherProducts.innerHTML += `
+
+<div class="stat">
+
+<span class="rank">
+${index + 1}️⃣
+</span>
+
+🛍️
+
+<strong>
+${escapeHtml(
+productA?.name || "منتج"
+)}
+</strong>
+
++
+
+<strong>
+${escapeHtml(
+productB?.name || "منتج"
+)}
+</strong>
+
+<br>
+
+🧾 تكررت معًا:
+<strong>
+${item[1].toLocaleString()}
+</strong>
+
+طلبات
+
+</div>
+
+`;
+
+});
+
+}
+
+
+
+/* =====================================
+   إحصائيات كل منتج
+===================================== */
+
+const productList =
+Object.values(stats)
+.sort(
+(a,b)=>
+(
+b.views +
+b.carts +
+b.quantity
+)
+-
+(
+a.views +
+a.carts +
+a.quantity
+)
+);
+
 
 productsStats.innerHTML = "";
 
 
-products.forEach(
-product => {
-
-
-let lastActivity =
-"لا يوجد";
-
-
-if(
-product.lastActivity
-){
-
-lastActivity =
-product.lastActivity
-.toLocaleString(
-"ar-SA"
-);
-
-}
-
-
+productList.forEach(
+product=>{
 
 productsStats.innerHTML += `
 
 <div class="product">
 
-
 <h3>
-
 🛍️
-
-${escapeHtml(
-product.productName
-)}
-
+${escapeHtml(product.name)}
 </h3>
 
-
-
-<div class="info">
-
-
-🏪
-
+📂 القسم:
 <strong>
-المتجر:
+${escapeHtml(product.category)}
 </strong>
-
-${escapeHtml(
-product.shopName
-)}
 
 <br>
 
-
-
-📂
-
+💰 السعر:
 <strong>
-القسم:
-</strong>
-
-<span class="category">
-
-${escapeHtml(
-product.category
-)}
-
-</span>
-
-<br>
-
-
-
-💰
-
-<strong>
-السعر:
-</strong>
-
 ${Number(
 product.price || 0
-).toLocaleString()}
-
+).toLocaleString()
+}
 ريال
-
-<br>
-
-
-
-<span class="view">
-
-👁️ المشاهدات:
-
-${product.views.toLocaleString()}
-
-</span>
-
-<br>
-
-
-
-<span class="cart">
-
-🛒 إضافات السلة:
-
-${product.carts.toLocaleString()}
-
-</span>
-
-<br>
-
-
-
-<span class="assistant">
-
-🤖 طلبات المساعد:
-
-${product.assistantOrders.toLocaleString()}
-
-</span>
-
-<br>
-
-
-
-📊
-
-<strong>
-إجمالي التفاعل:
 </strong>
 
-${(
-product.views +
-product.carts +
-product.assistantOrders
-).toLocaleString()}
+<br><br>
 
+👁️ المشاهدات:
+<span class="view">
+${product.views.toLocaleString()}
+</span>
 
+<br>
 
-<div class="last">
+🛒 إضافات السلة:
+<span class="cart">
+${product.carts.toLocaleString()}
+</span>
 
-🕐 آخر نشاط:
+<br>
 
-${lastActivity}
+📦 الكمية المطلوبة:
+<span class="orders">
+${product.quantity.toLocaleString()}
+</span>
 
-</div>
+كرتون
 
+<br>
 
-</div>
+🧾 عدد الطلبات:
+<strong>
+${product.orders.toLocaleString()}
+</strong>
 
 </div>
 
@@ -1233,16 +1438,30 @@ ${lastActivity}
 });
 
 
+}catch(error){
 
-console.log(
-"5 - تم عرض الإحصائيات بنجاح"
+console.error(
+"خطأ الإحصائيات:",
+error
 );
 
 
+productsStats.innerHTML = `
 
-}catch(error){
+<div class="empty">
 
-showError(error);
+❌ حدث خطأ أثناء تحميل الإحصائيات.
+
+<br><br>
+
+${escapeHtml(
+error.message ||
+String(error)
+)}
+
+</div>
+
+`;
 
 }
 
@@ -1287,10 +1506,9 @@ text ?? ""
 
 }
 
-
 </script>
 
 
 </body>
 
-</html>
+   </html>
