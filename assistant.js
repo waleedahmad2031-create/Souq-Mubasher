@@ -18,10 +18,13 @@ const sendButton = document.getElementById("sendButton");
 
 
 /* =========================================
-   المنتجات
+   البيانات
 ========================================= */
 
 let products = [];
+
+window.currentAssistantOrder = null;
+window.assistantCustomer = null;
 
 
 /* =========================================
@@ -84,8 +87,9 @@ async function loadProducts() {
 
     });
 
-    addBotMessage(
-      "تم تحميل المنتجات بنجاح ✅<br><br>اكتب اسم المنتج أو الكمية التي تريدها."
+    console.log(
+      "تم تحميل المنتجات:",
+      products.length
     );
 
   } catch (error) {
@@ -96,10 +100,7 @@ async function loadProducts() {
     );
 
     addBotMessage(
-      "حدث خطأ أثناء تحميل المنتجات ❌<br><br>" +
-      escapeHtml(
-        error.message || String(error)
-      )
+      "تعذر تحميل المنتجات حاليًا ❌"
     );
 
   }
@@ -108,7 +109,7 @@ async function loadProducts() {
 
 
 /* =========================================
-   رسالة المساعد
+   رسائل
 ========================================= */
 
 function addBotMessage(text) {
@@ -116,11 +117,9 @@ function addBotMessage(text) {
   const div =
     document.createElement("div");
 
-  div.className =
-    "message bot";
+  div.className = "message bot";
 
-  div.innerHTML =
-    text;
+  div.innerHTML = text;
 
   chat.appendChild(div);
 
@@ -128,21 +127,15 @@ function addBotMessage(text) {
 
 }
 
-
-/* =========================================
-   رسالة العميل
-========================================= */
 
 function addUserMessage(text) {
 
   const div =
     document.createElement("div");
 
-  div.className =
-    "message user";
+  div.className = "message user";
 
-  div.textContent =
-    text;
+  div.textContent = text;
 
   chat.appendChild(div);
 
@@ -150,10 +143,6 @@ function addUserMessage(text) {
 
 }
 
-
-/* =========================================
-   النزول لآخر المحادثة
-========================================= */
 
 function scrollChat() {
 
@@ -166,13 +155,35 @@ function scrollChat() {
 
 
 /* =========================================
+   تطبيع العربية
+========================================= */
+
+function normalizeArabic(text) {
+
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[إأآ]/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/ى/g, "ي")
+    .replace(/ؤ/g, "و")
+    .replace(/ئ/g, "ي")
+    .replace(/[ًٌٍَُِّْـ]/g, "")
+    .trim();
+
+}
+
+
+/* =========================================
    البحث عن المنتج
 ========================================= */
 
 function findProducts(text) {
 
+  const normalizedText =
+    normalizeArabic(text);
+
   const words =
-    normalizeArabic(text)
+    normalizedText
       .split(/\s+/)
       .filter(word => word.length >= 2);
 
@@ -193,7 +204,9 @@ function findProducts(text) {
         if (
           productName.includes(word)
         ) {
+
           score += 2;
+
         }
 
       });
@@ -212,25 +225,6 @@ function findProducts(text) {
     .map(
       item => item.product
     );
-
-}
-
-
-/* =========================================
-   تطبيع النص العربي
-========================================= */
-
-function normalizeArabic(text) {
-
-  return String(text || "")
-    .toLowerCase()
-    .replace(/[إأآ]/g, "ا")
-    .replace(/ة/g, "ه")
-    .replace(/ى/g, "ي")
-    .replace(/ؤ/g, "و")
-    .replace(/ئ/g, "ي")
-    .replace(/[ًٌٍَُِّْـ]/g, "")
-    .trim();
 
 }
 
@@ -255,7 +249,9 @@ function extractQuantity(text) {
     !Number.isFinite(quantity) ||
     quantity <= 0
   ) {
+
     return 1;
+
   }
 
   return quantity;
@@ -264,13 +260,522 @@ function extractQuantity(text) {
 
 
 /* =========================================
-   معالجة رسالة العميل
+   التأكد من نعم
+========================================= */
+
+function isYes(text) {
+
+  const value =
+    normalizeArabic(text)
+      .replace(/\s+/g, "");
+
+  return (
+    value === "نعم" ||
+    value === "نعمموافق" ||
+    value === "ايوه" ||
+    value === "ايوا" ||
+    value === "ايوة" ||
+    value === "ايه" ||
+    value === "موافق" ||
+    value === "موافقه" ||
+    value === "اوافق" ||
+    value === "تأكيد" ||
+    value === "تاكيد" ||
+    value === "أكد" ||
+    value === "اكيد" ||
+    value.includes("نعم") ||
+    value.includes("موافق") ||
+    value.includes("اوافق") ||
+    value.includes("تاكيد") ||
+    value.includes("تأكيد")
+  );
+
+}
+
+
+/* =========================================
+   التأكد من لا
+========================================= */
+
+function isNo(text) {
+
+  const value =
+    normalizeArabic(text)
+      .replace(/\s+/g, "");
+
+  return (
+    value === "لا" ||
+    value === "لالا" ||
+    value === "مش" ||
+    value === "لااريد" ||
+    value === "الغاء" ||
+    value === "إلغاء" ||
+    value.includes("لا اريد") ||
+    value.includes("لااريد") ||
+    value.includes("الغاء")
+  );
+
+}
+
+
+/* =========================================
+   استخراج بيانات العميل
+========================================= */
+
+function parseCustomerData(text) {
+
+  const result = {
+
+    name: "",
+    phone: "",
+    district: ""
+
+  };
+
+
+  /*
+     الطريقة الأولى:
+
+     الاسم: أحمد
+     الرقم: 777777777
+     الحي: السبل
+  */
+
+  const lines =
+    String(text)
+      .split("\n");
+
+
+  lines.forEach(line => {
+
+    const parts =
+      line.split(":");
+
+    if (parts.length < 2) {
+      return;
+    }
+
+    const key =
+      normalizeArabic(
+        parts.shift()
+      );
+
+    const value =
+      parts.join(":").trim();
+
+
+    if (
+      key === "الاسم" ||
+      key === "اسم"
+    ) {
+
+      result.name = value;
+
+    }
+
+
+    if (
+      key === "الرقم" ||
+      key === "رقم" ||
+      key === "الجوال" ||
+      key === "رقم الجوال" ||
+      key === "الهاتف" ||
+      key === "رقم الهاتف"
+    ) {
+
+      result.phone = value;
+
+    }
+
+
+    if (
+      key === "الحي" ||
+      key === "العنوان" ||
+      key === "المنطقه" ||
+      key === "المنطقة"
+    ) {
+
+      result.district = value;
+
+    }
+
+  });
+
+
+  /*
+     الطريقة الثانية:
+
+     أحمد - 777777777 - السبل
+  */
+
+  if (
+    !result.name ||
+    !result.phone ||
+    !result.district
+  ) {
+
+    const parts =
+      String(text)
+        .split(/[-–—,،]+/)
+        .map(x => x.trim())
+        .filter(Boolean);
+
+
+    if (parts.length >= 3) {
+
+      if (!result.name) {
+        result.name = parts[0];
+      }
+
+      if (!result.phone) {
+
+        const phonePart =
+          parts.find(
+            part =>
+              /(\+?\d[\d\s]{7,})/.test(
+                part
+              )
+          );
+
+        if (phonePart) {
+          result.phone = phonePart;
+        }
+
+      }
+
+      if (!result.district) {
+
+        const districtPart =
+          parts.find(
+            part =>
+              part !== result.name &&
+              part !== result.phone
+          );
+
+        if (districtPart) {
+          result.district =
+            districtPart;
+        }
+
+      }
+
+    }
+
+  }
+
+
+  /*
+     تنظيف رقم الجوال
+  */
+
+  result.phone =
+    String(result.phone || "")
+      .replace(/[^\d+]/g, "")
+      .trim();
+
+
+  return result;
+
+}
+
+
+/* =========================================
+   تجهيز الطلب
+========================================= */
+
+function prepareOrder(
+  product,
+  quantity
+) {
+
+  const total =
+    Number(product.price) *
+    Number(quantity);
+
+
+  window.currentAssistantOrder = {
+
+    productId:
+      product.id,
+
+    name:
+      product.name,
+
+    price:
+      Number(product.price),
+
+    quantity:
+      Number(quantity),
+
+    category:
+      product.category || "",
+
+    sellerId:
+      product.sellerId || "",
+
+    total:
+      total
+
+  };
+
+
+  addBotMessage(
+
+    "ممتاز 👍<br><br>" +
+
+    "📦 المنتج: <strong>" +
+    escapeHtml(product.name) +
+    "</strong><br>" +
+
+    "🔢 الكمية: <strong>" +
+    quantity +
+    "</strong><br>" +
+
+    "💰 الإجمالي: <strong>" +
+    total.toLocaleString() +
+    " ريال</strong><br><br>" +
+
+    "الآن أرسل بياناتك كلها في رسالة واحدة 👇<br><br>" +
+
+    "<strong>" +
+    "الاسم - رقم الجوال - الحي" +
+    "</strong><br><br>" +
+
+    "مثال:<br>" +
+
+    "أحمد - 777123456 - السبل"
+
+  );
+
+}
+
+
+/* =========================================
+   عرض تأكيد الطلب
+========================================= */
+
+function showOrderConfirmation() {
+
+  const order =
+    window.currentAssistantOrder;
+
+  const customer =
+    window.assistantCustomer;
+
+
+  if (!order || !customer) {
+    return;
+  }
+
+
+  addBotMessage(
+
+    "راجع طلبك من فضلك 👇<br><br>" +
+
+    "📦 المنتج: <strong>" +
+    escapeHtml(order.name) +
+    "</strong><br>" +
+
+    "🔢 الكمية: <strong>" +
+    order.quantity +
+    "</strong> كرتون<br>" +
+
+    "💰 المجموع: <strong>" +
+    Number(order.total)
+      .toLocaleString() +
+    " ريال</strong><br><br>" +
+
+    "👤 الاسم: <strong>" +
+    escapeHtml(customer.name) +
+    "</strong><br>" +
+
+    "📱 الجوال: <strong>" +
+    escapeHtml(customer.phone) +
+    "</strong><br>" +
+
+    "🏠 الحي: <strong>" +
+    escapeHtml(customer.district) +
+    "</strong><br><br>" +
+
+    "هل تؤكد الطلب؟<br>" +
+
+    "<strong>اكتب: نعم أو لا</strong>"
+
+  );
+
+}
+
+
+/* =========================================
+   حفظ الطلب
+========================================= */
+
+async function saveAssistantOrder() {
+
+  const order =
+    window.currentAssistantOrder;
+
+  const customer =
+    window.assistantCustomer;
+
+
+  if (!order || !customer) {
+
+    addBotMessage(
+      "لم أجد بيانات الطلب، حاول مرة أخرى."
+    );
+
+    return;
+
+  }
+
+
+  try {
+
+    const orderData = {
+
+      customerName:
+        String(customer.name),
+
+      customerPhone:
+        String(customer.phone),
+
+      customerCity:
+        "إب",
+
+      customerAddress:
+        String(customer.district),
+
+      deliveryDistrict:
+        String(customer.district),
+
+      deliveryArea:
+        "مدينة إب",
+
+      orderType:
+        "جملة",
+
+      deliveryTime:
+        "بعد تجهيز الطلب والتواصل مع العميل",
+
+      products: [
+
+        {
+
+          id:
+            String(order.productId),
+
+          name:
+            String(order.name),
+
+          price:
+            Number(order.price),
+
+          quantity:
+            Number(order.quantity),
+
+          category:
+            String(order.category || ""),
+
+          sellerId:
+            String(order.sellerId || "")
+
+        }
+
+      ],
+
+      productsTotal:
+        Number(order.total),
+
+      deliveryFee:
+        0,
+
+      cartonsTotal:
+        Number(order.quantity),
+
+      total:
+        Number(order.total),
+
+      status:
+        "جديد",
+
+      source:
+        "طلب بواسطة المساعد الذكي",
+
+      assistantOrder:
+        true,
+
+      sellerId:
+        String(order.sellerId || ""),
+
+      createdAt:
+        serverTimestamp()
+
+    };
+
+
+    const orderRef =
+      await addDoc(
+        collection(db, "orders"),
+        orderData
+      );
+
+
+    addBotMessage(
+
+      "✅ <strong>تم تسجيل طلبك بنجاح!</strong><br><br>" +
+
+      "🆔 رقم الطلب:<br>" +
+
+      "<strong>" +
+      escapeHtml(orderRef.id) +
+      "</strong><br><br>" +
+
+      "سيتم التواصل معك لتأكيد الطلب. 🌹"
+
+    );
+
+
+    window.currentAssistantOrder =
+      null;
+
+    window.assistantCustomer =
+      null;
+
+
+  } catch (error) {
+
+    console.error(
+      "خطأ حفظ طلب المساعد:",
+      error
+    );
+
+
+    addBotMessage(
+
+      "❌ تعذر تسجيل الطلب.<br><br>" +
+
+      escapeHtml(
+        error.message ||
+        String(error)
+      )
+
+    );
+
+  }
+
+}
+
+
+/* =========================================
+   معالجة الرسالة
 ========================================= */
 
 async function processMessage(text) {
 
   const cleanText =
     String(text || "").trim();
+
 
   if (!cleanText) {
     return;
@@ -285,24 +790,133 @@ async function processMessage(text) {
 
 
   /* ---------------------------------------
+     إذا في انتظار التأكيد
+  --------------------------------------- */
+
+  if (
+    window.currentAssistantOrder &&
+    window.assistantCustomer &&
+    window.assistantCustomer.confirmation === true
+  ) {
+
+
+    if (isYes(cleanText)) {
+
+      await saveAssistantOrder();
+
+      return;
+
+    }
+
+
+    if (isNo(cleanText)) {
+
+      window.currentAssistantOrder =
+        null;
+
+      window.assistantCustomer =
+        null;
+
+
+      addBotMessage(
+        "تم إلغاء الطلب 👍<br><br>" +
+        "يمكنك اختيار منتج آخر متى شئت."
+      );
+
+      return;
+
+    }
+
+
+    addBotMessage(
+      "لم أفهم الإجابة 😅<br><br>" +
+      "من فضلك اكتب <strong>نعم</strong> لتأكيد الطلب أو <strong>لا</strong> لإلغائه."
+    );
+
+    return;
+
+  }
+
+
+  /* ---------------------------------------
+     إذا يوجد منتج وننتظر بيانات العميل
+  --------------------------------------- */
+
+  if (
+    window.currentAssistantOrder &&
+    !window.assistantCustomer
+  ) {
+
+    const customer =
+      parseCustomerData(cleanText);
+
+
+    if (
+      !customer.name ||
+      !customer.phone ||
+      !customer.district
+    ) {
+
+      addBotMessage(
+
+        "أحتاج البيانات الثلاثة فقط 👇<br><br>" +
+
+        "👤 الاسم<br>" +
+        "📱 رقم الجوال<br>" +
+        "🏠 الحي<br><br>" +
+
+        "مثال:<br>" +
+
+        "<strong>" +
+        "أحمد - 777123456 - السبل" +
+        "</strong>"
+
+      );
+
+      return;
+
+    }
+
+
+    window.assistantCustomer = {
+
+      ...customer,
+
+      confirmation: true
+
+    };
+
+
+    showOrderConfirmation();
+
+    return;
+
+  }
+
+
+  /* ---------------------------------------
      تحية
   --------------------------------------- */
 
   if (
     lower === "السلام عليكم" ||
-    lower === "السلام عليكم ورحمه الله" ||
-    lower === "سلام" ||
     lower.includes("مرحبا") ||
-    lower.includes("هلا")
+    lower.includes("هلا") ||
+    lower === "سلام"
   ) {
 
     addBotMessage(
+
       "وعليكم السلام ورحمة الله وبركاته 🌹<br><br>" +
-      "أهلًا بك في سوق مباشر 🤖<br>" +
+
+      "أهلًا بك في سوق مباشر 🤖<br><br>" +
+
       "اكتب اسم المنتج والكمية التي تريدها."
+
     );
 
     return;
+
   }
 
 
@@ -312,23 +926,26 @@ async function processMessage(text) {
 
   if (
     lower.includes("مساعده") ||
-    lower.includes("كيف اطلب") ||
     lower.includes("كيف اطلب")
   ) {
 
     addBotMessage(
+
       "بكل سهولة 👍<br><br>" +
+
       "اكتب مثلًا:<br>" +
-      "أريد دقيق قمح عدد 10<br><br>" +
-      "وسأجهز لك الطلب."
+
+      "أريد دقيق قمح عدد 10"
+
     );
 
     return;
+
   }
 
 
   /* ---------------------------------------
-     البحث عن المنتجات
+     البحث عن المنتج
   --------------------------------------- */
 
   const found =
@@ -338,17 +955,17 @@ async function processMessage(text) {
   if (!found.length) {
 
     addBotMessage(
-      "لم أجد منتجًا مطابقًا لطلبك حاليًا 🔎<br><br>" +
-      "جرّب كتابة اسم المنتج بشكل أوضح."
+
+      "لم أجد المنتج الذي تقصده 🔎<br><br>" +
+
+      "اكتب اسم المنتج كما هو موجود في المتجر."
+
     );
 
     return;
+
   }
 
-
-  /* ---------------------------------------
-     المنتج الأول
-  --------------------------------------- */
 
   const product =
     found[0];
@@ -359,22 +976,22 @@ async function processMessage(text) {
 
 
   const total =
-    product.price * quantity;
+    Number(product.price) *
+    Number(quantity);
 
-
-  /* ---------------------------------------
-     عرض المنتج
-  --------------------------------------- */
 
   let html = "";
 
+
   html +=
     "وجدت لك هذا المنتج 👇<br><br>";
+
 
   html +=
     "<strong>" +
     escapeHtml(product.name) +
     "</strong><br>";
+
 
   html +=
     "💰 السعر: " +
@@ -382,27 +999,28 @@ async function processMessage(text) {
       .toLocaleString() +
     " ريال<br>";
 
+
   html +=
     "📦 الكمية: " +
     quantity +
     "<br>";
 
+
   html +=
     "💵 الإجمالي: " +
-    Number(total)
-      .toLocaleString() +
+    total.toLocaleString() +
     " ريال<br><br>";
 
+
   html +=
-    "إذا تريد طلبه، اضغط الزر التالي 👇";
+    "اضغط لطلب المنتج 👇<br><br>";
 
 
   html +=
-    "<br><br>" +
 
     `<button
       class="assistant-order-button"
-      data-product-id="${escapeHtml(product.id)}"
+      type="button"
     >
       🛒 طلب هذا المنتج
     </button>`;
@@ -410,10 +1028,6 @@ async function processMessage(text) {
 
   addBotMessage(html);
 
-
-  /* ---------------------------------------
-     زر الطلب
-  --------------------------------------- */
 
   const buttons =
     document.querySelectorAll(
@@ -445,372 +1059,6 @@ async function processMessage(text) {
 
 
 /* =========================================
-   تجهيز الطلب
-========================================= */
-
-function prepareOrder(
-  product,
-  quantity
-) {
-
-  const total =
-    product.price * quantity;
-
-
-  addBotMessage(
-    "ممتاز 👍<br><br>" +
-    "المنتج: <strong>" +
-    escapeHtml(product.name) +
-    "</strong><br>" +
-    "الكمية: <strong>" +
-    quantity +
-    "</strong><br>" +
-    "الإجمالي: <strong>" +
-    Number(total)
-      .toLocaleString() +
-    " ريال</strong><br><br>" +
-
-    "الآن أرسل بياناتك بهذا الشكل:<br><br>" +
-
-    "الاسم: محمد<br>" +
-    "رقم الجوال: 05xxxxxxxx<br>" +
-    "المدينة: إب<br>" +
-    "العنوان: الحي والشارع<br>" +
-    "وقت التوصيل: صباحًا أو مساءً"
-  );
-
-
-  /* حفظ المنتج مؤقتًا */
-
-  window.currentAssistantOrder = {
-
-    productId:
-      product.id,
-
-    name:
-      product.name,
-
-    price:
-      Number(product.price),
-
-    quantity:
-      Number(quantity),
-
-    category:
-      product.category || "",
-
-    sellerId:
-      product.sellerId || "",
-
-    total:
-      Number(product.price) *
-      Number(quantity)
-
-  };
-
-}
-
-
-/* =========================================
-   استخراج بيانات العميل
-========================================= */
-
-function parseCustomerData(text) {
-
-  const result = {
-
-    name: "",
-    phone: "",
-    city: "",
-    address: "",
-    deliveryTime: ""
-
-  };
-
-
-  const lines =
-    String(text)
-      .split("\n");
-
-
-  lines.forEach(line => {
-
-    const parts =
-      line.split(":");
-
-
-    if (parts.length < 2) {
-      return;
-    }
-
-
-    const key =
-      normalizeArabic(
-        parts.shift()
-      );
-
-
-    const value =
-      parts.join(":").trim();
-
-
-    if (
-      key === "الاسم" ||
-      key === "اسم"
-    ) {
-
-      result.name =
-        value;
-
-    }
-
-
-    if (
-      key === "رقم الجوال" ||
-      key === "الجوال" ||
-      key === "الهاتف" ||
-      key === "رقم الهاتف"
-    ) {
-
-      result.phone =
-        value;
-
-    }
-
-
-    if (
-      key === "المدينه" ||
-      key === "مدينة"
-    ) {
-
-      result.city =
-        value;
-
-    }
-
-
-    if (
-      key === "العنوان"
-    ) {
-
-      result.address =
-        value;
-
-    }
-
-
-    if (
-      key === "وقت التوصيل" ||
-      key === "الوقت"
-    ) {
-
-      result.deliveryTime =
-        value;
-
-    }
-
-  });
-
-
-  return result;
-
-}
-
-
-/* =========================================
-   حفظ طلب المساعد
-========================================= */
-
-async function saveAssistantOrder(
-  customer
-) {
-
-  const order =
-    window.currentAssistantOrder;
-
-
-  if (!order) {
-
-    addBotMessage(
-      "أولًا اختر المنتج الذي تريد طلبه 🛒"
-    );
-
-    return;
-
-  }
-
-
-  if (!customer.name) {
-
-    addBotMessage(
-      "اكتب اسمك من فضلك."
-    );
-
-    return;
-
-  }
-
-
-  if (!customer.phone) {
-
-    addBotMessage(
-      "اكتب رقم الجوال من فضلك."
-    );
-
-    return;
-
-  }
-
-
-  if (!customer.city) {
-
-    addBotMessage(
-      "اكتب المدينة من فضلك."
-    );
-
-    return;
-
-  }
-
-
-  if (!customer.address) {
-
-    addBotMessage(
-      "اكتب العنوان من فضلك."
-    );
-
-    return;
-
-  }
-
-
-  if (!customer.deliveryTime) {
-
-    addBotMessage(
-      "اكتب وقت التوصيل من فضلك."
-    );
-
-    return;
-
-  }
-
-
-  const orderData = {
-
-    customerName:
-      customer.name,
-
-    customerPhone:
-      customer.phone,
-
-    customerCity:
-      customer.city,
-
-    customerAddress:
-      customer.address,
-
-    deliveryArea:
-      customer.address,
-
-    orderType:
-      "طلب بواسطة المساعد الذكي",
-
-    deliveryTime:
-      customer.deliveryTime,
-
-    products: [
-
-      {
-
-        id:
-          order.productId,
-
-        name:
-          order.name,
-
-        price:
-          Number(order.price),
-
-        quantity:
-          Number(order.quantity),
-
-        category:
-          order.category || "",
-
-        sellerId:
-          order.sellerId || ""
-
-      }
-
-    ],
-
-    total:
-      Number(order.total),
-
-    status:
-      "جديد",
-
-    source:
-      "طلب بواسطة المساعد الذكي",
-
-    assistantOrder:
-      true,
-
-    createdAt:
-      serverTimestamp(),
-
-    sellerId:
-      order.sellerId || ""
-
-  };
-
-
-  try {
-
-    await addDoc(
-      collection(db, "orders"),
-      orderData
-    );
-
-
-    addBotMessage(
-      "تم إرسال طلبك بنجاح ✅🎉<br><br>" +
-
-      "رقم طلبك تم تسجيله في سوق مباشر." +
-
-      "<br><br>" +
-
-      "سيتم التواصل معك لتأكيد الطلب."
-    );
-
-
-    window.currentAssistantOrder =
-      null;
-
-
-  } catch (error) {
-
-    console.error(
-      "خطأ حفظ طلب المساعد:",
-      error
-    );
-
-
-    addBotMessage(
-      "تعذر تسجيل الطلب ❌<br><br>" +
-
-      escapeHtml(
-        error.message ||
-        String(error)
-      )
-    );
-
-  }
-
-}
-
-
-/* =========================================
    زر الإرسال
 ========================================= */
 
@@ -826,43 +1074,6 @@ async function sendMessage() {
 
 
   messageInput.value = "";
-
-
-  /* إذا يوجد طلب مجهز */
-
-  if (
-    window.currentAssistantOrder
-  ) {
-
-    const customer =
-      parseCustomerData(text);
-
-
-    /*
-      إذا المستخدم أرسل البيانات
-      في رسالة واحدة أو عدة أسطر
-    */
-
-    if (
-      customer.name ||
-      customer.phone ||
-      customer.city ||
-      customer.address ||
-      customer.deliveryTime
-    ) {
-
-      addUserMessage(text);
-
-
-      await saveAssistantOrder(
-        customer
-      );
-
-      return;
-
-    }
-
-  }
 
 
   await processMessage(text);
@@ -912,40 +1123,38 @@ if (messageInput) {
 
 function escapeHtml(text) {
 
-  return String(
-    text ?? ""
-  )
+  return String(text ?? "")
 
-  .replace(
-    /&/g,
-    "&amp;"
-  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
 
-  .replace(
-    /</g,
-    "&lt;"
-  )
+    .replace(
+      /</g,
+      "&lt;"
+    )
 
-  .replace(
-    />/g,
-    "&gt;"
-  )
+    .replace(
+      />/g,
+      "&gt;"
+    )
 
-  .replace(
-    /"/g,
-    "&quot;"
-  )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
 
-  .replace(
-    /'/g,
-    "&#039;"
-  );
+    .replace(
+      /'/g,
+      "&#039;"
+    );
 
 }
 
 
 /* =========================================
-   تشغيل المساعد
+   تشغيل
 ========================================= */
 
 loadProducts();
