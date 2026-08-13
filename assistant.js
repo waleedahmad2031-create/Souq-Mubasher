@@ -55,7 +55,7 @@ function numbers(text) {
   const arabic = "٠١٢٣٤٥٦٧٨٩";
   const english = "0123456789";
 
-  return text.replace(
+  return String(text).replace(
     /[٠-٩]/g,
     n => english[arabic.indexOf(n)]
   );
@@ -73,7 +73,7 @@ function clean(text) {
     .replace(/[ًٌٍَُِّْـ]/g, "")
     .replace(/[أإآ]/g, "ا")
     .replace(/ة/g, "ه")
-    .replace(/[،,]/g, " ")
+    .replace(/[،,؟?!]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -274,6 +274,7 @@ async function getProducts() {
         Number(
           data.price ||
           data.سعر ||
+          data["السعر"] ||
           0
         );
 
@@ -286,19 +287,28 @@ async function getProducts() {
         price: price,
 
         image:
-          data.image || "",
+          data.image ||
+          data.صورة ||
+          "",
 
         city:
-          data.city || "",
+          data.city ||
+          data.مدينة ||
+          "",
 
         description:
-          data.description || "",
+          data.description ||
+          data.الوصف ||
+          "",
 
         shopName:
-          data.shopName || "مشتاق وليد",
+          data.shopName ||
+          "مشتاق وليد",
 
         category:
-          data.category || ""
+          data.category ||
+          data.القسم ||
+          ""
 
       });
 
@@ -410,7 +420,7 @@ function getProductQuantity(
 
 
 // =====================================
-// البحث عن المنتجات
+// البحث المباشر باسم المنتج
 // =====================================
 
 function findProducts(
@@ -464,7 +474,63 @@ function findProducts(
 
 
 // =====================================
-// بحث مشابه
+// كلمات لا نعتبرها اسم منتج
+// =====================================
+
+const stopWords = [
+
+  "اريد",
+  "اشتي",
+  "ابغى",
+  "ابغا",
+  "احتاج",
+  "ارغب",
+  "هات",
+  "جيب",
+  "اعطني",
+  "اعطيني",
+  "من",
+  "لي",
+  "لو",
+  "سمحت",
+  "ممكن",
+  "طلب",
+  "شراء",
+  "اشتري",
+  "ابحث",
+  "بحث",
+  "عن",
+  "اريدك",
+  "اريدها",
+  "اريده",
+  "اعطنيه",
+  "اعطنيها"
+
+];
+
+
+// =====================================
+// استخراج كلمات البحث الأساسية
+// =====================================
+
+function getSearchWords(text) {
+
+  return clean(text)
+    .split(" ")
+    .filter(word => {
+
+      return (
+        word.length >= 2 &&
+        !stopWords.includes(word)
+      );
+
+    });
+
+}
+
+
+// =====================================
+// البحث عن المنتجات المتشابهة
 // =====================================
 
 function findSimilarProducts(
@@ -472,9 +538,8 @@ function findSimilarProducts(
   products
 ) {
 
-  const value = clean(text);
-
-  const words = value.split(" ");
+  const words =
+    getSearchWords(text);
 
   const found = [];
 
@@ -483,18 +548,21 @@ function findSimilarProducts(
     const productName =
       clean(product.name);
 
-    const match =
-      words.some(word => {
+    let score = 0;
 
-        if(word.length < 2) {
-          return false;
-        }
+    words.forEach(word => {
 
-        return productName.includes(word);
+      if(
+        productName.includes(word)
+      ) {
 
-      });
+        score++;
 
-    if(match) {
+      }
+
+    });
+
+    if(score > 0) {
 
       if(
         !found.some(
@@ -503,13 +571,30 @@ function findSimilarProducts(
         )
       ) {
 
-        found.push(product);
+        found.push({
+
+          ...product,
+
+          matchScore: score
+
+        });
 
       }
 
     }
 
   }
+
+
+  // المنتجات التي تحتوي أكبر عدد
+  // من كلمات البحث تظهر أولاً
+
+  found.sort(
+    (a,b) =>
+      b.matchScore -
+      a.matchScore
+  );
+
 
   return found;
 }
@@ -522,19 +607,19 @@ function findSimilarProducts(
 function showProductChoices(products) {
 
   let message =
-    "وجدت أكثر من نوع 👇\n\n";
+    `💧 حصلت لك على ${products.length} خيارات:\n\n`;
 
   products.forEach(
     (product,index) => {
 
       message +=
-        `${index + 1}. ${product.name} — ${product.price.toLocaleString()} ريال للكرتون\n`;
+        `${index + 1}️⃣ ${product.name}\n`;
 
     }
   );
 
   message +=
-    "\nاكتب اسم المنتج أو رقم الخيار.";
+    "\nاكتب رقم الخيار أو اسم المنتج الذي تريده.";
 
   availableProducts = products;
 
@@ -579,7 +664,8 @@ function addSelectedProduct(
 
     name: product.name,
 
-    price: Number(product.price || 0),
+    price:
+      Number(product.price || 0),
 
     quantity: quantity,
 
@@ -597,7 +683,8 @@ function addSelectedProduct(
       product.description || "",
 
     shopName:
-      product.shopName || "مشتاق وليد"
+      product.shopName ||
+      "مشتاق وليد"
 
   });
 }
@@ -991,6 +1078,8 @@ async function sendMessage() {
         await getProducts();
 
 
+      // إزالة رسالة البحث
+
       const loadingMessages =
         chat.querySelectorAll(".bot");
 
@@ -1013,6 +1102,10 @@ async function sendMessage() {
         return;
       }
 
+
+      // =================================
+      // البحث المباشر
+      // =================================
 
       const found =
         findProducts(
@@ -1042,6 +1135,10 @@ async function sendMessage() {
       }
 
 
+      // =================================
+      // البحث الذكي
+      // =================================
+
       const similar =
         findSimilarProducts(
           text,
@@ -1052,13 +1149,20 @@ async function sendMessage() {
       if(!similar.length) {
 
         addMessage(
-          "❌ لم أجد المنتج.\n\nاكتب اسم المنتج كما يظهر في المتجر.",
+          "❌ لم أجد المنتج.\n\n" +
+          "اكتب اسم المنتج الذي تبحث عنه، مثل:\n" +
+          "ماء\n" +
+          "دقيق\n" +
+          "زيت\n" +
+          "أرز",
           "bot"
         );
 
         return;
       }
 
+
+      // أكثر من خيار
 
       if(similar.length > 1) {
 
@@ -1069,6 +1173,8 @@ async function sendMessage() {
         return;
       }
 
+
+      // خيار واحد فقط
 
       addSelectedProduct(
         similar[0],
@@ -1104,6 +1210,8 @@ async function sendMessage() {
       clean(text).match(/^\d+$/);
 
 
+    // اختيار بالرقم
+
     if(numberMatch) {
 
       const index =
@@ -1117,9 +1225,12 @@ async function sendMessage() {
         const product =
           availableProducts[index];
 
+        const quantity =
+          extractQuantity(text);
+
         addSelectedProduct(
           product,
-          1
+          quantity
         );
 
         availableProducts = [];
@@ -1132,6 +1243,8 @@ async function sendMessage() {
       }
     }
 
+
+    // اختيار باسم المنتج
 
     const selected =
       findProducts(
@@ -1157,8 +1270,34 @@ async function sendMessage() {
     }
 
 
+    // بحث إضافي داخل الخيارات
+
+    const selectedSimilar =
+      findSimilarProducts(
+        text,
+        availableProducts
+      );
+
+
+    if(selectedSimilar.length === 1) {
+
+      addSelectedProduct(
+        selectedSimilar[0],
+        extractQuantity(text)
+      );
+
+      availableProducts = [];
+
+      orderStage = "confirm";
+
+      showOrder();
+
+      return;
+    }
+
+
     addMessage(
-      "اكتب اسم المنتج أو رقم الخيار.",
+      "اكتب رقم الخيار أو اسم المنتج الذي تريده.",
       "bot"
     );
 
