@@ -1,2228 +1,951 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-
-<head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-
-<title>إحصائيات سوق مباشر</title>
-
-<style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Tahoma,Arial,sans-serif;
-}
-
-body{
-background:#f5f5f5;
-color:#222;
-}
-
-header{
-background:#009688;
-color:white;
-padding:20px;
-text-align:center;
-font-size:25px;
-font-weight:bold;
-}
-
-.container{
-max-width:950px;
-margin:auto;
-padding:20px;
-}
-
-.card{
-background:white;
-padding:18px;
-margin-bottom:18px;
-border-radius:14px;
-box-shadow:0 2px 7px rgba(0,0,0,.1);
-}
-
-.back{
-background:#757575;
-color:white;
-border:none;
-padding:13px;
-width:100%;
-border-radius:9px;
-font-size:17px;
-cursor:pointer;
-}
-
-h2{
-margin-bottom:15px;
-}
-
-.monthSelect{
-width:100%;
-padding:14px;
-border:1px solid #ccc;
-border-radius:9px;
-font-size:17px;
-background:white;
-}
-
-.summary{
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:10px;
-}
-
-.summary-box{
-background:#f7fafa;
-padding:18px 10px;
-border-radius:12px;
-text-align:center;
-}
-
-.summary-number{
-font-size:25px;
-font-weight:bold;
-color:#009688;
-margin-top:7px;
-}
-
-.summary-title{
-font-size:13px;
-color:#666;
-}
-
-.stat{
-background:#fafafa;
-border:1px solid #eee;
-padding:13px;
-margin-top:10px;
-border-radius:10px;
-line-height:1.9;
-}
-
-.rank{
-font-size:18px;
-font-weight:bold;
-color:#009688;
-}
-
-.product{
-background:#fff;
-border:1px solid #eee;
-padding:15px;
-margin-top:12px;
-border-radius:12px;
-box-shadow:0 2px 5px rgba(0,0,0,.05);
-}
-
-.product h3{
-margin-bottom:8px;
-}
-
-.view{
-color:#00897b;
-font-weight:bold;
-}
-
-.cart{
-color:#673ab7;
-font-weight:bold;
-}
-
-.orders{
-color:#e65100;
-font-weight:bold;
-}
-
-.fast{
-color:#d32f2f;
-font-weight:bold;
-}
-
-.assistant{
-color:#009688;
-font-weight:bold;
-}
-
-.empty{
-text-align:center;
-padding:25px;
-color:#777;
-}
-
-.loading{
-text-align:center;
-padding:30px;
-color:#777;
-}
-
-@media(max-width:400px){
-
-.summary{
-grid-template-columns:1fr;
-}
-
-}
-
-</style>
-
-</head>
-
-<body>
-
-<header>
-
-📊 إحصائيات سوق مباشر
-
-</header>
-
-
-<div class="container">
-
-
-<!-- العودة -->
-
-<div class="card">
-
-<button
-class="back"
-onclick="location.href='orders.html'"
->
-
-⬅️ العودة إلى الطلبات
-
-</button>
-
-</div>
-
-
-<!-- اختيار الشهر -->
-
-<div class="card">
-
-<h2>
-📅 شهر الإحصائيات
-</h2>
-
-<select
-id="monthSelect"
-class="monthSelect"
->
-
-<option value="">
-جاري تحميل الأشهر...
-</option>
-
-</select>
-
-</div>
-
-
-<!-- الملخص -->
-
-<div class="card">
-
-<h2>
-📈 ملخص الإحصائيات
-</h2>
-
-<div class="summary">
-
-
-<div class="summary-box">
-
-<div class="summary-title">
-👁️ إجمالي المشاهدات
-</div>
-
-<div
-id="totalViews"
-class="summary-number"
->
-0
-</div>
-
-</div>
-
-
-<div class="summary-box">
-
-<div class="summary-title">
-🛒 إضافات السلة
-</div>
-
-<div
-id="totalCarts"
-class="summary-number"
->
-0
-</div>
-
-</div>
-
-
-<div class="summary-box">
-
-<div class="summary-title">
-📦 عدد المنتجات
-</div>
-
-<div
-id="totalProducts"
-class="summary-number"
->
-0
-</div>
-
-</div>
-
-
-<div class="summary-box">
-
-<div class="summary-title">
-🧾 عدد الطلبات
-</div>
-
-<div
-id="totalOrders"
-class="summary-number"
->
-0
-</div>
-
-</div>
-
-
-<div class="summary-box">
-
-<div class="summary-title">
-💰 متوسط قيمة الطلب
-</div>
-
-<div
-id="averageOrder"
-class="summary-number"
->
-0 ريال
-</div>
-
-</div>
-
-
-<div class="summary-box">
-
-<div class="summary-title">
-🤖 طلبات المساعد
-</div>
-
-<div
-id="assistantOrders"
-class="summary-number"
->
-0
-</div>
-
-</div>
-
-
-</div>
-
-</div>
-
-
-<!-- أكثر المنتجات طلبًا -->
-
-<div class="card">
-
-<h2>
-📦 أكثر المنتجات طلبًا
-</h2>
-
-<div id="topProducts">
-
-جاري التحميل...
-
-</div>
-
-</div>
-
-
-<!-- المنتجات سريعة الحركة -->
-
-<div class="card">
-
-<h2>
-🔥 المنتجات سريعة الحركة
-</h2>
-
-<div id="fastProducts">
-
-جاري التحميل...
-
-</div>
-
-</div>
-
-
-<!-- الأحياء -->
-
-<div class="card">
-
-<h2>
-🏠 الأحياء التي يأتي منها أكبر طلب
-</h2>
-
-<div id="topAreas">
-
-جاري التحميل...
-
-</div>
-
-</div>
-
-
-<!-- أوقات زيادة الطلب -->
-
-<div class="card">
-
-<h2>
-🕐 أوقات زيادة الطلب
-</h2>
-
-<div id="topTimes">
-
-جاري التحميل...
-
-</div>
-
-</div>
-
-
-<!-- المنتجات التي تشتري معًا -->
-
-<div class="card">
-
-<h2>
-🛒 المنتجات التي يشتريها الناس معًا
-</h2>
-
-<div id="togetherProducts">
-
-جاري التحميل...
-
-</div>
-
-</div>
-
-
-<!-- إحصائيات المنتجات -->
-
-<div class="card">
-
-<h2>
-🛍️ إحصائيات كل منتج
-</h2>
-
-<div id="productsStats">
-
-جاري التحميل...
-
-</div>
-
-</div>
-
-
-</div>
-
-
-<script type="module">
-
-
-import { db, auth } from "./firebase.js";
-
+import { db } from "./firebase.js";
 
 import {
-
-collection,
-getDocs
-
-} from
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-
-import {
-
-onAuthStateChanged
-
-} from
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  collection,
+  getDocs,
+  addDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
+/* =========================================
+   عناصر الصفحة
+========================================= */
 
-/* =====================================
-   المدير
-===================================== */
-
-const allowedEmails = [
-
-"waleedahmad@gmail.com",
-
-"waleedahmadahmad@gmail.com",
-
-"waleedahmad2031@gmail.com"
-
-];
+const chat = document.getElementById("chat");
+const messageInput = document.getElementById("messageInput");
+const sendButton = document.getElementById("sendButton");
 
 
+/* =========================================
+   المنتجات
+========================================= */
 
-/* =====================================
-   العناصر
-===================================== */
-
-const monthSelect =
-document.getElementById("monthSelect");
-
-const totalViews =
-document.getElementById("totalViews");
-
-const totalCarts =
-document.getElementById("totalCarts");
-
-const totalProducts =
-document.getElementById("totalProducts");
-
-const totalOrders =
-document.getElementById("totalOrders");
-
-const averageOrder =
-document.getElementById("averageOrder");
-
-const assistantOrders =
-document.getElementById("assistantOrders");
-
-const topProducts =
-document.getElementById("topProducts");
-
-const fastProducts =
-document.getElementById("fastProducts");
-
-const topAreas =
-document.getElementById("topAreas");
-
-const topTimes =
-document.getElementById("topTimes");
-
-const togetherProducts =
-document.getElementById("togetherProducts");
-
-const productsStats =
-document.getElementById("productsStats");
+let products = [];
 
 
+/* =========================================
+   تحميل المنتجات
+========================================= */
 
-/* =====================================
-   البيانات
-===================================== */
+async function loadProducts() {
 
-let allEvents = [];
+  try {
 
-let allOrders = [];
+    const snapshot = await getDocs(
+      collection(db, "products")
+    );
 
-let productsMap = {};
+    products = [];
 
-let availableMonths = [];
+    snapshot.forEach(doc => {
 
+      const data = doc.data();
 
+      products.push({
+        id: doc.id,
 
-/* =====================================
-   التحقق من المدير
-===================================== */
+        name:
+          data.name ||
+          data.اسم ||
+          "منتج",
 
-onAuthStateChanged(
+        price:
+          Number(
+            data.price ??
+            data.سعر ??
+            0
+          ),
 
-auth,
+        category:
+          data.category ||
+          data.القسم ||
+          "",
 
-async user => {
+        city:
+          data.city ||
+          data.مدينة ||
+          "",
 
-if(!user){
+        image:
+          data.image ||
+          data.صورة ||
+          "",
 
-productsStats.innerHTML = `
-<div class="empty">
+        description:
+          data.description ||
+          data.الوصف ||
+          "",
 
-🔐 يجب تسجيل دخول المدير أولًا.
+        sellerId:
+          data.sellerId ||
+          ""
+      });
 
-</div>
-`;
+    });
 
-return;
+    addBotMessage(
+      "تم تحميل المنتجات بنجاح ✅<br><br>اكتب اسم المنتج أو الكمية التي تريدها."
+    );
+
+  } catch (error) {
+
+    console.error(
+      "خطأ تحميل المنتجات:",
+      error
+    );
+
+    addBotMessage(
+      "حدث خطأ أثناء تحميل المنتجات ❌<br><br>" +
+      escapeHtml(
+        error.message || String(error)
+      )
+    );
+
+  }
 
 }
 
 
-if(
-!allowedEmails.includes(
-user.email
-)
-){
+/* =========================================
+   رسالة المساعد
+========================================= */
 
-productsStats.innerHTML = `
-<div class="empty">
+function addBotMessage(text) {
 
-❌ ليس لديك صلاحية دخول الإحصائيات.
+  const div =
+    document.createElement("div");
 
-</div>
-`;
+  div.className =
+    "message bot";
 
-return;
+  div.innerHTML =
+    text;
+
+  chat.appendChild(div);
+
+  scrollChat();
+
+}
+
+
+/* =========================================
+   رسالة العميل
+========================================= */
+
+function addUserMessage(text) {
+
+  const div =
+    document.createElement("div");
+
+  div.className =
+    "message user";
+
+  div.textContent =
+    text;
+
+  chat.appendChild(div);
+
+  scrollChat();
 
 }
 
 
-await loadData();
+/* =========================================
+   النزول لآخر المحادثة
+========================================= */
+
+function scrollChat() {
+
+  window.scrollTo({
+    top: document.body.scrollHeight,
+    behavior: "smooth"
+  });
 
 }
 
-);
 
+/* =========================================
+   البحث عن المنتج
+========================================= */
 
+function findProducts(text) {
 
-/* =====================================
-   تحميل البيانات
-===================================== */
+  const words =
+    normalizeArabic(text)
+      .split(/\s+/)
+      .filter(word => word.length >= 2);
 
-async function loadData(){
+  if (!words.length) {
+    return [];
+  }
 
-try{
+  return products
+    .map(product => {
 
+      const productName =
+        normalizeArabic(product.name);
 
-/* الأحداث */
+      let score = 0;
 
-const eventsSnap =
-await getDocs(
-collection(
-db,
-"productEvents"
-)
-);
+      words.forEach(word => {
 
+        if (
+          productName.includes(word)
+        ) {
+          score += 2;
+        }
 
-/* المنتجات */
+      });
 
-const productsSnap =
-await getDocs(
-collection(
-db,
-"products"
-)
-);
+      return {
+        product,
+        score
+      };
 
-
-/* الطلبات */
-
-const ordersSnap =
-await getDocs(
-collection(
-db,
-"orders"
-)
-);
-
-
-
-/* حفظ الأحداث */
-
-allEvents = [];
-
-eventsSnap.forEach(
-doc => {
-
-allEvents.push(
-doc.data()
-);
-
-});
-
-
-
-/* حفظ الطلبات */
-
-allOrders = [];
-
-ordersSnap.forEach(
-doc => {
-
-allOrders.push(
-doc.data()
-);
-
-});
-
-
-
-/* المنتجات */
-
-productsMap = {};
-
-productsSnap.forEach(
-doc => {
-
-productsMap[
-doc.id
-] =
-doc.data();
-
-});
-
-
-
-/* عدد المنتجات */
-
-totalProducts.innerText =
-productsSnap.size.toLocaleString();
-
-
-
-/* إنشاء الأشهر */
-
-createMonths();
-
-
-
-/* الشهر الحالي */
-
-const now =
-new Date();
-
-const currentMonth =
-now.getFullYear() +
-"-" +
-String(
-now.getMonth() + 1
-).padStart(2,"0");
-
-
-
-if(
-availableMonths.includes(
-currentMonth
-)
-){
-
-monthSelect.value =
-currentMonth;
-
-}else{
-
-availableMonths.unshift(
-currentMonth
-);
-
-monthSelect.innerHTML = "";
-
-availableMonths.forEach(
-month => {
-
-const option =
-document.createElement(
-"option"
-);
-
-option.value =
-month;
-
-option.textContent =
-formatMonth(month);
-
-monthSelect.appendChild(
-option
-);
-
-});
-
-monthSelect.value =
-currentMonth;
+    })
+    .filter(item => item.score > 0)
+    .sort(
+      (a, b) =>
+        b.score - a.score
+    )
+    .map(
+      item => item.product
+    );
 
 }
 
 
+/* =========================================
+   تطبيع النص العربي
+========================================= */
 
-/* تشغيل الإحصائيات */
+function normalizeArabic(text) {
 
-loadStatistics(
-currentMonth
-);
-
-
-
-/* تغيير الشهر */
-
-monthSelect.onchange =
-function(){
-
-loadStatistics(
-this.value
-);
-
-};
-
-
-}catch(error){
-
-console.error(
-error
-);
-
-productsStats.innerHTML = `
-
-<div class="empty">
-
-❌ حدث خطأ أثناء تحميل البيانات.
-
-<br><br>
-
-${escapeHtml(
-error.message ||
-String(error)
-)}
-
-</div>
-
-`;
-
-}
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[إأآ]/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/ى/g, "ي")
+    .replace(/ؤ/g, "و")
+    .replace(/ئ/g, "ي")
+    .replace(/[ًٌٍَُِّْـ]/g, "")
+    .trim();
 
 }
 
 
+/* =========================================
+   استخراج الكمية
+========================================= */
 
-/* =====================================
-   إنشاء الأشهر
-===================================== */
+function extractQuantity(text) {
 
-function createMonths(){
+  const match =
+    String(text).match(/\d+/);
 
-const months =
-new Set();
+  if (!match) {
+    return 1;
+  }
 
+  const quantity =
+    Number(match[0]);
 
+  if (
+    !Number.isFinite(quantity) ||
+    quantity <= 0
+  ) {
+    return 1;
+  }
 
-/* من الأحداث */
-
-allEvents.forEach(
-event => {
-
-const date =
-getDateFromTimestamp(
-event.createdAt
-);
-
-if(date){
-
-months.add(
-getMonthKey(date)
-);
-
-}
-
-});
-
-
-
-/* من الطلبات */
-
-allOrders.forEach(
-order => {
-
-const date =
-getDateFromTimestamp(
-order.createdAt
-);
-
-if(date){
-
-months.add(
-getMonthKey(date)
-);
-
-}
-
-});
-
-
-
-availableMonths =
-Array.from(months)
-.sort()
-.reverse();
-
-
-
-const now =
-new Date();
-
-const currentMonth =
-getMonthKey(now);
-
-
-
-if(
-!availableMonths.includes(
-currentMonth
-)
-){
-
-availableMonths.unshift(
-currentMonth
-);
+  return quantity;
 
 }
 
 
+/* =========================================
+   معالجة رسالة العميل
+========================================= */
 
-monthSelect.innerHTML = "";
+async function processMessage(text) {
+
+  const cleanText =
+    String(text || "").trim();
+
+  if (!cleanText) {
+    return;
+  }
 
 
+  addUserMessage(cleanText);
 
-availableMonths.forEach(
-month => {
 
-const option =
-document.createElement(
-"option"
-);
+  const lower =
+    normalizeArabic(cleanText);
 
-option.value =
-month;
 
-option.textContent =
-formatMonth(month);
+  /* ---------------------------------------
+     تحية
+  --------------------------------------- */
 
-monthSelect.appendChild(
-option
-);
+  if (
+    lower === "السلام عليكم" ||
+    lower === "السلام عليكم ورحمه الله" ||
+    lower === "سلام" ||
+    lower.includes("مرحبا") ||
+    lower.includes("هلا")
+  ) {
 
-});
+    addBotMessage(
+      "وعليكم السلام ورحمة الله وبركاته 🌹<br><br>" +
+      "أهلًا بك في سوق مباشر 🤖<br>" +
+      "اكتب اسم المنتج والكمية التي تريدها."
+    );
+
+    return;
+  }
+
+
+  /* ---------------------------------------
+     مساعدة
+  --------------------------------------- */
+
+  if (
+    lower.includes("مساعده") ||
+    lower.includes("كيف اطلب") ||
+    lower.includes("كيف اطلب")
+  ) {
+
+    addBotMessage(
+      "بكل سهولة 👍<br><br>" +
+      "اكتب مثلًا:<br>" +
+      "أريد دقيق قمح عدد 10<br><br>" +
+      "وسأجهز لك الطلب."
+    );
+
+    return;
+  }
+
+
+  /* ---------------------------------------
+     البحث عن المنتجات
+  --------------------------------------- */
+
+  const found =
+    findProducts(cleanText);
+
+
+  if (!found.length) {
+
+    addBotMessage(
+      "لم أجد منتجًا مطابقًا لطلبك حاليًا 🔎<br><br>" +
+      "جرّب كتابة اسم المنتج بشكل أوضح."
+    );
+
+    return;
+  }
+
+
+  /* ---------------------------------------
+     المنتج الأول
+  --------------------------------------- */
+
+  const product =
+    found[0];
+
+
+  const quantity =
+    extractQuantity(cleanText);
+
+
+  const total =
+    product.price * quantity;
+
+
+  /* ---------------------------------------
+     عرض المنتج
+  --------------------------------------- */
+
+  let html = "";
+
+  html +=
+    "وجدت لك هذا المنتج 👇<br><br>";
+
+  html +=
+    "<strong>" +
+    escapeHtml(product.name) +
+    "</strong><br>";
+
+  html +=
+    "💰 السعر: " +
+    Number(product.price)
+      .toLocaleString() +
+    " ريال<br>";
+
+  html +=
+    "📦 الكمية: " +
+    quantity +
+    "<br>";
+
+  html +=
+    "💵 الإجمالي: " +
+    Number(total)
+      .toLocaleString() +
+    " ريال<br><br>";
+
+  html +=
+    "إذا تريد طلبه، اضغط الزر التالي 👇";
+
+
+  html +=
+    "<br><br>" +
+
+    `<button
+      class="assistant-order-button"
+      data-product-id="${escapeHtml(product.id)}"
+    >
+      🛒 طلب هذا المنتج
+    </button>`;
+
+
+  addBotMessage(html);
+
+
+  /* ---------------------------------------
+     زر الطلب
+  --------------------------------------- */
+
+  const buttons =
+    document.querySelectorAll(
+      ".assistant-order-button"
+    );
+
+
+  const button =
+    buttons[buttons.length - 1];
+
+
+  if (button) {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        prepareOrder(
+          product,
+          quantity
+        );
+
+      }
+    );
+
+  }
 
 }
 
 
+/* =========================================
+   تجهيز الطلب
+========================================= */
 
-/* =====================================
-   تحويل التاريخ
-===================================== */
+function prepareOrder(
+  product,
+  quantity
+) {
 
-function getDateFromTimestamp(
-timestamp
-){
-
-if(!timestamp){
-
-return null;
-
-}
+  const total =
+    product.price * quantity;
 
 
-try{
+  addBotMessage(
+    "ممتاز 👍<br><br>" +
+    "المنتج: <strong>" +
+    escapeHtml(product.name) +
+    "</strong><br>" +
+    "الكمية: <strong>" +
+    quantity +
+    "</strong><br>" +
+    "الإجمالي: <strong>" +
+    Number(total)
+      .toLocaleString() +
+    " ريال</strong><br><br>" +
 
-if(
-typeof timestamp.toDate ===
-"function"
-){
+    "الآن أرسل بياناتك بهذا الشكل:<br><br>" +
 
-return timestamp.toDate();
-
-}
-
-
-if(
-timestamp instanceof Date
-){
-
-return timestamp;
-
-}
-
-
-return new Date(
-timestamp
-);
-
-}catch(error){
-
-return null;
-
-}
-
-}
+    "الاسم: محمد<br>" +
+    "رقم الجوال: 05xxxxxxxx<br>" +
+    "المدينة: إب<br>" +
+    "العنوان: الحي والشارع<br>" +
+    "وقت التوصيل: صباحًا أو مساءً"
+  );
 
 
+  /* حفظ المنتج مؤقتًا */
 
-/* =====================================
-   مفتاح الشهر
-===================================== */
+  window.currentAssistantOrder = {
 
-function getMonthKey(
-date
-){
+    productId:
+      product.id,
 
-return date.getFullYear() +
-"-" +
-String(
-date.getMonth() + 1
-).padStart(
-2,
-"0"
-);
+    name:
+      product.name,
+
+    price:
+      Number(product.price),
+
+    quantity:
+      Number(quantity),
+
+    category:
+      product.category || "",
+
+    sellerId:
+      product.sellerId || "",
+
+    total:
+      Number(product.price) *
+      Number(quantity)
+
+  };
 
 }
 
 
+/* =========================================
+   استخراج بيانات العميل
+========================================= */
 
-/* =====================================
-   اسم الشهر
-===================================== */
+function parseCustomerData(text) {
 
-function formatMonth(
-month
-){
+  const result = {
 
-const parts =
-month.split("-");
+    name: "",
+    phone: "",
+    city: "",
+    address: "",
+    deliveryTime: ""
 
-const year =
-Number(parts[0]);
-
-const monthNumber =
-Number(parts[1]);
+  };
 
 
-
-const names = [
-
-"يناير",
-"فبراير",
-"مارس",
-"أبريل",
-"مايو",
-"يونيو",
-"يوليو",
-"أغسطس",
-"سبتمبر",
-"أكتوبر",
-"نوفمبر",
-"ديسمبر"
-
-];
+  const lines =
+    String(text)
+      .split("\n");
 
 
-return (
-names[
-monthNumber - 1
-] ||
-""
-) +
-" " +
-year;
+  lines.forEach(line => {
+
+    const parts =
+      line.split(":");
+
+
+    if (parts.length < 2) {
+      return;
+    }
+
+
+    const key =
+      normalizeArabic(
+        parts.shift()
+      );
+
+
+    const value =
+      parts.join(":").trim();
+
+
+    if (
+      key === "الاسم" ||
+      key === "اسم"
+    ) {
+
+      result.name =
+        value;
+
+    }
+
+
+    if (
+      key === "رقم الجوال" ||
+      key === "الجوال" ||
+      key === "الهاتف" ||
+      key === "رقم الهاتف"
+    ) {
+
+      result.phone =
+        value;
+
+    }
+
+
+    if (
+      key === "المدينه" ||
+      key === "مدينة"
+    ) {
+
+      result.city =
+        value;
+
+    }
+
+
+    if (
+      key === "العنوان"
+    ) {
+
+      result.address =
+        value;
+
+    }
+
+
+    if (
+      key === "وقت التوصيل" ||
+      key === "الوقت"
+    ) {
+
+      result.deliveryTime =
+        value;
+
+    }
+
+  });
+
+
+  return result;
 
 }
 
 
+/* =========================================
+   حفظ طلب المساعد
+========================================= */
 
-/* =====================================
-   الإحصائيات
-===================================== */
+async function saveAssistantOrder(
+  customer
+) {
 
-function loadStatistics(
-selectedMonth
-){
-
-try{
+  const order =
+    window.currentAssistantOrder;
 
 
-/* =================================
+  if (!order) {
+
+    addBotMessage(
+      "أولًا اختر المنتج الذي تريد طلبه 🛒"
+    );
+
+    return;
+
+  }
+
+
+  if (!customer.name) {
+
+    addBotMessage(
+      "اكتب اسمك من فضلك."
+    );
+
+    return;
+
+  }
+
+
+  if (!customer.phone) {
+
+    addBotMessage(
+      "اكتب رقم الجوال من فضلك."
+    );
+
+    return;
+
+  }
+
+
+  if (!customer.city) {
+
+    addBotMessage(
+      "اكتب المدينة من فضلك."
+    );
+
+    return;
+
+  }
+
+
+  if (!customer.address) {
+
+    addBotMessage(
+      "اكتب العنوان من فضلك."
+    );
+
+    return;
+
+  }
+
+
+  if (!customer.deliveryTime) {
+
+    addBotMessage(
+      "اكتب وقت التوصيل من فضلك."
+    );
+
+    return;
+
+  }
+
+
+  const orderData = {
+
+    customerName:
+      customer.name,
+
+    customerPhone:
+      customer.phone,
+
+    customerCity:
+      customer.city,
+
+    customerAddress:
+      customer.address,
+
+    deliveryArea:
+      customer.address,
+
+    orderType:
+      "طلب بواسطة المساعد الذكي",
+
+    deliveryTime:
+      customer.deliveryTime,
+
+    products: [
+
+      {
+
+        id:
+          order.productId,
+
+        name:
+          order.name,
+
+        price:
+          Number(order.price),
+
+        quantity:
+          Number(order.quantity),
+
+        category:
+          order.category || "",
+
+        sellerId:
+          order.sellerId || ""
+
+      }
+
+    ],
+
+    total:
+      Number(order.total),
+
+    status:
+      "جديد",
+
+    source:
+      "طلب بواسطة المساعد الذكي",
+
+    assistantOrder:
+      true,
+
+    createdAt:
+      serverTimestamp(),
+
+    sellerId:
+      order.sellerId || ""
+
+  };
+
+
+  try {
+
+    await addDoc(
+      collection(db, "orders"),
+      orderData
+    );
+
+
+    addBotMessage(
+      "تم إرسال طلبك بنجاح ✅🎉<br><br>" +
+
+      "رقم طلبك تم تسجيله في سوق مباشر." +
+
+      "<br><br>" +
+
+      "سيتم التواصل معك لتأكيد الطلب."
+    );
+
+
+    window.currentAssistantOrder =
+      null;
+
+
+  } catch (error) {
+
+    console.error(
+      "خطأ حفظ طلب المساعد:",
+      error
+    );
+
+
+    addBotMessage(
+      "تعذر تسجيل الطلب ❌<br><br>" +
+
+      escapeHtml(
+        error.message ||
+        String(error)
+      )
+    );
+
+  }
+
+}
+
+
+/* =========================================
+   زر الإرسال
+========================================= */
+
+async function sendMessage() {
+
+  const text =
+    messageInput.value.trim();
+
+
+  if (!text) {
+    return;
+  }
+
+
+  messageInput.value = "";
+
+
+  /* إذا يوجد طلب مجهز */
+
+  if (
+    window.currentAssistantOrder
+  ) {
+
+    const customer =
+      parseCustomerData(text);
+
+
+    /*
+      إذا المستخدم أرسل البيانات
+      في رسالة واحدة أو عدة أسطر
+    */
+
+    if (
+      customer.name ||
+      customer.phone ||
+      customer.city ||
+      customer.address ||
+      customer.deliveryTime
+    ) {
+
+      addUserMessage(text);
+
+
+      await saveAssistantOrder(
+        customer
+      );
+
+      return;
+
+    }
+
+  }
+
+
+  await processMessage(text);
+
+}
+
+
+/* =========================================
    الأحداث
-================================= */
+========================================= */
 
-const events =
-allEvents.filter(
-event => {
+if (sendButton) {
 
-const date =
-getDateFromTimestamp(
-event.createdAt
-);
-
-if(!date){
-
-return false;
-
-}
-
-return (
-getMonthKey(date) ===
-selectedMonth
-);
-
-}
-);
-
-
-
-/* =================================
-   الطلبات
-================================= */
-
-const orders =
-allOrders.filter(
-order => {
-
-const date =
-getDateFromTimestamp(
-order.createdAt
-);
-
-if(!date){
-
-return false;
-
-}
-
-return (
-getMonthKey(date) ===
-selectedMonth
-);
-
-}
-);
-
-
-
-/* =================================
-   إحصائيات المنتجات
-================================= */
-
-const stats = {};
-
-let views = 0;
-
-let carts = 0;
-
-
-
-events.forEach(
-event => {
-
-const id =
-String(
-event.productId || ""
-);
-
-if(!id){
-
-return;
+  sendButton.addEventListener(
+    "click",
+    sendMessage
+  );
 
 }
 
 
+if (messageInput) {
 
-if(!stats[id]){
+  messageInput.addEventListener(
+    "keydown",
+    event => {
 
-const original =
-productsMap[id] || {};
+      if (
+        event.key === "Enter"
+      ) {
 
-stats[id] = {
+        event.preventDefault();
 
-id:id,
+        sendMessage();
 
-name:
-original.name ||
-original.اسم ||
-event.productName ||
-"منتج",
+      }
 
-category:
-original.category ||
-original.القسم ||
-event.category ||
-"غير محدد",
-
-price:
-Number(
-original.price ??
-original.سعر ??
-event.price ??
-0
-),
-
-views:0,
-
-carts:0,
-
-orders:0,
-
-quantity:0
-
-};
+    }
+  );
 
 }
 
 
+/* =========================================
+   حماية HTML
+========================================= */
 
-/* مشاهدة */
+function escapeHtml(text) {
 
-if(
-event.type ===
-"view"
-){
+  return String(
+    text ?? ""
+  )
 
-stats[id].views++;
+  .replace(
+    /&/g,
+    "&amp;"
+  )
 
-views++;
+  .replace(
+    /</g,
+    "&lt;"
+  )
 
-}
+  .replace(
+    />/g,
+    "&gt;"
+  )
 
+  .replace(
+    /"/g,
+    "&quot;"
+  )
 
-
-/* سلة */
-
-if(
-event.type ===
-"cart"
-){
-
-stats[id].carts++;
-
-carts++;
-
-}
-
-});
-
-
-
-/* =================================
-   الطلبات
-================================= */
-
-let orderCount =
-orders.length;
-
-let totalOrderValue =
-0;
-
-let assistantCount =
-0;
-
-
-
-const areas = {};
-
-const times = {};
-
-const pairs = {};
-
-
-
-orders.forEach(
-order => {
-
-
-/* قيمة الطلب */
-
-const orderTotal =
-Number(
-order.total || 0
-);
-
-totalOrderValue +=
-orderTotal;
-
-
-
-/* =================================
-   طلبات المساعد
-================================= */
-
-/*
-نقبل الطريقتين:
-
-1- assistantOrder: true
-
-2- source: طلب بواسطة المساعد الذكي
-
-وهذا يمنع اختفاء طلبات المساعد
-*/
-
-if(
-order.assistantOrder === true ||
-String(
-order.source || ""
-).trim() ===
-"طلب بواسطة المساعد الذكي"
-){
-
-assistantCount++;
+  .replace(
+    /'/g,
+    "&#039;"
+  );
 
 }
 
 
-
-/* =================================
-   الحي
-================================= */
-
-const area =
-String(
-order.customerAddress ||
-order.address ||
-"غير محدد"
-).trim();
-
-
-
-if(area){
-
-areas[area] =
-(
-areas[area] || 0
-) + 1;
-
-}
-
-
-
-/* =================================
-   وقت الطلب
-================================= */
-
-const orderDate =
-getDateFromTimestamp(
-order.createdAt
-);
-
-
-
-if(orderDate){
-
-const hour =
-orderDate.getHours();
-
-let label;
-
-
-
-if(
-hour >= 5 &&
-hour < 12
-){
-
-label =
-"🌅 الصباح";
-
-}else if(
-hour >= 12 &&
-hour < 17
-){
-
-label =
-"☀️ الظهر والعصر";
-
-}else if(
-hour >= 17 &&
-hour < 22
-){
-
-label =
-"🌙 المساء";
-
-}else{
-
-label =
-"🌃 الليل";
-
-}
-
-
-
-times[label] =
-(
-times[label] || 0
-) + 1;
-
-}
-
-
-
-/* =================================
-   منتجات الطلب
-================================= */
-
-const orderProducts =
-Array.isArray(
-order.products
-)
-?
-order.products
-:
-[];
-
-
-
-const ids = [];
-
-
-
-orderProducts.forEach(
-product => {
-
-const id =
-String(
-product.id || ""
-);
-
-
-
-if(!id){
-
-return;
-
-}
-
-
-
-if(!stats[id]){
-
-stats[id] = {
-
-id:id,
-
-name:
-product.name ||
-"منتج",
-
-category:
-product.category ||
-"غير محدد",
-
-price:
-Number(
-product.price || 0
-),
-
-views:0,
-
-carts:0,
-
-orders:0,
-
-quantity:0
-
-};
-
-}
-
-
-
-const quantity =
-Number(
-product.quantity || 1
-);
-
-
-
-stats[id].orders++;
-
-stats[id].quantity +=
-quantity;
-
-
-
-ids.push(id);
-
-});
-
-
-
-/* =================================
-   المنتجات التي تشتري معًا
-================================= */
-
-const uniqueIds =
-[
-...new Set(ids)
-];
-
-
-
-for(
-let i = 0;
-i < uniqueIds.length;
-i++
-){
-
-for(
-let j = i + 1;
-j < uniqueIds.length;
-j++
-){
-
-const pair =
-[
-uniqueIds[i],
-uniqueIds[j]
-].sort();
-
-
-
-const key =
-pair.join("|");
-
-
-
-pairs[key] =
-(
-pairs[key] || 0
-) + 1;
-
-}
-
-}
-
-});
-
-
-
-/* =================================
-   عرض الملخص
-================================= */
-
-totalViews.innerText =
-views.toLocaleString();
-
-
-
-totalCarts.innerText =
-carts.toLocaleString();
-
-
-
-totalOrders.innerText =
-orderCount.toLocaleString();
-
-
-
-assistantOrders.innerText =
-assistantCount.toLocaleString();
-
-
-
-const average =
-orderCount > 0
-?
-totalOrderValue /
-orderCount
-:
-0;
-
-
-
-averageOrder.innerText =
-Math.round(
-average
-).toLocaleString()
-+
-" ريال";
-
-
-
-/* =================================
-   أكثر المنتجات طلبًا
-================================= */
-
-const top =
-Object.values(stats)
-.sort(
-(a,b) =>
-b.quantity -
-a.quantity
-)
-.slice(
-0,
-10
-);
-
-
-
-if(!top.length){
-
-topProducts.innerHTML = `
-
-<div class="empty">
-
-لا توجد طلبات في هذا الشهر.
-
-</div>
-
-`;
-
-}else{
-
-topProducts.innerHTML =
-"";
-
-
-
-top.forEach(
-(product,index) => {
-
-topProducts.innerHTML += `
-
-<div class="stat">
-
-<span class="rank">
-
-${index + 1}️⃣
-
-</span>
-
-<strong>
-
-${escapeHtml(
-product.name
-)}
-
-</strong>
-
-<br>
-
-📦 الكمية المطلوبة:
-
-<strong>
-
-${product.quantity.toLocaleString()}
-
-</strong>
-
-كرتون
-
-<br>
-
-🧾 عدد الطلبات:
-
-<strong>
-
-${product.orders.toLocaleString()}
-
-</strong>
-
-</div>
-
-`;
-
-});
-
-}
-
-
-
-/* =================================
-   المنتجات سريعة الحركة
-================================= */
-
-const fast =
-Object.values(stats)
-.sort(
-(a,b) =>
-
-(
-b.views +
-b.carts * 3 +
-b.quantity * 5
-)
-
--
-
-(
-a.views +
-a.carts * 3 +
-a.quantity * 5
-)
-
-)
-.slice(
-0,
-10
-);
-
-
-
-if(!fast.length){
-
-fastProducts.innerHTML = `
-
-<div class="empty">
-
-لا توجد بيانات لهذا الشهر.
-
-</div>
-
-`;
-
-}else{
-
-fastProducts.innerHTML =
-"";
-
-
-
-fast.forEach(
-(product,index) => {
-
-fastProducts.innerHTML += `
-
-<div class="product">
-
-<span class="fast">
-
-🔥 ${index + 1}.
-
-</span>
-
-<strong>
-
-${escapeHtml(
-product.name
-)}
-
-</strong>
-
-<br><br>
-
-👁️ المشاهدات:
-
-<span class="view">
-
-${product.views.toLocaleString()}
-
-</span>
-
-<br>
-
-🛒 السلة:
-
-<span class="cart">
-
-${product.carts.toLocaleString()}
-
-</span>
-
-<br>
-
-📦 الطلب:
-
-<span class="orders">
-
-${product.quantity.toLocaleString()}
-
-</span>
-
-كرتون
-
-</div>
-
-`;
-
-});
-
-}
-
-
-
-/* =================================
-   الأحياء
-================================= */
-
-const areaList =
-Object.entries(
-areas
-)
-.sort(
-(a,b) =>
-b[1] -
-a[1]
-)
-.slice(
-0,
-10
-);
-
-
-
-if(!areaList.length){
-
-topAreas.innerHTML = `
-
-<div class="empty">
-
-لا توجد بيانات أحياء لهذا الشهر.
-
-</div>
-
-`;
-
-}else{
-
-topAreas.innerHTML =
-"";
-
-
-
-areaList.forEach(
-(item,index) => {
-
-topAreas.innerHTML += `
-
-<div class="stat">
-
-<span class="rank">
-
-${index + 1}️⃣
-
-</span>
-
-🏠
-
-<strong>
-
-${escapeHtml(
-item[0]
-)}
-
-</strong>
-
-<br>
-
-📦 عدد الطلبات:
-
-<strong>
-
-${item[1].toLocaleString()}
-
-</strong>
-
-</div>
-
-`;
-
-});
-
-}
-
-
-
-/* =================================
-   الأوقات
-================================= */
-
-const timeList =
-Object.entries(
-times
-)
-.sort(
-(a,b) =>
-b[1] -
-a[1]
-);
-
-
-
-if(!timeList.length){
-
-topTimes.innerHTML = `
-
-<div class="empty">
-
-لا توجد طلبات لهذا الشهر.
-
-</div>
-
-`;
-
-}else{
-
-topTimes.innerHTML =
-"";
-
-
-
-timeList.forEach(
-(item,index) => {
-
-topTimes.innerHTML += `
-
-<div class="stat">
-
-<span class="rank">
-
-${index + 1}️⃣
-
-</span>
-
-<strong>
-
-${escapeHtml(
-item[0]
-)}
-
-</strong>
-
-<br>
-
-🧾 عدد الطلبات:
-
-<strong>
-
-${item[1].toLocaleString()}
-
-</strong>
-
-</div>
-
-`;
-
-});
-
-}
-
-
-
-/* =================================
-   المنتجات المشتركة
-================================= */
-
-const pairList =
-Object.entries(
-pairs
-)
-.sort(
-(a,b) =>
-b[1] -
-a[1]
-)
-.slice(
-0,
-10
-);
-
-
-
-if(!pairList.length){
-
-togetherProducts.innerHTML = `
-
-<div class="empty">
-
-لم يشترِ العملاء منتجات متعددة
-في هذا الشهر حتى الآن.
-
-</div>
-
-`;
-
-}else{
-
-togetherProducts.innerHTML =
-"";
-
-
-
-pairList.forEach(
-(item,index) => {
-
-const ids =
-item[0].split("|");
-
-
-
-const productA =
-stats[ids[0]];
-
-
-
-const productB =
-stats[ids[1]];
-
-
-
-togetherProducts.innerHTML += `
-
-<div class="stat">
-
-<span class="rank">
-
-${index + 1}️⃣
-
-</span>
-
-🛍️
-
-<strong>
-
-${escapeHtml(
-productA?.name ||
-"منتج"
-)}
-
-</strong>
-
-+
-
-<strong>
-
-${escapeHtml(
-productB?.name ||
-"منتج"
-)}
-
-</strong>
-
-<br>
-
-🧾 تكررت معًا:
-
-<strong>
-
-${item[1].toLocaleString()}
-
-</strong>
-
-طلبات
-
-</div>
-
-`;
-
-});
-
-}
-
-
-
-/* =================================
-   إحصائيات كل منتج
-================================= */
-
-const productList =
-Object.values(
-stats
-)
-.sort(
-(a,b) =>
-
-(
-b.views +
-b.carts +
-b.quantity
-)
-
--
-
-(
-a.views +
-a.carts +
-a.quantity
-)
-
-);
-
-
-
-if(!productList.length){
-
-productsStats.innerHTML = `
-
-<div class="empty">
-
-لا توجد بيانات منتجات لهذا الشهر.
-
-</div>
-
-`;
-
-}else{
-
-productsStats.innerHTML =
-"";
-
-
-
-productList.forEach(
-product => {
-
-productsStats.innerHTML += `
-
-<div class="product">
-
-<h3>
-
-🛍️
-
-${escapeHtml(
-product.name
-)}
-
-</h3>
-
-📂 القسم:
-
-<strong>
-
-${escapeHtml(
-product.category
-)}
-
-</strong>
-
-<br>
-
-💰 السعر:
-
-<strong>
-
-${Number(
-product.price || 0
-).toLocaleString()}
-
-ريال
-
-</strong>
-
-<br><br>
-
-👁️ المشاهدات:
-
-<span class="view">
-
-${product.views.toLocaleString()}
-
-</span>
-
-<br>
-
-🛒 إضافات السلة:
-
-<span class="cart">
-
-${product.carts.toLocaleString()}
-
-</span>
-
-<br>
-
-📦 الكمية المطلوبة:
-
-<span class="orders">
-
-${product.quantity.toLocaleString()}
-
-</span>
-
-كرتون
-
-<br>
-
-🧾 عدد الطلبات:
-
-<strong>
-
-${product.orders.toLocaleString()}
-
-</strong>
-
-</div>
-
-`;
-
-});
-
-}
-
-
-
-}catch(error){
-
-console.error(
-"خطأ الإحصائيات:",
-error
-);
-
-
-
-productsStats.innerHTML = `
-
-<div class="empty">
-
-❌ حدث خطأ أثناء تحميل الإحصائيات.
-
-<br><br>
-
-${escapeHtml(
-error.message ||
-String(error)
-)}
-
-</div>
-
-`;
-
-}
-
-}
-
-
-
-/* =====================================
-   حماية النصوص
-===================================== */
-
-function escapeHtml(text){
-
-return String(
-text ?? ""
-)
-
-.replace(
-/&/g,
-"&amp;"
-)
-
-.replace(
-/</g,
-"&lt;"
-)
-
-.replace(
-/>/g,
-"&gt;"
-)
-
-.replace(
-/"/g,
-"&quot;"
-)
-
-.replace(
-/'/g,
-"&#039;"
-);
-
-}
-
-</script>
-
-</body>
-
-</html>
+/* =========================================
+   تشغيل المساعد
+========================================= */
+
+loadProducts();
