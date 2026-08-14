@@ -120,6 +120,8 @@ padding:10px 15px !important;
 width:auto !important;
 height:auto !important;
 font-size:16px !important;
+border:none;
+border-radius:6px;
 }
 
 .summary{
@@ -226,21 +228,46 @@ height:80px;
 </p>
 
 <p class="delivery">
-🚚 رسوم توصيل الجملة:
+🚚 رسوم التوصيل:
 <strong>
-<span id="deliveryTotal">0</span> ريال
+يحددها سوق مباشر
 </strong>
 </p>
 
 <div class="deliveryDetails">
-🚚 يتم حساب التوصيل حسب سعر الكرتون وعدد الكراتين.
+
+📍 يكتب الزبون اسم الحي عند إتمام الطلب.
+
+<br>
+
+🚚 بعد معرفة الحي يتم تحديد رسوم التوصيل حسب المسافة:
+
+<br>
+
+🏠 قريب: 300 ريال
+
+<br>
+
+📍 متوسط: 500 ريال
+
+<br>
+
+🛣️ بعيد: 700 ريال
+
+<br><br>
+
+⚠️ رسوم التوصيل لا تُحسب الآن داخل السلة، وسيتم تحديدها بعد معرفة موقع الزبون.
+
 </div>
 
 <p class="finalTotal">
-💰 الإجمالي النهائي:
+
+💰 قيمة المنتجات:
+
 <strong>
 <span id="totalPrice">0</span> ريال
 </strong>
+
 </p>
 
 <div class="note">
@@ -250,6 +277,10 @@ height:80px;
 <br>
 
 🏪 كل طلب في النسخة الأولى يكون من تاجر واحد فقط.
+
+<br>
+
+🚚 يتم تحديد رسوم التوصيل حسب الحي.
 
 </div>
 
@@ -265,7 +296,9 @@ height:80px;
 <script>
 
 let cart =
-JSON.parse(localStorage.getItem("cart")) || [];
+JSON.parse(
+localStorage.getItem("cart")
+) || [];
 
 
 const cartItems =
@@ -273,9 +306,6 @@ document.getElementById("cart");
 
 const productsTotal =
 document.getElementById("productsTotal");
-
-const deliveryTotal =
-document.getElementById("deliveryTotal");
 
 const totalPrice =
 document.getElementById("totalPrice");
@@ -288,27 +318,6 @@ document.getElementById("warning");
 
 const sendOrder =
 document.getElementById("sendOrder");
-
-
-// ===============================
-// حساب رسوم توصيل الكرتون
-// ===============================
-
-function getDeliveryFee(price){
-
-price = Number(price || 0);
-
-if(price < 1500){
-return 50;
-}
-
-if(price < 2000){
-return 70;
-}
-
-return 100;
-
-}
 
 
 // ===============================
@@ -378,8 +387,6 @@ shopBox.innerHTML = "";
 
 let total = 0;
 
-let delivery = 0;
-
 
 if(cart.length === 0){
 
@@ -400,8 +407,6 @@ cartItems.innerHTML = `
 `;
 
 productsTotal.textContent = "0";
-
-deliveryTotal.textContent = "0";
 
 totalPrice.textContent = "0";
 
@@ -429,6 +434,7 @@ warning.innerHTML = `
 <br><br>
 
 في النسخة الأولى:
+
 <strong>
 كل طلب يجب أن يكون من تاجر واحد فقط.
 </strong>
@@ -484,14 +490,6 @@ total +=
 price * quantity;
 
 
-const feePerCarton =
-getDeliveryFee(price);
-
-
-delivery +=
-feePerCarton * quantity;
-
-
 cartItems.innerHTML += `
 
 <div class="item">
@@ -515,16 +513,9 @@ ${escapeHtml(item.shopName || 'سوق مباشر')}
 </p>
 
 <p>
-سعر الكرتون:
+💰 سعر الكرتون:
 <strong>
 ${price.toLocaleString()} ريال
-</strong>
-</p>
-
-<p>
-🚚 توصيل الكرتون:
-<strong>
-${feePerCarton} ريال
 </strong>
 </p>
 
@@ -573,18 +564,12 @@ onclick="removeItem(${index})"
 });
 
 
-const finalTotal =
-total + delivery;
-
-
 productsTotal.textContent =
 total.toLocaleString();
 
-deliveryTotal.textContent =
-delivery.toLocaleString();
 
 totalPrice.textContent =
-finalTotal.toLocaleString();
+total.toLocaleString();
 
 }
 
@@ -761,4 +746,4 @@ renderCart();
 
 </body>
 
-</html>
+  </html>
