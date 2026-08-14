@@ -11,10 +11,26 @@ import {
 const productsBox =
   document.getElementById("products");
 
+const shopsBox =
+  document.getElementById("shops");
+
+const productsTitle =
+  document.getElementById("productsTitle");
+
+
 let cart =
   JSON.parse(localStorage.getItem("cart")) || [];
 
+
 window.productsData = {};
+
+
+// =====================================
+// التاجر المختار
+// =====================================
+
+let selectedShop =
+  localStorage.getItem("selectedShop") || "";
 
 
 // =====================================
@@ -22,7 +38,7 @@ window.productsData = {};
 // =====================================
 
 const VIEW_COOLDOWN =
-  30 * 60 * 1000; // 30 دقيقة
+  30 * 60 * 1000;
 
 
 // =====================================
@@ -45,8 +61,6 @@ async function recordProductView(id, product) {
       Date.now();
 
 
-    // منع تكرار مشاهدة نفس المنتج
-    // خلال 30 دقيقة
     if (
       lastView &&
       now - lastView < VIEW_COOLDOWN
@@ -57,14 +71,12 @@ async function recordProductView(id, product) {
     }
 
 
-    // حفظ وقت المشاهدة على الجهاز
     localStorage.setItem(
       key,
       String(now)
     );
 
 
-    // تسجيل المشاهدة في Firebase
     await addDoc(
       collection(
         db,
@@ -72,7 +84,7 @@ async function recordProductView(id, product) {
       ),
       {
 
-        type: "view",
+        type:"view",
 
         productId:
           String(id),
@@ -87,7 +99,6 @@ async function recordProductView(id, product) {
             product.price || 0
           ),
 
-        // القسم
         category:
           String(
             product.category || ""
@@ -105,13 +116,7 @@ async function recordProductView(id, product) {
     );
 
 
-    console.log(
-      "تم تسجيل مشاهدة المنتج:",
-      product.name
-    );
-
-
-  } catch (error) {
+  } catch(error){
 
     console.error(
       "تعذر تسجيل مشاهدة المنتج:",
@@ -131,65 +136,55 @@ async function recordCartEvent(
   id,
   product,
   quantity
-) {
+){
 
-  try {
-
-    const data = {
-
-      type: "cart",
-
-      productId:
-        String(id),
-
-      productName:
-        String(
-          product.name || ""
-        ),
-
-      price:
-        Number(
-          product.price || 0
-        ),
-
-      quantity:
-        Number(
-          quantity || 1
-        ),
-
-      // القسم
-      category:
-        String(
-          product.category || ""
-        ),
-
-      shopName:
-        String(
-          product.shopName || ""
-        ),
-
-      createdAt:
-        serverTimestamp()
-
-    };
-
+  try{
 
     await addDoc(
       collection(
         db,
         "productEvents"
       ),
-      data
+      {
+
+        type:"cart",
+
+        productId:
+          String(id),
+
+        productName:
+          String(
+            product.name || ""
+          ),
+
+        price:
+          Number(
+            product.price || 0
+          ),
+
+        quantity:
+          Number(
+            quantity || 1
+          ),
+
+        category:
+          String(
+            product.category || ""
+          ),
+
+        shopName:
+          String(
+            product.shopName || ""
+          ),
+
+        createdAt:
+          serverTimestamp()
+
+      }
     );
 
 
-    console.log(
-      "تم تسجيل إضافة المنتج للسلة:",
-      product.name
-    );
-
-
-  } catch (error) {
+  }catch(error){
 
     console.error(
       "تعذر تسجيل إضافة المنتج للسلة:",
@@ -202,10 +197,10 @@ async function recordCartEvent(
 
 
 // =====================================
-// مراقبة ظهور المنتجات
+// مراقبة المشاهدات
 // =====================================
 
-function observeProductViews() {
+function observeProductViews(){
 
   const cards =
     document.querySelectorAll(
@@ -213,7 +208,7 @@ function observeProductViews() {
     );
 
 
-  if (!cards.length) {
+  if(!cards.length){
 
     return;
 
@@ -223,14 +218,12 @@ function observeProductViews() {
   const observer =
     new IntersectionObserver(
 
-      (entries, observer) => {
+      (entries,observer)=>{
 
         entries.forEach(
-          entry => {
+          entry=>{
 
-            if (
-              !entry.isIntersecting
-            ) {
+            if(!entry.isIntersecting){
 
               return;
 
@@ -245,7 +238,7 @@ function observeProductViews() {
               card.dataset.productId;
 
 
-            if (!productId) {
+            if(!productId){
 
               return;
 
@@ -258,7 +251,7 @@ function observeProductViews() {
               ];
 
 
-            if (!product) {
+            if(!product){
 
               return;
 
@@ -271,7 +264,6 @@ function observeProductViews() {
             );
 
 
-            // إيقاف المراقبة لهذه البطاقة
             observer.unobserve(
               card
             );
@@ -282,14 +274,14 @@ function observeProductViews() {
       },
 
       {
-        threshold: 0.5
+        threshold:0.5
       }
 
     );
 
 
   cards.forEach(
-    card => {
+    card=>{
 
       observer.observe(
         card
@@ -302,10 +294,409 @@ function observeProductViews() {
 
 
 // =====================================
+// عرض التجار
+// =====================================
+
+function showShops(){
+
+  if(!shopsBox){
+
+    return;
+
+  }
+
+
+  const shops = {};
+
+
+  Object.keys(
+    window.productsData
+  ).forEach(id=>{
+
+    const product =
+      window.productsData[id];
+
+    const shopName =
+      String(
+        product.shopName ||
+        "سوق مباشر"
+      ).trim();
+
+
+    if(shopName){
+
+      shops[shopName] = true;
+
+    }
+
+  });
+
+
+  shopsBox.innerHTML = "";
+
+
+  const shopNames =
+    Object.keys(shops);
+
+
+  if(!shopNames.length){
+
+    shopsBox.innerHTML = `
+      <div style="
+        grid-column:1/-1;
+        text-align:center;
+        color:#777;
+        padding:15px;
+      ">
+        🏪 لا يوجد تجار حاليًا
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  shopNames.forEach(
+    shopName=>{
+
+      const button =
+        document.createElement("button");
+
+
+      button.className =
+        "shop-button";
+
+
+      if(
+        selectedShop === shopName
+      ){
+
+        button.classList.add(
+          "selected"
+        );
+
+      }
+
+
+      button.innerHTML = `
+        🏪 ${shopName}
+
+        <span>
+          عرض المنتجات
+        </span>
+      `;
+
+
+      button.onclick = ()=>{
+
+        chooseShop(
+          shopName
+        );
+
+      };
+
+
+      shopsBox.appendChild(
+        button
+      );
+
+    }
+  );
+
+}
+
+
+// =====================================
+// اختيار التاجر
+// =====================================
+
+function chooseShop(shopName){
+
+  cart =
+    JSON.parse(
+      localStorage.getItem("cart")
+    ) || [];
+
+
+  if(
+    cart.length > 0
+  ){
+
+    const cartShop =
+      String(
+        cart[0].shopName || ""
+      );
+
+
+    if(
+      cartShop &&
+      cartShop !== shopName
+    ){
+
+      alert(
+        "⚠️ السلة تحتوي على منتجات من تاجر آخر.\n\n" +
+        "أكمل الطلب الحالي أو أفرغ السلة أولًا."
+      );
+
+      return;
+
+    }
+
+  }
+
+
+  selectedShop =
+    shopName;
+
+
+  localStorage.setItem(
+    "selectedShop",
+    shopName
+  );
+
+
+  showShops();
+
+
+  showShopProducts(
+    shopName
+  );
+
+}
+
+
+// =====================================
+// عرض منتجات التاجر
+// =====================================
+
+function showShopProducts(shopName){
+
+  productsBox.innerHTML = "";
+
+
+  if(productsTitle){
+
+    productsTitle.innerHTML =
+      `🏪 منتجات التاجر: ${shopName}`;
+
+  }
+
+
+  let found = false;
+
+
+  Object.keys(
+    window.productsData
+  ).forEach(id=>{
+
+    const data =
+      window.productsData[id];
+
+
+    const productShop =
+      String(
+        data.shopName ||
+        "سوق مباشر"
+      ).trim();
+
+
+    if(
+      productShop !== shopName
+    ){
+
+      return;
+
+    }
+
+
+    found = true;
+
+
+    productsBox.innerHTML += `
+
+      <div
+        class="product"
+        data-product-id="${id}"
+      >
+
+        ${
+          data.image
+          ?
+          `
+          <img
+            src="${data.image}"
+            alt="${data.name || "منتج"}"
+            loading="lazy"
+          >
+          `
+          :
+          `
+          <div style="
+            height:150px;
+            background:#f1f1f1;
+            border-radius:11px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:45px;
+          ">
+            🛍️
+          </div>
+          `
+        }
+
+
+        <h3>
+          ${data.name || "بدون اسم"}
+        </h3>
+
+
+        ${
+          data.category
+          ?
+          `
+          <div style="
+            display:inline-block;
+            background:#e8f5e9;
+            color:#00897b;
+            padding:4px 9px;
+            border-radius:20px;
+            font-size:11px;
+            margin-bottom:5px;
+          ">
+            📂 ${data.category}
+          </div>
+          `
+          :
+          ""
+        }
+
+
+        <p style="
+          margin:7px 0;
+          color:#777;
+          font-size:12px;
+        ">
+
+          🏪 ${productShop}
+
+        </p>
+
+
+        <div style="
+          background:#f7fafa;
+          padding:8px;
+          border-radius:9px;
+          margin-top:7px;
+          text-align:center;
+        ">
+
+          <span style="
+            color:#777;
+            font-size:11px;
+          ">
+            السعر
+          </span>
+
+          <br>
+
+          <b style="
+            color:#00897b;
+            font-size:18px;
+          ">
+
+            ${Number(
+              data.price || 0
+            ).toLocaleString()}
+
+            ريال
+
+          </b>
+
+        </div>
+
+
+        ${
+          data.description
+          ?
+          `
+          <p style="
+            font-size:11px;
+            color:#777;
+            line-height:1.6;
+            margin:8px 2px;
+          ">
+            ${data.description}
+          </p>
+          `
+          :
+          ""
+        }
+
+
+        <button
+          onclick="
+            addToCart('${id}')
+          "
+          style="
+            background:
+              linear-gradient(
+                135deg,
+                #009688,
+                #00796b
+              );
+            color:white;
+            border:none;
+            padding:11px 6px;
+            border-radius:10px;
+            font-size:14px;
+            font-weight:bold;
+            cursor:pointer;
+            width:100%;
+            margin-top:7px;
+          "
+        >
+
+          🛒 أضف للسلة
+
+        </button>
+
+      </div>
+
+    `;
+
+  });
+
+
+  if(!found){
+
+    productsBox.innerHTML = `
+      <div style="
+        grid-column:1/-1;
+        background:white;
+        padding:30px;
+        border-radius:15px;
+        text-align:center;
+        color:#777;
+      ">
+        🛍️ لا توجد منتجات لهذا التاجر حاليًا
+      </div>
+    `;
+
+  }
+
+
+  observeProductViews();
+
+}
+
+
+// =====================================
 // تحميل المنتجات
 // =====================================
 
-function loadProducts() {
+function loadProducts(){
 
   productsBox.innerHTML =
     "جاري تحميل المنتجات...";
@@ -318,16 +709,20 @@ function loadProducts() {
       "products"
     ),
 
-    (snap) => {
+    snap=>{
 
-      productsBox.innerHTML =
-        "";
-
-      window.productsData =
-        {};
+      window.productsData = {};
 
 
-      if (snap.empty) {
+      if(snap.empty){
+
+        if(shopsBox){
+
+          shopsBox.innerHTML =
+            "🛍️ لا توجد منتجات حاليًا";
+
+        }
+
 
         productsBox.innerHTML = `
           <div style="
@@ -348,209 +743,77 @@ function loadProducts() {
 
 
       snap.forEach(
-        (productDoc) => {
+        productDoc=>{
 
-          const data =
-            productDoc.data();
-
-
-          // حفظ بيانات المنتج
           window.productsData[
             productDoc.id
-          ] = data;
-
-
-          productsBox.innerHTML += `
-
-          <div
-            class="product"
-            data-product-id="${productDoc.id}"
-          >
-
-            ${
-              data.image
-                ? `
-                  <img
-                    src="${data.image}"
-                    alt="${
-                      data.name ||
-                      "منتج"
-                    }"
-                    loading="lazy"
-                  >
-                `
-                : `
-                  <div style="
-                    height:150px;
-                    background:#f1f1f1;
-                    border-radius:11px;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    font-size:45px;
-                  ">
-                    🛍️
-                  </div>
-                `
-            }
-
-
-            <h3>
-              ${
-                data.name ||
-                "بدون اسم"
-              }
-            </h3>
-
-
-            <!-- القسم -->
-
-            ${
-              data.category
-                ? `
-                  <div style="
-                    display:inline-block;
-                    background:#e8f5e9;
-                    color:#00897b;
-                    padding:4px 9px;
-                    border-radius:20px;
-                    font-size:11px;
-                    margin-bottom:5px;
-                  ">
-                    📂 ${
-                      data.category
-                    }
-                  </div>
-                `
-                : ""
-            }
-
-
-            <!-- المتجر -->
-
-            <p style="
-              margin:7px 0;
-              color:#777;
-              font-size:12px;
-            ">
-
-              ${
-                data.shopName
-                  ? `🏪 ${
-                      data.shopName
-                    }`
-                  : "🛒 سوق مباشر"
-              }
-
-            </p>
-
-
-            <!-- السعر -->
-
-            <div style="
-              background:#f7fafa;
-              padding:8px;
-              border-radius:9px;
-              margin-top:7px;
-              text-align:center;
-            ">
-
-              <span style="
-                color:#777;
-                font-size:11px;
-              ">
-                السعر
-              </span>
-
-              <br>
-
-              <b style="
-                color:#00897b;
-                font-size:18px;
-              ">
-
-                ${
-                  Number(
-                    data.price || 0
-                  ).toLocaleString()
-                }
-
-                ريال
-
-              </b>
-
-            </div>
-
-
-            <!-- الوصف -->
-
-            ${
-              data.description
-                ? `
-                  <p style="
-                    font-size:11px;
-                    color:#777;
-                    line-height:1.6;
-                    margin:8px 2px;
-                  ">
-                    ${
-                      data.description
-                    }
-                  </p>
-                `
-                : ""
-            }
-
-
-            <!-- إضافة للسلة -->
-
-            <button
-              onclick="
-                addToCart(
-                  '${productDoc.id}'
-                )
-              "
-              style="
-                background:
-                  linear-gradient(
-                    135deg,
-                    #009688,
-                    #00796b
-                  );
-                color:white;
-                border:none;
-                padding:11px 6px;
-                border-radius:10px;
-                font-size:14px;
-                font-weight:bold;
-                cursor:pointer;
-                width:100%;
-                margin-top:7px;
-              "
-            >
-
-              🛒 أضف للسلة
-
-            </button>
-
-          </div>
-
-          `;
+          ] =
+            productDoc.data();
 
         }
       );
 
 
-      // تشغيل مراقبة المشاهدات
-      observeProductViews();
+      // عرض التجار
+      showShops();
+
+
+      // إذا كان هناك تاجر محفوظ
+      if(
+        selectedShop &&
+        Object.values(
+          window.productsData
+        ).some(
+          product =>
+            String(
+              product.shopName ||
+              "سوق مباشر"
+            ).trim()
+            ===
+            selectedShop
+        )
+      ){
+
+        showShopProducts(
+          selectedShop
+        );
+
+      }else{
+
+        selectedShop = "";
+
+        localStorage.removeItem(
+          "selectedShop"
+        );
+
+
+        productsBox.innerHTML = `
+          <div style="
+            grid-column:1/-1;
+            background:white;
+            padding:30px;
+            border-radius:15px;
+            text-align:center;
+            color:#777;
+          ">
+            🏪 اختر تاجرًا بالأعلى لعرض منتجاته
+          </div>
+        `;
+
+        if(productsTitle){
+
+          productsTitle.innerHTML =
+            "🛍️ اختر تاجرًا لعرض منتجاته";
+
+        }
+
+      }
 
     },
 
-    (error) => {
+    error=>{
 
-      console.error(
-        error
-      );
+      console.error(error);
 
 
       productsBox.innerHTML = `
@@ -584,13 +847,11 @@ function loadProducts() {
 // =====================================
 
 window.addToCart =
-async function(id) {
+async function(id){
 
   cart =
     JSON.parse(
-      localStorage.getItem(
-        "cart"
-      )
+      localStorage.getItem("cart")
     ) || [];
 
 
@@ -598,7 +859,7 @@ async function(id) {
     window.productsData[id];
 
 
-  if (!product) {
+  if(!product){
 
     alert(
       "تعذر العثور على المنتج"
@@ -609,7 +870,56 @@ async function(id) {
   }
 
 
-  // البحث عن المنتج
+  const productShop =
+    String(
+      product.shopName ||
+      "سوق مباشر"
+    ).trim();
+
+
+  // ===================================
+  // منع أكثر من تاجر في السلة
+  // ===================================
+
+  if(cart.length > 0){
+
+    const cartShop =
+      String(
+        cart[0].shopName ||
+        "سوق مباشر"
+      ).trim();
+
+
+    if(
+      cartShop !== productShop
+    ){
+
+      alert(
+        "⚠️ لا يمكن إضافة منتجات من تاجر آخر.\n\n" +
+        "كل طلب يكون من تاجر واحد فقط."
+      );
+
+      return;
+
+    }
+
+  }
+
+
+  // ===================================
+  // تحديد التاجر
+  // ===================================
+
+  selectedShop =
+    productShop;
+
+
+  localStorage.setItem(
+    "selectedShop",
+    selectedShop
+  );
+
+
   const existingItem =
     cart.find(
       item =>
@@ -620,9 +930,8 @@ async function(id) {
   let quantity;
 
 
-  if (existingItem) {
+  if(existingItem){
 
-    // زيادة الكمية
     existingItem.quantity =
       Number(
         existingItem.quantity || 1
@@ -632,16 +941,14 @@ async function(id) {
     quantity =
       existingItem.quantity;
 
-
-  } else {
+  }else{
 
     quantity = 1;
 
 
-    // إضافة المنتج للسلة
     cart.push({
 
-      id: id,
+      id:id,
 
       name:
         product.name || "",
@@ -661,31 +968,27 @@ async function(id) {
         product.description || "",
 
       shopName:
-        product.shopName || "",
+        productShop,
 
-      // حفظ القسم في السلة أيضًا
       category:
         product.category || "",
 
-      quantity: 1
+      quantity:1
 
     });
 
   }
 
 
-  // حفظ السلة
   localStorage.setItem(
     "cart",
     JSON.stringify(cart)
   );
 
 
-  // تحديث العداد
   updateCartCount();
 
 
-  // تسجيل حدث السلة
   await recordCartEvent(
     id,
     product,
@@ -701,10 +1004,10 @@ async function(id) {
 
 
 // =====================================
-// عداد الكراتين
+// عداد السلة
 // =====================================
 
-function updateCartCount() {
+function updateCartCount(){
 
   const count =
     document.getElementById(
@@ -712,12 +1015,12 @@ function updateCartCount() {
     );
 
 
-  if (count) {
+  if(count){
 
     const totalQuantity =
       cart.reduce(
 
-        (sum, item) =>
+        (sum,item)=>
           sum +
           Number(
             item.quantity || 1
@@ -737,7 +1040,7 @@ function updateCartCount() {
 
 
 // =====================================
-// تشغيل
+// التشغيل
 // =====================================
 
 loadProducts();
