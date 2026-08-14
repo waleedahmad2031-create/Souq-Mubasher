@@ -73,6 +73,10 @@ line-height:1.9;
 font-size:16px;
 }
 
+.deliveryNotice strong{
+color:#e65100;
+}
+
 .totalBox{
 background:#f5f5f5;
 padding:15px;
@@ -83,6 +87,11 @@ margin-top:15px;
 .totalBox p{
 margin:8px 0;
 font-size:17px;
+}
+
+.deliveryText{
+color:#e65100;
+font-weight:bold;
 }
 
 .finalTotal{
@@ -143,6 +152,7 @@ display:none;
 📦 إتمام الطلب
 </header>
 
+
 <div class="container">
 
 <div class="card">
@@ -165,7 +175,9 @@ display:none;
 </div>
 
 
-<!-- التاجر -->
+<!-- =========================
+     التاجر
+========================= -->
 
 <div class="sellerBox">
 
@@ -178,6 +190,43 @@ display:none;
 </div>
 
 
+<!-- =========================
+     التوصيل
+========================= -->
+
+<div class="deliveryNotice">
+
+🚚 <strong>رسوم التوصيل:</strong>
+
+<br>
+
+📍 اكتب اسم الحي، وسيتم تحديد رسوم التوصيل حسب موقع الزبون.
+
+<br><br>
+
+🏠 قريب: 300 ريال
+
+<br>
+
+📍 متوسط: 500 ريال
+
+<br>
+
+🛣️ بعيد: 700 ريال
+
+<br><br>
+
+⚠️ <strong>
+رسوم التوصيل لا يتم حسابها الآن، وسيتم تحديدها بعد معرفة الحي.
+</strong>
+
+</div>
+
+
+<!-- =========================
+     موعد التوصيل
+========================= -->
+
 <div class="deliveryNotice">
 
 🕐 <strong>موعد التوصيل:</strong>
@@ -188,6 +237,10 @@ display:none;
 
 </div>
 
+
+<!-- =========================
+     بيانات العميل
+========================= -->
 
 <input
 id="customerName"
@@ -208,35 +261,48 @@ placeholder="📍 الحي - مثال: السبل، السحول، إب القد
 >
 
 
+<!-- =========================
+     الإجماليات
+========================= -->
+
 <div class="totalBox">
 
 <p>
+
 📦 عدد الكراتين:
+
 <strong>
 <span id="cartonsTotal">0</span>
 </strong>
+
 </p>
 
 
 <p>
+
 🛍️ مجموع المنتجات:
+
 <strong>
 <span id="productsTotal">0</span> ريال
 </strong>
+
 </p>
 
 
-<p>
+<p class="deliveryText">
+
 🚚 رسوم التوصيل:
+
 <strong>
-<span id="deliveryTotal">0</span> ريال
+سيتم تحديدها بعد معرفة الحي
 </strong>
+
 </p>
 
 
 <p class="finalTotal">
 
-💰 الإجمالي النهائي:
+💰 قيمة المنتجات:
 
 <strong>
 <span id="totalPrice">0</span> ريال
@@ -255,7 +321,9 @@ class="warning"
 
 
 <button id="sendOrder">
+
 إرسال طلب الجملة
+
 </button>
 
 
@@ -315,6 +383,7 @@ warningBox.style.display =
 
 warningBox.innerHTML =
 "🛒 السلة فارغة.<br><br>" +
+
 "ارجع إلى المنتجات واختر ما تريد.";
 
 }
@@ -326,12 +395,6 @@ warningBox.innerHTML =
 
 let sellerName = "";
 
-
-/*
-نأخذ اسم التاجر من أول منتج
-لأن قرارنا:
-كل طلب = تاجر واحد
-*/
 
 if(cart.length > 0){
 
@@ -347,6 +410,7 @@ sellerName =
 "سوق مباشر";
 
 }
+
 
 sellerNameBox.textContent =
 sellerName;
@@ -374,7 +438,9 @@ String(
 item.shopName || ""
 ).trim();
 
-return currentSeller !== firstSeller;
+
+return currentSeller !==
+firstSeller;
 
 });
 
@@ -400,41 +466,10 @@ warningBox.innerHTML =
 
 
 /* =====================================
-   حساب رسوم التوصيل
-===================================== */
-
-function getDeliveryFee(price){
-
-price =
-Number(price || 0);
-
-
-if(price < 1500){
-
-return 50;
-
-}
-
-
-if(price < 2000){
-
-return 70;
-
-}
-
-
-return 100;
-
-}
-
-
-/* =====================================
-   حساب الطلب
+   حساب المنتجات فقط
 ===================================== */
 
 let productsTotal = 0;
-
-let deliveryTotal = 0;
 
 let cartonsTotal = 0;
 
@@ -442,7 +477,9 @@ let cartonsTotal = 0;
 cart.forEach(item => {
 
 const price =
-Number(item.price || 0);
+Number(
+item.price || 0
+);
 
 
 const quantity =
@@ -455,19 +492,36 @@ productsTotal +=
 price * quantity;
 
 
-deliveryTotal +=
-getDeliveryFee(price) * quantity;
-
-
 cartonsTotal +=
 quantity;
 
 });
 
 
+/*
+لا نحسب رسوم توصيل هنا.
+
+التوصيل سيتم تحديده لاحقًا
+حسب الحي:
+
+300
+500
+700
+*/
+
+
+const deliveryTotal = 0;
+
+
+/*
+الإجمالي المؤقت هو قيمة المنتجات فقط.
+
+بعد تحديد التوصيل من الإدارة
+سيتم إضافة رسوم التوصيل.
+*/
+
 const finalTotal =
-productsTotal +
-deliveryTotal;
+productsTotal;
 
 
 /* =====================================
@@ -484,12 +538,6 @@ document.getElementById(
 "productsTotal"
 ).textContent =
 productsTotal.toLocaleString();
-
-
-document.getElementById(
-"deliveryTotal"
-).textContent =
-deliveryTotal.toLocaleString();
 
 
 document.getElementById(
@@ -513,7 +561,9 @@ return;
 }
 
 
-/* بيانات العميل */
+/* =====================================
+   بيانات العميل
+===================================== */
 
 const name =
 document.getElementById(
@@ -533,7 +583,9 @@ document.getElementById(
 ).value.trim();
 
 
-/* التحقق */
+/* =====================================
+   التحقق
+===================================== */
 
 if(
 !name ||
@@ -579,7 +631,9 @@ String(
 item.shopName || ""
 ).trim();
 
-return currentSeller !== firstSeller;
+
+return currentSeller !==
+firstSeller;
 
 });
 
@@ -587,8 +641,11 @@ return currentSeller !== firstSeller;
 if(hasDifferentSeller){
 
 alert(
+
 "⚠️ لا يمكن إرسال طلب يحتوي على منتجات من أكثر من تاجر.\n\n" +
+
 "كل طلب = تاجر واحد فقط."
+
 );
 
 return;
@@ -613,25 +670,44 @@ const products =
 cart.map(item => ({
 
 id:
-String(item.id || ""),
+String(
+item.id || ""
+),
 
 name:
-String(item.name || ""),
+String(
+item.name || ""
+),
 
 price:
-Number(item.price || 0),
+Number(
+item.price || 0
+),
 
 image:
-String(item.image || ""),
+String(
+item.image || ""
+),
 
 city:
-String(item.city || ""),
+String(
+item.city || ""
+),
 
 description:
-String(item.description || ""),
+String(
+item.description || ""
+),
 
 shopName:
-String(item.shopName || sellerName),
+String(
+item.shopName || sellerName
+),
+
+sellerId:
+String(
+item.sellerId || ""
+),
 
 quantity:
 Number(item.quantity) > 0
@@ -648,27 +724,24 @@ Number(item.quantity) > 0
 const orderData = {
 
 
-/* بيانات العميل */
+/* =====================================
+   بيانات العميل
+===================================== */
 
 customerName:
 String(name),
 
-
 customerPhone:
 String(phone),
-
 
 customerCity:
 "إب",
 
-
 customerAddress:
 String(district),
 
-
 deliveryDistrict:
 String(district),
-
 
 deliveryArea:
 "مدينة إب",
@@ -680,6 +753,12 @@ deliveryArea:
 
 shopName:
 String(sellerName),
+
+
+sellerId:
+String(
+cart[0].sellerId || ""
+),
 
 
 /* =====================================
@@ -695,12 +774,34 @@ deliveryTime:
 
 
 /* =====================================
-   الحسابات
+   رسوم التوصيل
 ===================================== */
 
-deliveryFee:
-Number(deliveryTotal),
+/*
+صفر مؤقتًا.
 
+الإدارة تحدد لاحقًا:
+
+قريب = 300
+متوسط = 500
+بعيد = 700
+*/
+
+deliveryFee:
+0,
+
+
+deliveryStatus:
+"لم يتم تحديد رسوم التوصيل بعد",
+
+
+deliveryDistance:
+"غير محدد",
+
+
+/* =====================================
+   الحسابات
+===================================== */
 
 cartonsTotal:
 Number(cartonsTotal),
@@ -719,7 +820,7 @@ Number(finalTotal),
 
 
 /* =====================================
-   حالة الطلب
+   الحالة
 ===================================== */
 
 status:
@@ -738,8 +839,14 @@ serverTimestamp()
 
 const orderRef =
 await addDoc(
-collection(db,"orders"),
+
+collection(
+db,
+"orders"
+),
+
 orderData
+
 );
 
 
@@ -787,6 +894,7 @@ itemTotal.toLocaleString()
 ===================================== */
 
 const message =
+
 `🛒 طلب جملة جديد - سوق مباشر
 
 🏪 التاجر:
@@ -816,11 +924,17 @@ ${cartonsTotal}
 🛍️ مجموع المنتجات:
 ${productsTotal.toLocaleString()} ريال
 
-🚚 التوصيل:
-${deliveryTotal.toLocaleString()} ريال
+🚚 رسوم التوصيل:
+لم يتم تحديدها بعد
 
-💰 الإجمالي النهائي:
-${finalTotal.toLocaleString()} ريال
+📍 سيتم تحديد التوصيل حسب الحي:
+
+قريب: 300 ريال
+متوسط: 500 ريال
+بعيد: 700 ريال
+
+💰 قيمة المنتجات:
+${productsTotal.toLocaleString()} ريال
 
 🆔 رقم الطلب:
 ${orderRef.id}`;
@@ -845,7 +959,9 @@ encodeURIComponent(message)
    حذف السلة
 ===================================== */
 
-localStorage.removeItem("cart");
+localStorage.removeItem(
+"cart"
+);
 
 
 /* =====================================
@@ -861,7 +977,20 @@ sellerName +
 
 "\n\n" +
 
-"سيتم التواصل معك بعد تجهيز الطلب لتأكيد وقت التوصيل.\n\n" +
+"📍 الحي:\n" +
+district +
+
+"\n\n" +
+
+"🚚 رسوم التوصيل:\n" +
+
+"سيتم تحديدها حسب موقعك\n\n" +
+
+"قريب: 300 ريال\n" +
+"متوسط: 500 ريال\n" +
+"بعيد: 700 ريال\n\n" +
+
+"سيتم التواصل معك لتأكيد الطلب ووقت التوصيل.\n\n" +
 
 "رقم الطلب:\n" +
 orderRef.id
