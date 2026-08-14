@@ -20,8 +20,6 @@ margin:0;
 color:#222;
 }
 
-/* الهيدر */
-
 header{
 background:linear-gradient(135deg,#00897b,#00695c);
 color:white;
@@ -47,8 +45,6 @@ font-size:16px;
 font-weight:bold;
 box-shadow:0 2px 5px rgba(0,0,0,.15);
 }
-
-/* البنر */
 
 .banner{
 background:linear-gradient(135deg,#00796b,#004d40);
@@ -86,8 +82,6 @@ opacity:.95;
 from{opacity:0;}
 to{opacity:1;}
 }
-
-/* طرق الطلب */
 
 .order-methods{
 background:white;
@@ -142,6 +136,43 @@ margin-top:6px;
 line-height:1.5;
 }
 
+/* التجار */
+
+#shops{
+display:grid;
+grid-template-columns:repeat(2,minmax(0,1fr));
+gap:10px;
+}
+
+.shop-button{
+background:white;
+color:#00695c;
+border:2px solid #009688;
+padding:15px 8px;
+border-radius:13px;
+font-size:15px;
+font-weight:bold;
+cursor:pointer;
+box-shadow:0 2px 6px rgba(0,0,0,.08);
+transition:.2s;
+}
+
+.shop-button:active{
+transform:scale(.97);
+}
+
+.shop-button.selected{
+background:#009688;
+color:white;
+}
+
+.shop-button span{
+display:block;
+font-size:11px;
+font-weight:normal;
+margin-top:5px;
+}
+
 /* عنوان المنتجات */
 
 .products-title{
@@ -159,8 +190,6 @@ display:grid;
 grid-template-columns:repeat(2,minmax(0,1fr));
 gap:12px;
 }
-
-/* بطاقة المنتج */
 
 .product{
 background:white;
@@ -218,8 +247,6 @@ margin-top:8px;
 transform:scale(.97);
 }
 
-/* الجوال الصغير */
-
 @media(max-width:360px){
 
 #products{
@@ -234,9 +261,11 @@ height:190px;
 flex-direction:column;
 }
 
+#shops{
+grid-template-columns:1fr;
 }
 
-/* شاشة أكبر */
+}
 
 @media(min-width:700px){
 
@@ -252,8 +281,6 @@ grid-template-columns:repeat(3,1fr);
 
 <body>
 
-<!-- الهيدر -->
-
 <header>
 
 <div class="logo">
@@ -261,16 +288,12 @@ grid-template-columns:repeat(3,1fr);
 </div>
 
 <a href="cart.html" class="cart-button">
-
 🛍️ السلة
 (<span id="cartCount">0</span> كرتون)
-
 </a>
 
 </header>
 
-
-<!-- البنر -->
 
 <div class="banner">
 
@@ -315,8 +338,6 @@ grid-template-columns:repeat(3,1fr);
 </div>
 
 
-<!-- طرق الطلب -->
-
 <div class="order-methods">
 
 <h2>
@@ -351,30 +372,41 @@ grid-template-columns:repeat(3,1fr);
 </div>
 
 
-<!-- عنوان المنتجات -->
+<!-- اختيار التاجر -->
 
-<div class="products-title">
-🛍️ المنتجات المتوفرة
+<div class="order-methods">
+
+<h2>
+🏪 اختر التاجر
+</h2>
+
+<div id="shops">
+
+جاري تحميل التجار...
+
+</div>
+
 </div>
 
 
-<!-- المنتجات -->
+<div class="products-title" id="productsTitle">
+
+🛍️ اختر تاجرًا لعرض منتجاته
+
+</div>
+
 
 <div id="products">
 
-جاري تحميل المنتجات...
+اختر تاجرًا أولًا...
 
 </div>
 
 
-<!-- Firebase / المنتجات -->
-
-<script type="module" src="app.js?v=4"></script>
+<script type="module" src="app.js?v=5"></script>
 
 
 <script>
-
-/* عداد السلة */
 
 function updateCartCount(){
 
@@ -401,13 +433,10 @@ count.innerText = total;
 updateCartCount();
 
 
-/* البنر المتحرك */
-
 let slides =
 document.querySelectorAll(".slide");
 
 let index = 0;
-
 
 setInterval(()=>{
 
