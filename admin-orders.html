@@ -67,6 +67,11 @@ cursor:pointer;
 color:#fff;
 }
 
+button:disabled{
+background:#999 !important;
+cursor:not-allowed;
+}
+
 .back{
 background:#757575;
 }
@@ -133,10 +138,55 @@ color:#00897b;
 
 .deliveryBox{
 background:#fff3e0;
-padding:10px;
+padding:12px;
 margin-top:10px;
 border-radius:8px;
 line-height:1.8;
+}
+
+/* ===============================
+   اختيار التوصيل
+================================ */
+
+.deliveryChoose{
+background:#e3f2fd;
+padding:15px;
+margin-top:12px;
+border-radius:10px;
+}
+
+.deliveryTitle{
+font-size:18px;
+font-weight:bold;
+color:#1565c0;
+margin-bottom:10px;
+}
+
+.deliveryButton{
+margin-top:8px;
+font-weight:bold;
+}
+
+.near{
+background:#43a047;
+}
+
+.medium{
+background:#fb8c00;
+}
+
+.far{
+background:#e53935;
+}
+
+.selectedDelivery{
+background:#dcedc8;
+color:#33691e;
+padding:10px;
+border-radius:8px;
+margin-top:10px;
+font-weight:bold;
+text-align:center;
 }
 
 .status{
@@ -242,32 +292,6 @@ serverTimestamp
 
 const ordersBox =
 document.getElementById("orders");
-
-
-/* =====================================
-   رسوم التوصيل
-===================================== */
-
-function getDeliveryPerCarton(price){
-
-price =
-Number(price) || 0;
-
-if(price < 1500){
-
-return 50;
-
-}
-
-if(price < 2000){
-
-return 70;
-
-}
-
-return 100;
-
-}
 
 
 /* =====================================
@@ -382,13 +406,6 @@ data.deliveryTime ||
    بيانات التاجر
 ===================================== */
 
-/*
-نأخذ اسم التاجر من الطلب أولًا.
-
-إذا لم يكن موجودًا نأخذه من
-أول منتج داخل الطلب.
-*/
-
 const shopName =
 data.shopName ||
 (
@@ -411,8 +428,6 @@ Array.isArray(data.products)
 
 
 let productsHTML = "";
-
-let calculatedDelivery = 0;
 
 let calculatedCartons = 0;
 
@@ -440,24 +455,12 @@ const productTotal =
 price * quantity;
 
 
-const deliveryPerCarton =
-getDeliveryPerCarton(price);
-
-
-const productDelivery =
-deliveryPerCarton * quantity;
-
-
 calculatedCartons +=
 quantity;
 
 
 calculatedProductsTotal +=
 productTotal;
-
-
-calculatedDelivery +=
-productDelivery;
 
 
 productsHTML += `
@@ -497,20 +500,28 @@ ${productTotal.toLocaleString()} ريال
 
 
 /* =====================================
-   الإجماليات
+   مجموع المنتجات
 ===================================== */
 
 const productsTotal =
 calculatedProductsTotal;
 
 
-const deliveryTotal =
-calculatedDelivery;
+/* =====================================
+   رسوم التوصيل المحفوظة
+===================================== */
 
+const savedDeliveryFee =
+Number(data.deliveryFee) || 0;
+
+
+/* =====================================
+   الإجمالي النهائي
+===================================== */
 
 const total =
 productsTotal +
-deliveryTotal;
+savedDeliveryFee;
 
 
 /* =====================================
@@ -599,6 +610,70 @@ onclick="changeStatus('${item.id}')"
 
 
 /* =====================================
+   حالة التوصيل الحالية
+===================================== */
+
+let deliveryStatusHTML = "";
+
+
+if(savedDeliveryFee === 300){
+
+deliveryStatusHTML = `
+
+<div class="selectedDelivery">
+
+🟢 تم تحديد التوصيل: قريب — 300 ريال
+
+</div>
+
+`;
+
+}
+
+else if(savedDeliveryFee === 500){
+
+deliveryStatusHTML = `
+
+<div class="selectedDelivery">
+
+🟡 تم تحديد التوصيل: متوسط — 500 ريال
+
+</div>
+
+`;
+
+}
+
+else if(savedDeliveryFee === 700){
+
+deliveryStatusHTML = `
+
+<div class="selectedDelivery">
+
+🔴 تم تحديد التوصيل: بعيد — 700 ريال
+
+</div>
+
+`;
+
+}
+
+else{
+
+deliveryStatusHTML = `
+
+<div class="selectedDelivery">
+
+⏳ لم يتم تحديد رسوم التوصيل بعد
+
+</div>
+
+`;
+
+}
+
+
+/* =====================================
    عرض الطلب
 ===================================== */
 
@@ -660,9 +735,11 @@ ${escapeHtml(city)}
 <br>
 
 
-🏠 العنوان:
+🏠 الحي:
 
+<strong>
 ${escapeHtml(customerAddress)}
+</strong>
 
 <br>
 
@@ -699,6 +776,68 @@ productsHTML ||
 </div>
 
 
+<!-- ===============================
+     اختيار التوصيل
+================================ -->
+
+<div class="deliveryChoose">
+
+<div class="deliveryTitle">
+
+🚚 تحديد رسوم التوصيل
+
+</div>
+
+
+<div>
+
+الحي:
+<strong>
+${escapeHtml(customerAddress)}
+</strong>
+
+</div>
+
+
+<button
+class="deliveryButton near"
+onclick="setDelivery('${item.id}',300,'قريب')"
+>
+
+🟢 قريب — 300 ريال
+
+</button>
+
+
+<button
+class="deliveryButton medium"
+onclick="setDelivery('${item.id}',500,'متوسط')"
+>
+
+🟡 متوسط — 500 ريال
+
+</button>
+
+
+<button
+class="deliveryButton far"
+onclick="setDelivery('${item.id}',700,'بعيد')"
+>
+
+🔴 بعيد — 700 ريال
+
+</button>
+
+
+${deliveryStatusHTML}
+
+</div>
+
+
+<!-- ===============================
+     الإجماليات
+================================ -->
+
 <div class="totalBox">
 
 📦 <strong>
@@ -720,10 +859,10 @@ ${productsTotal.toLocaleString()} ريال
 
 
 🚚 <strong>
-إجمالي التوصيل:
+رسوم التوصيل:
 </strong>
 
-${deliveryTotal.toLocaleString()} ريال
+${savedDeliveryFee.toLocaleString()} ريال
 
 
 <hr>
@@ -798,6 +937,178 @@ error.message
 
 
 /* =====================================
+   تحديد رسوم التوصيل
+===================================== */
+
+window.setDelivery =
+async function(
+id,
+fee,
+distanceType
+){
+
+try{
+
+const orderRef =
+doc(
+db,
+"orders",
+id
+);
+
+
+/* =====================================
+   قراءة الطلب
+===================================== */
+
+const orderSnap =
+await getDoc(
+orderRef
+);
+
+
+if(!orderSnap.exists()){
+
+alert(
+"لم يتم العثور على الطلب"
+);
+
+return;
+
+}
+
+
+const orderData =
+orderSnap.data();
+
+
+/* =====================================
+   حساب مجموع المنتجات
+===================================== */
+
+const products =
+Array.isArray(
+orderData.products
+)
+? orderData.products
+: [];
+
+
+let productsTotal = 0;
+
+
+products.forEach(product=>{
+
+const price =
+Number(product.price) || 0;
+
+
+const quantity =
+Number(product.quantity) > 0
+? Number(product.quantity)
+: 1;
+
+
+productsTotal +=
+price * quantity;
+
+});
+
+
+/* =====================================
+   حساب الإجمالي الجديد
+===================================== */
+
+const newTotal =
+productsTotal +
+Number(fee);
+
+
+/* =====================================
+   حفظ رسوم التوصيل
+===================================== */
+
+await updateDoc(
+
+orderRef,
+
+{
+
+deliveryFee:
+Number(fee),
+
+deliveryType:
+distanceType,
+
+productsTotal:
+Number(productsTotal),
+
+total:
+Number(newTotal)
+
+}
+
+);
+
+
+/* =====================================
+   رسالة نجاح
+===================================== */
+
+alert(
+
+"✅ تم تحديد التوصيل\n\n" +
+
+"🚚 النوع: " +
+distanceType +
+
+"\n" +
+
+"💰 رسوم التوصيل: " +
+fee.toLocaleString() +
+" ريال\n\n" +
+
+"🛍️ المنتجات: " +
+productsTotal.toLocaleString() +
+" ريال\n\n" +
+
+"💵 الإجمالي النهائي: " +
+newTotal.toLocaleString() +
+" ريال"
+
+);
+
+
+/* =====================================
+   إعادة تحميل الطلبات
+===================================== */
+
+loadOrders();
+
+
+}catch(error){
+
+console.error(
+"خطأ تحديد التوصيل:",
+error
+);
+
+
+alert(
+
+"❌ حدث خطأ أثناء تحديد التوصيل:\n\n" +
+
+(error.message ||
+"خطأ غير معروف")
+
+);
+
+}
+
+};
+
+
+/* =====================================
    تغيير الحالة
 ===================================== */
 
@@ -808,7 +1119,11 @@ try{
 
 await updateDoc(
 
-doc(db,"orders",id),
+doc(
+db,
+"orders",
+id
+),
 
 {
 status:"تم التوصيل"
@@ -831,8 +1146,11 @@ console.error(error);
 
 
 alert(
+
 "حدث خطأ أثناء تغيير حالة الطلب:\n" +
+
 error.message
+
 );
 
 }
@@ -859,11 +1177,17 @@ return;
 try{
 
 const orderRef =
-doc(db,"orders",id);
+doc(
+db,
+"orders",
+id
+);
 
 
 const orderSnap =
-await getDoc(orderRef);
+await getDoc(
+orderRef
+);
 
 
 if(!orderSnap.exists()){
@@ -920,8 +1244,11 @@ console.error(error);
 
 
 alert(
+
 "حدث خطأ أثناء نقل الطلب إلى الأرشيف:\n" +
+
 error.message
+
 );
 
 }
@@ -972,8 +1299,11 @@ console.error(error);
 
 
 alert(
+
 "حدث خطأ أثناء حذف الطلب:\n" +
+
 error.message
+
 );
 
 }
