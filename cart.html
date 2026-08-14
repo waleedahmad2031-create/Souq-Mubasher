@@ -36,6 +36,27 @@ margin:auto;
 padding:20px;
 }
 
+.shopBox{
+background:#e8f5e9;
+padding:15px;
+border-radius:10px;
+margin-bottom:15px;
+color:#00695c;
+font-weight:bold;
+font-size:17px;
+text-align:center;
+}
+
+.warning{
+background:#ffebee;
+color:#c62828;
+padding:15px;
+border-radius:10px;
+margin-bottom:15px;
+line-height:1.8;
+font-weight:bold;
+}
+
 .item{
 background:#fff;
 padding:15px;
@@ -81,6 +102,8 @@ font-size:22px;
 font-weight:bold;
 background:#009688;
 color:white;
+border:none;
+border-radius:6px;
 }
 
 .quantity{
@@ -157,6 +180,24 @@ cursor:pointer;
 background:#00796b;
 }
 
+.orderBtn:disabled{
+background:#999;
+cursor:not-allowed;
+}
+
+@media(max-width:600px){
+
+.item{
+align-items:flex-start;
+}
+
+.item img{
+width:80px;
+height:80px;
+}
+
+}
+
 </style>
 
 </head>
@@ -168,6 +209,10 @@ background:#00796b;
 </header>
 
 <div class="container">
+
+<div id="shopBox" class="shopBox"></div>
+
+<div id="warning"></div>
 
 <div id="cart"></div>
 
@@ -188,9 +233,7 @@ background:#00796b;
 </p>
 
 <div class="deliveryDetails">
-
-
-
+🚚 يتم حساب التوصيل حسب سعر الكرتون وعدد الكراتين.
 </div>
 
 <p class="finalTotal">
@@ -202,10 +245,12 @@ background:#00796b;
 
 <div class="note">
 
-📍 التوصيل داخل مدينة إب.
+📍 التوصيل داخل مدينة إب
 
+<br>
 
-  
+🏪 كل طلب في النسخة الأولى يكون من تاجر واحد فقط.
+
 </div>
 
 </div>
@@ -235,6 +280,15 @@ document.getElementById("deliveryTotal");
 const totalPrice =
 document.getElementById("totalPrice");
 
+const shopBox =
+document.getElementById("shopBox");
+
+const warning =
+document.getElementById("warning");
+
+const sendOrder =
+document.getElementById("sendOrder");
+
 
 // ===============================
 // حساب رسوم توصيل الكرتون
@@ -244,22 +298,68 @@ function getDeliveryFee(price){
 
 price = Number(price || 0);
 
-
 if(price < 1500){
-
 return 50;
-
 }
-
 
 if(price < 2000){
-
 return 70;
+}
+
+return 100;
 
 }
 
 
-return 100;
+// ===============================
+// فحص التاجر
+// ===============================
+
+function checkSingleShop(){
+
+if(cart.length === 0){
+
+return {
+valid:true,
+shop:""
+};
+
+}
+
+
+const firstShop =
+String(
+cart[0].shopName || ""
+).trim();
+
+
+const differentShop =
+cart.find(item => {
+
+const shop =
+String(
+item.shopName || ""
+).trim();
+
+return shop !== firstShop;
+
+});
+
+
+if(differentShop){
+
+return {
+valid:false,
+shop:""
+};
+
+}
+
+
+return {
+valid:true,
+shop:firstShop || "سوق مباشر"
+};
 
 }
 
@@ -272,12 +372,20 @@ function renderCart(){
 
 cartItems.innerHTML = "";
 
+warning.innerHTML = "";
+
+shopBox.innerHTML = "";
+
 let total = 0;
 
 let delivery = 0;
 
 
 if(cart.length === 0){
+
+shopBox.innerHTML =
+"🛒 لا يوجد تاجر محدد حاليًا";
+
 
 cartItems.innerHTML = `
 
@@ -297,51 +405,119 @@ deliveryTotal.textContent = "0";
 
 totalPrice.textContent = "0";
 
+sendOrder.disabled = true;
+
 return;
 
 }
 
 
+// ===============================
+// فحص التاجر
+// ===============================
+
+const shopCheck =
+checkSingleShop();
+
+
+if(!shopCheck.valid){
+
+warning.innerHTML = `
+
+⚠️ السلة تحتوي على منتجات من أكثر من تاجر.
+
+<br><br>
+
+في النسخة الأولى:
+<strong>
+كل طلب يجب أن يكون من تاجر واحد فقط.
+</strong>
+
+<br><br>
+
+احذف منتجات التاجر المختلف حتى تتمكن من إتمام الطلب.
+
+`;
+
+sendOrder.disabled = true;
+
+shopBox.innerHTML =
+"⚠️ يوجد أكثر من تاجر في السلة";
+
+}else{
+
+shopBox.innerHTML =
+
+"🏪 التاجر الحالي: " +
+
+"<strong>" +
+
+escapeHtml(
+shopCheck.shop
+) +
+
+"</strong>";
+
+sendOrder.disabled = false;
+
+}
+
+
+// ===============================
+// عرض المنتجات
+// ===============================
+
 cart.forEach((item,index)=>{
 
-
 const quantity =
-Number(item.quantity || 1);
-
+Number(
+item.quantity || 1
+);
 
 const price =
-Number(item.price || 0);
+Number(
+item.price || 0
+);
 
 
-// قيمة المنتج حسب الكمية
-total += price * quantity;
+total +=
+price * quantity;
 
 
-// رسوم التوصيل حسب كل كرتون
 const feePerCarton =
 getDeliveryFee(price);
 
 
-// عدد الكراتين × رسوم الكرتون
-delivery += feePerCarton * quantity;
+delivery +=
+feePerCarton * quantity;
 
 
 cartItems.innerHTML += `
 
 <div class="item">
 
-<img src="${item.image || ''}">
+<img
+src="${item.image || ''}"
+alt="${escapeHtml(item.name || 'منتج')}"
+>
 
 <div class="info">
 
 <h3>
-${item.name || ''}
+${escapeHtml(item.name || '')}
 </h3>
+
+<p>
+🏪 التاجر:
+<strong>
+${escapeHtml(item.shopName || 'سوق مباشر')}
+</strong>
+</p>
 
 <p>
 سعر الكرتون:
 <strong>
-${price} ريال
+${price.toLocaleString()} ريال
 </strong>
 </p>
 
@@ -402,13 +578,13 @@ total + delivery;
 
 
 productsTotal.textContent =
-total;
+total.toLocaleString();
 
 deliveryTotal.textContent =
-delivery;
+delivery.toLocaleString();
 
 totalPrice.textContent =
-finalTotal;
+finalTotal.toLocaleString();
 
 }
 
@@ -417,10 +593,13 @@ finalTotal;
 // زيادة الكمية
 // ===============================
 
-window.increaseQuantity = function(index){
+window.increaseQuantity =
+function(index){
 
 cart[index].quantity =
-Number(cart[index].quantity || 1) + 1;
+Number(
+cart[index].quantity || 1
+) + 1;
 
 
 localStorage.setItem(
@@ -438,10 +617,13 @@ renderCart();
 // إنقاص الكمية
 // ===============================
 
-window.decreaseQuantity = function(index){
+window.decreaseQuantity =
+function(index){
 
 let quantity =
-Number(cart[index].quantity || 1);
+Number(
+cart[index].quantity || 1
+);
 
 
 if(quantity > 1){
@@ -471,7 +653,8 @@ renderCart();
 // حذف المنتج
 // ===============================
 
-window.removeItem = function(index){
+window.removeItem =
+function(index){
 
 cart.splice(index,1);
 
@@ -491,26 +674,91 @@ renderCart();
 // إتمام الطلب
 // ===============================
 
-document.getElementById("sendOrder").onclick = function(){
+sendOrder.onclick =
+function(){
 
 if(cart.length === 0){
 
-alert("السلة فارغة");
+alert(
+"السلة فارغة"
+);
 
 return;
 
 }
 
 
-location.href = "orders.html";
+const shopCheck =
+checkSingleShop();
+
+
+if(!shopCheck.valid){
+
+alert(
+"⚠️ لا يمكن إتمام الطلب من أكثر من تاجر في نفس الطلب."
+);
+
+return;
+
+}
+
+
+localStorage.setItem(
+"selectedShop",
+shopCheck.shop
+);
+
+
+location.href =
+"orders.html";
 
 };
 
 
+// ===============================
+// حماية HTML
+// ===============================
+
+function escapeHtml(text){
+
+return String(text ?? "")
+
+.replace(
+/&/g,
+"&amp;"
+)
+
+.replace(
+/</g,
+"&lt;"
+)
+
+.replace(
+/>/g,
+"&gt;"
+)
+
+.replace(
+/"/g,
+"&quot;"
+)
+
+.replace(
+/'/g,
+"&#039;"
+);
+
+}
+
+
+// ===============================
 // تشغيل
+// ===============================
+
 renderCart();
 
 </script>
 
 </body>
-  </html>
+
+</html>
