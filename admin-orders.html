@@ -44,6 +44,29 @@ border-radius:12px;
 box-shadow:0 2px 6px rgba(0,0,0,.1);
 }
 
+.title{
+font-size:21px;
+font-weight:bold;
+margin-bottom:8px;
+}
+
+.description{
+color:#666;
+line-height:1.7;
+margin-bottom:12px;
+}
+
+button{
+width:100%;
+padding:14px;
+margin-top:12px;
+border:none;
+border-radius:8px;
+font-size:17px;
+cursor:pointer;
+color:#fff;
+}
+
 .back{
 background:#757575;
 }
@@ -65,6 +88,16 @@ margin-bottom:10px;
 .orderInfo{
 font-size:15px;
 line-height:2;
+}
+
+.sellerBox{
+background:#e0f2f1;
+color:#00695c;
+padding:12px;
+margin:10px 0;
+border-radius:8px;
+font-size:17px;
+font-weight:bold;
 }
 
 .productsList{
@@ -106,17 +139,6 @@ border-radius:8px;
 line-height:1.8;
 }
 
-button{
-width:100%;
-padding:14px;
-margin-top:12px;
-border:none;
-border-radius:8px;
-font-size:17px;
-cursor:pointer;
-color:#fff;
-}
-
 .status{
 background:#ff9800;
 }
@@ -127,10 +149,6 @@ background:#5e35b1;
 
 .delete{
 background:#e53935;
-}
-
-.back{
-background:#757575;
 }
 
 .empty{
@@ -150,6 +168,8 @@ margin:10px 0;
 </head>
 
 <body>
+
+
 <!-- =========================
      إحصائيات المنتجات
 ========================= -->
@@ -172,9 +192,12 @@ onclick="location.href='product-stats.html'"
 </button>
 
 </div>
+
+
 <header>
 📦 طلبات الزبائن
 </header>
+
 
 <div class="container">
 
@@ -186,6 +209,7 @@ onclick="location.href='admin.html'"
 >
 ⬅️ العودة إلى لوحة الإدارة
 </button>
+
 
 <div id="orders">
 جاري تحميل الطلبات...
@@ -230,11 +254,15 @@ price =
 Number(price) || 0;
 
 if(price < 1500){
+
 return 50;
+
 }
 
 if(price < 2000){
+
 return 70;
+
 }
 
 return 100;
@@ -251,6 +279,7 @@ async function loadOrders(){
 ordersBox.innerHTML =
 "جاري تحميل الطلبات...";
 
+
 try{
 
 const snap =
@@ -258,22 +287,30 @@ await getDocs(
 collection(db,"orders")
 );
 
+
 if(snap.empty){
 
 ordersBox.innerHTML = `
+
 <div class="empty">
+
 📦 لا توجد طلبات حالية.
+
 </div>
+
 `;
 
 return;
 
 }
 
+
 ordersBox.innerHTML = "";
 
 
-/* الأحدث أولاً */
+/* =====================================
+   الأحدث أولاً
+===================================== */
 
 const orders =
 snap.docs.sort((a,b)=>{
@@ -293,6 +330,10 @@ return dateB - dateA;
 });
 
 
+/* =====================================
+   عرض الطلبات
+===================================== */
+
 orders.forEach(item=>{
 
 const data =
@@ -308,28 +349,55 @@ data.customerName ||
 data.name ||
 "بدون اسم";
 
+
 const customerPhone =
 data.customerPhone ||
 data.phone ||
 "-";
+
 
 const customerAddress =
 data.customerAddress ||
 data.address ||
 "-";
 
+
 const city =
 data.customerCity ||
 data.deliveryArea ||
 "إب";
 
+
 const orderType =
 data.orderType ||
 "جملة";
 
+
 const deliveryTime =
 data.deliveryTime ||
 "غير محدد";
+
+
+/* =====================================
+   بيانات التاجر
+===================================== */
+
+/*
+نأخذ اسم التاجر من الطلب أولًا.
+
+إذا لم يكن موجودًا نأخذه من
+أول منتج داخل الطلب.
+*/
+
+const shopName =
+data.shopName ||
+(
+data.products &&
+data.products.length > 0
+? data.products[0].shopName
+: ""
+) ||
+"سوق مباشر";
 
 
 /* =====================================
@@ -357,8 +425,10 @@ const name =
 product.name ||
 "منتج";
 
+
 const price =
 Number(product.price) || 0;
+
 
 const quantity =
 Number(product.quantity) > 0
@@ -373,6 +443,7 @@ price * quantity;
 const deliveryPerCarton =
 getDeliveryPerCarton(price);
 
+
 const productDelivery =
 deliveryPerCarton * quantity;
 
@@ -380,8 +451,10 @@ deliveryPerCarton * quantity;
 calculatedCartons +=
 quantity;
 
+
 calculatedProductsTotal +=
 productTotal;
+
 
 calculatedDelivery +=
 productDelivery;
@@ -392,7 +465,7 @@ productsHTML += `
 <div class="productOrder">
 
 🛍️ <strong>
-${name}
+${escapeHtml(name)}
 </strong>
 
 <br>
@@ -406,7 +479,14 @@ ${quantity}
 
 💰 سعر الكرتون:
 <strong>
-${price} ريال
+${price.toLocaleString()} ريال
+</strong>
+
+<br>
+
+💵 إجمالي المنتج:
+<strong>
+${productTotal.toLocaleString()} ريال
 </strong>
 
 </div>
@@ -423,8 +503,10 @@ ${price} ريال
 const productsTotal =
 calculatedProductsTotal;
 
+
 const deliveryTotal =
 calculatedDelivery;
+
 
 const total =
 productsTotal +
@@ -486,6 +568,7 @@ margin-top:10px;
 
 </p>
 
+
 <button
 class="archive"
 onclick="archiveOrder('${item.id}')"
@@ -523,13 +606,18 @@ ordersBox.innerHTML += `
 
 <div class="orderBox">
 
+
 <div class="orderHeader">
 
 <h3>
-👤 ${customerName}
+
+👤 ${escapeHtml(customerName)}
+
 </h3>
 
+
 <p>
+
 🕐 <strong>
 وقت إنشاء الطلب:
 </strong>
@@ -541,30 +629,54 @@ ${createdAtText}
 </div>
 
 
+<!-- ===============================
+     التاجر
+================================ -->
+
+<div class="sellerBox">
+
+🏪 التاجر:
+
+<strong>
+${escapeHtml(shopName)}
+</strong>
+
+</div>
+
+
 <div class="orderInfo">
 
 📱 الجوال:
-${customerPhone}
+
+${escapeHtml(customerPhone)}
 
 <br>
+
 
 📍 المدينة:
-${city}
+
+${escapeHtml(city)}
 
 <br>
+
 
 🏠 العنوان:
-${customerAddress}
+
+${escapeHtml(customerAddress)}
 
 <br>
+
 
 📦 نوع الطلب:
-${orderType}
+
+${escapeHtml(orderType)}
 
 <br>
 
+
 🕐 وقت التوصيل:
-${deliveryTime}
+
+${escapeHtml(deliveryTime)}
 
 </div>
 
@@ -597,26 +709,31 @@ ${calculatedCartons}
 
 <br>
 
+
 🛍️ <strong>
 مجموع المنتجات:
 </strong>
 
-${productsTotal} ريال
+${productsTotal.toLocaleString()} ريال
 
 <br>
+
 
 🚚 <strong>
 إجمالي التوصيل:
 </strong>
 
-${deliveryTotal} ريال
+${deliveryTotal.toLocaleString()} ريال
+
 
 <hr>
+
 
 <span class="finalTotal">
 
 💰 الإجمالي النهائي:
-${total} ريال
+
+${total.toLocaleString()} ريال
 
 </span>
 
@@ -629,7 +746,7 @@ ${total} ريال
 حالة الطلب:
 </strong>
 
-${status}
+${escapeHtml(status)}
 
 </div>
 
@@ -653,9 +770,11 @@ onclick="deleteOrder('${item.id}')"
 
 });
 
+
 }catch(error){
 
 console.error(error);
+
 
 ordersBox.innerHTML = `
 
@@ -665,7 +784,9 @@ ordersBox.innerHTML = `
 
 <br><br>
 
-${error.message}
+${escapeHtml(
+error.message
+)}
 
 </div>
 
@@ -686,21 +807,28 @@ async function(id){
 try{
 
 await updateDoc(
+
 doc(db,"orders",id),
+
 {
 status:"تم التوصيل"
 }
+
 );
+
 
 alert(
 "تم تغيير حالة الطلب إلى تم التوصيل ✅"
 );
 
+
 loadOrders();
+
 
 }catch(error){
 
 console.error(error);
+
 
 alert(
 "حدث خطأ أثناء تغيير حالة الطلب:\n" +
@@ -722,8 +850,11 @@ async function(id){
 if(!confirm(
 "هل تريد نقل هذا الطلب إلى الأرشيف؟"
 )){
+
 return;
+
 }
+
 
 try{
 
@@ -751,7 +882,13 @@ orderSnap.data();
 
 
 await setDoc(
-doc(db,"archivedOrders",id),
+
+doc(
+db,
+"archivedOrders",
+id
+),
+
 {
 
 ...orderData,
@@ -760,6 +897,7 @@ archivedAt:
 serverTimestamp()
 
 }
+
 );
 
 
@@ -775,9 +913,11 @@ alert(
 
 loadOrders();
 
+
 }catch(error){
 
 console.error(error);
+
 
 alert(
 "حدث خطأ أثناء نقل الطلب إلى الأرشيف:\n" +
@@ -799,24 +939,37 @@ async function(id){
 if(!confirm(
 "هل تريد حذف هذا الطلب؟"
 )){
+
 return;
+
 }
+
 
 try{
 
 await deleteDoc(
-doc(db,"orders",id)
+
+doc(
+db,
+"orders",
+id
+)
+
 );
+
 
 alert(
 "تم حذف الطلب ✅"
 );
 
+
 loadOrders();
+
 
 }catch(error){
 
 console.error(error);
+
 
 alert(
 "حدث خطأ أثناء حذف الطلب:\n" +
@@ -829,11 +982,51 @@ error.message
 
 
 /* =====================================
+   حماية HTML
+===================================== */
+
+function escapeHtml(text){
+
+return String(
+text ?? ""
+)
+
+.replace(
+/&/g,
+"&amp;"
+)
+
+.replace(
+/</g,
+"&lt;"
+)
+
+.replace(
+/>/g,
+"&gt;"
+)
+
+.replace(
+/"/g,
+"&quot;"
+)
+
+.replace(
+/'/g,
+"&#039;"
+);
+
+}
+
+
+/* =====================================
    التحقق من المدير
 ===================================== */
 
 onAuthStateChanged(
+
 auth,
+
 (user)=>{
 
 if(!user){
@@ -848,12 +1041,20 @@ return;
 
 
 if(
+
 user.email !==
-"waleedahmad@gmail.com" &&
+"waleedahmad@gmail.com"
+
+&&
+
 user.email !==
-"waleedahmadahmad@gmail.com" &&
+"waleedahmadahmad@gmail.com"
+
+&&
+
 user.email !==
 "waleedahmad2031@gmail.com"
+
 ){
 
 alert(
@@ -867,10 +1068,12 @@ return;
 
 loadOrders();
 
-});
+}
+
+);
 
 </script>
 
 </body>
 
-  </html>
+     </html>
