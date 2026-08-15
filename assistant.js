@@ -8,9 +8,9 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
-/* =========================================
+/* =========================================================
    عناصر الصفحة
-========================================= */
+========================================================= */
 
 const chat =
   document.getElementById("chat");
@@ -22,16 +22,16 @@ const sendButton =
   document.getElementById("sendButton");
 
 
-/* =========================================
+/* =========================================================
    المنتجات
-========================================= */
+========================================================= */
 
 let products = [];
 
 
-/* =========================================
+/* =========================================================
    حالة المساعد
-========================================= */
+========================================================= */
 
 window.currentAssistantOrder = null;
 
@@ -40,7 +40,6 @@ let assistantStep = "shop";
 let selectedShop =
   localStorage.getItem("selectedShop") || "";
 
-
 let customerData = {
   name: "",
   phone: "",
@@ -48,9 +47,9 @@ let customerData = {
 };
 
 
-/* =========================================
+/* =========================================================
    تحميل المنتجات
-========================================= */
+========================================================= */
 
 async function loadProducts() {
 
@@ -61,20 +60,15 @@ async function loadProducts() {
         collection(db, "products")
       );
 
-
     products = [];
-
 
     snapshot.forEach(doc => {
 
-      const data =
-        doc.data();
-
+      const data = doc.data();
 
       products.push({
 
-        id:
-          doc.id,
+        id: doc.id,
 
         name:
           data.name ||
@@ -133,13 +127,13 @@ async function loadProducts() {
     }
 
 
-    /* =====================================
+    /* =========================================
        التاجر المحفوظ
-    ===================================== */
+    ========================================= */
 
     if (selectedShop) {
 
-      const shopExists =
+      const exists =
         products.some(product => {
 
           return String(
@@ -149,7 +143,7 @@ async function loadProducts() {
         });
 
 
-      if (shopExists) {
+      if (exists) {
 
         assistantStep =
           "product";
@@ -159,7 +153,7 @@ async function loadProducts() {
 
           "🤖 أهلًا بك في سوق مباشر 🌹<br><br>" +
 
-          "🏪 التاجر المحدد حاليًا:<br>" +
+          "🏪 التاجر الحالي:<br>" +
 
           "<strong>" +
           escapeHtml(selectedShop) +
@@ -170,11 +164,10 @@ async function loadProducts() {
           "مثال:<br>" +
 
           "<strong>" +
-          "دقيق قمح 10 وماء شملان 2 وسكر 3" +
+          "ماء شملان 2 وصابون الساعة 3 وبسكويت ابود 1" +
           "</strong>"
 
         );
-
 
         return;
 
@@ -193,7 +186,6 @@ async function loadProducts() {
       error
     );
 
-
     addBotMessage(
 
       "❌ حدث خطأ أثناء تحميل المنتجات.<br><br>" +
@@ -210,14 +202,13 @@ async function loadProducts() {
 }
 
 
-/* =========================================
+/* =========================================================
    عرض التجار
-========================================= */
+========================================================= */
 
 function showShopSelection() {
 
   const shops = {};
-
 
   products.forEach(product => {
 
@@ -226,7 +217,6 @@ function showShopSelection() {
         product.shopName ||
         "سوق مباشر"
       ).trim();
-
 
     if (shopName) {
 
@@ -315,9 +305,9 @@ function showShopSelection() {
 }
 
 
-/* =========================================
+/* =========================================================
    اختيار التاجر
-========================================= */
+========================================================= */
 
 function chooseAssistantShop(shopName) {
 
@@ -349,9 +339,7 @@ function chooseAssistantShop(shopName) {
         escapeHtml(cartShop) +
         "</strong><br><br>" +
 
-        "لا يمكن إنشاء طلب من تاجر آخر في نفس السلة.<br>" +
-
-        "أكمل الطلب الحالي أو أفرغ السلة أولًا."
+        "لا يمكن إنشاء طلب من تاجر آخر في نفس السلة."
 
       );
 
@@ -388,68 +376,62 @@ function chooseAssistantShop(shopName) {
 
     "مثال:<br>" +
 
-    "<strong>دقيق قمح 10 وماء شملان 2 وسكر 3</strong>"
+    "<strong>" +
+    "ماء شملان 2 وصابون الساعة 3 وبسكويت ابود 1" +
+    "</strong>"
 
   );
 
 }
 
 
-/* =========================================
-   رسالة المساعد
-========================================= */
+/* =========================================================
+   رسائل المساعد
+========================================================= */
 
 function addBotMessage(text) {
 
   const div =
     document.createElement("div");
 
-
   div.className =
     "message bot";
-
 
   div.innerHTML =
     text;
 
-
   chat.appendChild(div);
-
 
   scrollChat();
 
 }
 
 
-/* =========================================
+/* =========================================================
    رسالة العميل
-========================================= */
+========================================================= */
 
 function addUserMessage(text) {
 
   const div =
     document.createElement("div");
 
-
   div.className =
     "message user";
-
 
   div.textContent =
     text;
 
-
   chat.appendChild(div);
-
 
   scrollChat();
 
 }
 
 
-/* =========================================
+/* =========================================================
    النزول لآخر المحادثة
-========================================= */
+========================================================= */
 
 function scrollChat() {
 
@@ -466,9 +448,9 @@ function scrollChat() {
 }
 
 
-/* =========================================
+/* =========================================================
    تحويل الأرقام العربية
-========================================= */
+========================================================= */
 
 function normalizeDigits(text) {
 
@@ -476,38 +458,30 @@ function normalizeDigits(text) {
 
     .replace(
       /[٠-٩]/g,
-      digit => {
-
-        return String(
+      digit =>
+        String(
           "٠١٢٣٤٥٦٧٨٩".indexOf(
             digit
           )
-        );
-
-      }
-
+        )
     )
 
     .replace(
       /[۰-۹]/g,
-      digit => {
-
-        return String(
+      digit =>
+        String(
           "۰۱۲۳۴۵۶۷۸۹".indexOf(
             digit
           )
-        );
-
-      }
-
+        )
     );
 
 }
 
 
-/* =========================================
-   تطبيع العربي
-========================================= */
+/* =========================================================
+   تطبيع النص العربي
+========================================================= */
 
 function normalizeArabic(text) {
 
@@ -560,9 +534,151 @@ function normalizeArabic(text) {
 }
 
 
-/* =========================================
+/* =========================================================
+   نص بدون مسافات
+   يساعد على فهم:
+   ابو عود / ابوعود / ابود
+========================================================= */
+
+function compactArabic(text) {
+
+  return normalizeArabic(text)
+    .replace(/\s+/g, "");
+
+}
+
+
+/* =========================================================
+   حساب التشابه بين الكلمات
+========================================================= */
+
+function levenshtein(a, b) {
+
+  a = String(a || "");
+  b = String(b || "");
+
+  const matrix = [];
+
+  for (
+    let i = 0;
+    i <= b.length;
+    i++
+  ) {
+
+    matrix[i] = [i];
+
+  }
+
+  for (
+    let j = 0;
+    j <= a.length;
+    j++
+  ) {
+
+    matrix[0][j] = j;
+
+  }
+
+  for (
+    let i = 1;
+    i <= b.length;
+    i++
+  ) {
+
+    for (
+      let j = 1;
+      j <= a.length;
+      j++
+    ) {
+
+      if (
+        b.charAt(i - 1) ===
+        a.charAt(j - 1)
+      ) {
+
+        matrix[i][j] =
+          matrix[i - 1][j - 1];
+
+      } else {
+
+        matrix[i][j] =
+          Math.min(
+
+            matrix[i - 1][j] + 1,
+
+            matrix[i][j - 1] + 1,
+
+            matrix[i - 1][j - 1] + 1
+
+          );
+
+      }
+
+    }
+
+  }
+
+  return matrix[b.length][a.length];
+
+}
+
+
+/* =========================================================
+   تشابه كلمتين
+========================================================= */
+
+function wordSimilarity(a, b) {
+
+  a = compactArabic(a);
+  b = compactArabic(b);
+
+  if (!a || !b) {
+
+    return 0;
+
+  }
+
+  if (a === b) {
+
+    return 1;
+
+  }
+
+  if (
+    a.includes(b) ||
+    b.includes(a)
+  ) {
+
+    return 0.9;
+
+  }
+
+  const distance =
+    levenshtein(a, b);
+
+  const maxLength =
+    Math.max(
+      a.length,
+      b.length
+    );
+
+  if (!maxLength) {
+
+    return 0;
+
+  }
+
+  return (
+    1 -
+    distance / maxLength
+  );
+
+}
+
+
+/* =========================================================
    التوصيل لكل كرتون
-========================================= */
+========================================================= */
 
 function getDeliveryPerCarton(price) {
 
@@ -589,84 +705,9 @@ function getDeliveryPerCarton(price) {
 }
 
 
-/* =========================================
-   هل الاسم موجود في النص؟
-========================================= */
-
-function findExactProductPositions(
-  text,
-  product
-) {
-
-  const normalizedText =
-    normalizeArabic(text);
-
-
-  const productName =
-    normalizeArabic(
-      product.name
-    );
-
-
-  if (!productName) {
-
-    return [];
-
-  }
-
-
-  const positions = [];
-
-
-  let start =
-    0;
-
-
-  while (true) {
-
-    const index =
-      normalizedText.indexOf(
-        productName,
-        start
-      );
-
-
-    if (index === -1) {
-
-      break;
-
-    }
-
-
-    positions.push({
-
-      product,
-
-      start:
-        index,
-
-      end:
-        index +
-        productName.length
-
-    });
-
-
-    start =
-      index +
-      productName.length;
-
-  }
-
-
-  return positions;
-
-}
-
-
-/* =========================================
-   استخراج المنتجات الحقيقية
-========================================= */
+/* =========================================================
+   البحث الذكي عن المنتجات
+========================================================= */
 
 function findRequestedProducts(text) {
 
@@ -679,7 +720,6 @@ function findRequestedProducts(text) {
           "سوق مباشر"
         ).trim();
 
-
       return (
         shop === selectedShop
       );
@@ -687,168 +727,130 @@ function findRequestedProducts(text) {
     });
 
 
-  /* =====================================
-     البحث بالاسم الكامل أولًا
-  ===================================== */
+  if (!shopProducts.length) {
 
-  let matches = [];
-
-
-  shopProducts.forEach(product => {
-
-    const positions =
-      findExactProductPositions(
-        text,
-        product
-      );
-
-
-    positions.forEach(position => {
-
-      matches.push(position);
-
-    });
-
-  });
-
-
-  /*
-     نرتب الأسماء الأطول أولًا
-     حتى لا يختار "ماء" بدل
-     "ماء شملان"
-  */
-
-  matches.sort(
-    (a,b) => {
-
-      const lengthA =
-        a.end - a.start;
-
-      const lengthB =
-        b.end - b.start;
-
-      return lengthB - lengthA;
-
-    }
-  );
-
-
-  /* =====================================
-     منع التداخل بين أسماء المنتجات
-  ===================================== */
-
-  const accepted = [];
-
-
-  matches.forEach(match => {
-
-    const overlaps =
-      accepted.some(old => {
-
-        return !(
-          match.end <= old.start ||
-          match.start >= old.end
-        );
-
-      });
-
-
-    if (!overlaps) {
-
-      accepted.push(match);
-
-    }
-
-  });
-
-
-  accepted.sort(
-    (a,b) =>
-      a.start - b.start
-  );
-
-
-  /* =====================================
-     إذا وجدنا أسماء حقيقية
-     لا نستخدم التخمين
-  ===================================== */
-
-  if (accepted.length) {
-
-    return accepted;
+    return [];
 
   }
 
-
-  /* =====================================
-     بحث احتياطي ذكي
-     فقط إذا لم نجد اسمًا كاملًا
-  ===================================== */
 
   const normalizedText =
     normalizeArabic(text);
 
 
-  const fuzzy = [];
+  const textWords =
+    normalizedText
+      .split(/\s+/)
+      .filter(Boolean);
+
+
+  const candidates = [];
 
 
   shopProducts.forEach(product => {
 
-    const name =
+    const productName =
       normalizeArabic(
         product.name
       );
 
 
-    const words =
-      name
+    const productWords =
+      productName
         .split(/\s+/)
-        .filter(
-          word =>
-            word.length >= 2
+        .filter(Boolean);
+
+
+    let exactWords = 0;
+    let similarWords = 0;
+
+
+    productWords.forEach(
+      productWord => {
+
+        let best = 0;
+
+        textWords.forEach(
+          textWord => {
+
+            const similarity =
+              wordSimilarity(
+                productWord,
+                textWord
+              );
+
+            if (
+              similarity > best
+            ) {
+
+              best =
+                similarity;
+
+            }
+
+          }
         );
 
 
-    let score = 0;
+        if (best >= 0.95) {
 
+          exactWords++;
 
-    words.forEach(word => {
+        } else if (best >= 0.65) {
 
-      if (
-        normalizedText.includes(word)
-      ) {
+          similarWords++;
 
-        score += 1;
+        }
 
       }
+    );
 
-    });
+
+    const totalWords =
+      productWords.length;
+
+
+    if (!totalWords) {
+
+      return;
+
+    }
+
+
+    const score =
+      (
+        exactWords * 2 +
+        similarWords
+      ) /
+      (totalWords * 2);
+
+
+    /*
+       المنتج يعتبر موجودًا إذا:
+       - الاسم كامل موجود
+       أو
+       - معظم كلمات الاسم متشابهة
+    */
+
+    const fullNameFound =
+      normalizedText.includes(
+        productName
+      );
 
 
     if (
-      score === words.length &&
-      score > 0
+      fullNameFound ||
+      score >= 0.45
     ) {
 
-      const index =
-        normalizedText.indexOf(name);
-
-
-      fuzzy.push({
+      candidates.push({
 
         product,
 
-        start:
-          index >= 0
-            ? index
-            : 0,
-
-        end:
-          index >= 0
-            ? index + name.length
-            : name.length,
-
-        score
+        score:
+          fullNameFound
+            ? 1.5
+            : score
 
       });
 
@@ -857,79 +859,215 @@ function findRequestedProducts(text) {
   });
 
 
-  fuzzy.sort(
+  candidates.sort(
     (a,b) =>
       b.score - a.score
   );
 
 
   /*
-     في البحث الاحتياطي نأخذ
-     أفضل منتج واحد فقط
-     حتى لا يضيف المساعد منتجات من عنده
+     نمنع المساعد من إضافة منتجات
+     كثيرة بسبب كلمة مشتركة.
+     
+     نسمح بالمنتجات التي لها
+     تطابق جيد فقط.
   */
 
-  if (fuzzy.length) {
-
-    return [
-      fuzzy[0]
-    ];
-
-  }
+  const selected = [];
 
 
-  return [];
+  candidates.forEach(candidate => {
+
+    if (
+      candidate.score >= 0.55 ||
+      selected.length === 0
+    ) {
+
+      selected.push(
+        candidate
+      );
+
+    }
+
+  });
+
+
+  /*
+     نرجع المنتجات فقط
+  */
+
+  return selected.map(
+    item =>
+      item.product
+  );
 
 }
 
 
-/* =========================================
-   استخراج الكمية بعد المنتج
-========================================= */
+/* =========================================================
+   البحث عن كمية مرتبطة بالمنتج
+========================================================= */
 
-function extractQuantityForMatch(
+function findQuantityForProduct(
   text,
-  match,
-  nextMatch
+  product,
+  allProducts
 ) {
 
   const normalizedText =
     normalizeArabic(text);
 
 
-  let start =
-    match.end;
-
-
-  let end =
-    nextMatch
-      ? nextMatch.start
-      : normalizedText.length;
+  const productName =
+    normalizeArabic(
+      product.name
+    );
 
 
   /*
-     نبحث بعد اسم المنتج
-     حتى بداية المنتج التالي
+     أولًا:
+     الاسم الكامل
   */
 
-  const afterText =
+  let productIndex =
+    normalizedText.indexOf(
+      productName
+    );
+
+
+  /*
+     ثانيًا:
+     الاسم بدون مسافات
+     مثل:
+     ابو عود
+     ابود
+  */
+
+  if (productIndex === -1) {
+
+    const compactText =
+      compactArabic(text);
+
+    const compactName =
+      compactArabic(product.name);
+
+    const compactIndex =
+      compactText.indexOf(
+        compactName
+      );
+
+
+    if (
+      compactIndex !== -1
+    ) {
+
+      /*
+         نستخدم الكلمات للعثور
+         على أقرب مكان في النص
+      */
+
+      const firstWord =
+        productName
+          .split(/\s+/)[0];
+
+      productIndex =
+        normalizedText.indexOf(
+          firstWord
+        );
+
+    }
+
+  }
+
+
+  /*
+     إذا لم نستطع تحديد مكان المنتج
+  */
+
+  if (productIndex === -1) {
+
+    return 1;
+
+  }
+
+
+  /*
+     نحدد نهاية المنطقة
+     قبل المنتج التالي
+  */
+
+  let endIndex =
+    normalizedText.length;
+
+
+  allProducts.forEach(
+    otherProduct => {
+
+      if (
+        otherProduct.id ===
+        product.id
+      ) {
+
+        return;
+
+      }
+
+
+      const otherName =
+        normalizeArabic(
+          otherProduct.name
+        );
+
+
+      const otherIndex =
+        normalizedText.indexOf(
+          otherName,
+          productIndex +
+          productName.length
+        );
+
+
+      if (
+        otherIndex !== -1 &&
+        otherIndex < endIndex
+      ) {
+
+        endIndex =
+          otherIndex;
+
+      }
+
+    }
+  );
+
+
+  /*
+     الجزء بعد اسم المنتج
+  */
+
+  const afterProduct =
     normalizedText.substring(
-      start,
-      end
+      productIndex +
+      productName.length,
+      endIndex
     );
 
 
-  const afterNumber =
-    afterText.match(
-      /\d+(?:\.\d+)?/
+  /*
+     نبحث عن أول رقم بعد المنتج
+  */
+
+  const numberAfter =
+    afterProduct.match(
+      /\b\d+(?:\.\d+)?\b/
     );
 
 
-  if (afterNumber) {
+  if (numberAfter) {
 
     const quantity =
       Number(
-        afterNumber[0]
+        numberAfter[0]
       );
 
 
@@ -946,46 +1084,38 @@ function extractQuantityForMatch(
 
 
   /*
-     إذا لم توجد كمية بعد الاسم،
-     نبحث قبله من نهاية المنتج السابق
+     إذا الاسم فيه خطأ
+     ولم نستطع تحديد نهاية الاسم،
+     نبحث في النص عن الأرقام.
   */
 
-  let beforeStart = 0;
+  const numbers =
+    normalizedText.match(
+      /\b\d+(?:\.\d+)?\b/g
+    ) || [];
 
 
-  if (match.previousEnd !== undefined) {
+  /*
+     نستخدم ترتيب المنتج
+     كحل احتياطي.
+  */
 
-    beforeStart =
-      match.previousEnd;
-
-  }
-
-
-  const beforeText =
-    normalizedText.substring(
-      beforeStart,
-      match.start
+  const productIndexInList =
+    allProducts.findIndex(
+      p =>
+        p.id === product.id
     );
 
 
-  const numbersBefore =
-    beforeText.match(
-      /\d+(?:\.\d+)?/g
-    );
-
-
-  if (numbersBefore &&
-      numbersBefore.length) {
-
-    const lastNumber =
-      numbersBefore[
-        numbersBefore.length - 1
-      ];
-
+  if (
+    numbers[productIndexInList]
+  ) {
 
     const quantity =
       Number(
-        lastNumber
+        numbers[
+          productIndexInList
+        ]
       );
 
 
@@ -1006,59 +1136,39 @@ function extractQuantityForMatch(
 }
 
 
-/* =========================================
-   تجهيز المنتجات مع الكميات
-========================================= */
+/* =========================================================
+   استخراج المنتجات والكميات
+========================================================= */
 
 function buildRequestedProducts(
   text
 ) {
 
-  const matches =
+  const requestedProducts =
     findRequestedProducts(
       text
     );
 
 
-  if (!matches.length) {
+  if (!requestedProducts.length) {
 
     return [];
 
   }
 
 
-  /*
-     حفظ نهاية المنتج السابق
-  */
-
-  matches.forEach(
-    (match,index) => {
-
-      match.previousEnd =
-        index > 0
-          ? matches[index - 1].end
-          : 0;
-
-    }
-  );
-
-
   const result = [];
 
 
-  matches.forEach(
-    (match,index) => {
+  requestedProducts.forEach(
+    product => {
 
       const quantity =
-        extractQuantityForMatch(
+        findQuantityForProduct(
           text,
-          match,
-          matches[index + 1]
+          product,
+          requestedProducts
         );
-
-
-      const product =
-        match.product;
 
 
       const price =
@@ -1110,39 +1220,17 @@ function buildRequestedProducts(
 
   result.forEach(item => {
 
-    const existing =
-      unique.find(old => {
-
-        return (
+    const exists =
+      unique.find(
+        old =>
           old.product.id ===
           item.product.id
-        );
-
-      });
+      );
 
 
-    if (existing) {
+    if (!exists) {
 
-      existing.quantity +=
-        item.quantity;
-
-
-      existing.subtotal =
-        existing.product.price *
-        existing.quantity;
-
-
-      existing.deliveryTotal =
-        existing.deliveryPerCarton *
-        existing.quantity;
-
-    } else {
-
-      unique.push({
-
-        ...item
-
-      });
+      unique.push(item);
 
     }
 
@@ -1154,9 +1242,9 @@ function buildRequestedProducts(
 }
 
 
-/* =========================================
+/* =========================================================
    معالجة رسالة المنتجات
-========================================= */
+========================================================= */
 
 async function processMessage(text) {
 
@@ -1182,9 +1270,9 @@ async function processMessage(text) {
     );
 
 
-  /* =====================================
-     لم يتم اختيار تاجر
-  ===================================== */
+  /* =======================================================
+     التاجر
+  ======================================================= */
 
   if (
     !selectedShop ||
@@ -1198,15 +1286,20 @@ async function processMessage(text) {
   }
 
 
-  /* =====================================
-     تحية
-  ===================================== */
+  /* =======================================================
+     التحية
+  ======================================================= */
 
   if (
+
+    lower === "سلام" ||
+
     lower === "السلام عليكم" ||
+
     lower.includes("مرحبا") ||
-    lower.includes("هلا") ||
-    lower === "سلام"
+
+    lower.includes("هلا")
+
   ) {
 
     addBotMessage(
@@ -1219,11 +1312,13 @@ async function processMessage(text) {
       escapeHtml(selectedShop) +
       "</strong><br><br>" +
 
-      "اكتب المنتجات والكميات التي تريدها.<br><br>" +
+      "اكتب المنتجات والكميات.<br><br>" +
 
       "مثال:<br>" +
 
-      "<strong>دقيق قمح 10 وماء شملان 2</strong>"
+      "<strong>" +
+      "ماء شملان 2 وصابون الساعة 3 وبسكويت ابود 1" +
+      "</strong>"
 
     );
 
@@ -1232,15 +1327,20 @@ async function processMessage(text) {
   }
 
 
-  /* =====================================
+  /* =======================================================
      تغيير التاجر
-  ===================================== */
+  ======================================================= */
 
   if (
+
     lower.includes("غير التاجر") ||
+
     lower.includes("غير تاجر") ||
+
     lower.includes("تاجر اخر") ||
+
     lower.includes("تاجر ثاني")
+
   ) {
 
     const cart =
@@ -1253,7 +1353,7 @@ async function processMessage(text) {
 
       addBotMessage(
 
-        "⚠️ لا يمكن تغيير التاجر الآن لأن السلة تحتوي على منتجات من:<br><br>" +
+        "⚠️ السلة تحتوي على منتجات من:<br><br>" +
 
         "<strong>" +
 
@@ -1275,15 +1375,12 @@ async function processMessage(text) {
     selectedShop =
       "";
 
-
     localStorage.removeItem(
       "selectedShop"
     );
 
-
     assistantStep =
       "shop";
-
 
     showShopSelection();
 
@@ -1292,9 +1389,9 @@ async function processMessage(text) {
   }
 
 
-  /* =====================================
-     بحث المنتجات
-  ===================================== */
+  /* =======================================================
+     استخراج المنتجات والكميات
+  ======================================================= */
 
   const selectedProducts =
     buildRequestedProducts(
@@ -1302,9 +1399,9 @@ async function processMessage(text) {
     );
 
 
-  /* =====================================
-     لم يجد منتج
-  ===================================== */
+  /* =======================================================
+     لم يجد المنتجات
+  ======================================================= */
 
   if (
     !selectedProducts.length
@@ -1312,21 +1409,21 @@ async function processMessage(text) {
 
     addBotMessage(
 
-      "❌ لم أجد المنتج الذي كتبته عند التاجر:<br><br>" +
+      "❌ لم أتعرف على أي منتج من طلبك.<br><br>" +
 
-      "🏪 <strong>" +
+      "🏪 التاجر:<br>" +
 
-      escapeHtml(
-        selectedShop
-      ) +
-
+      "<strong>" +
+      escapeHtml(selectedShop) +
       "</strong><br><br>" +
 
-      "اكتب اسم المنتج كما هو ظاهر في المتجر.<br><br>" +
+      "اكتب اسم المنتج والكمية، مثل:<br><br>" +
 
-      "مثال:<br>" +
+      "<strong>" +
 
-      "<strong>دقيق قمح 10 وماء شملان 2</strong>"
+      "ماء شملان 2 وصابون الساعة 3 وبسكويت ابود 1" +
+
+      "</strong>"
 
     );
 
@@ -1335,14 +1432,9 @@ async function processMessage(text) {
   }
 
 
-  /* =====================================
-     عرض المنتجات
-  ===================================== */
-
-  let html =
-
-    "وجدت لك المنتجات التالية 👇<br><br>";
-
+  /* =======================================================
+     حساب الإجماليات
+  ======================================================= */
 
   let productsTotal = 0;
 
@@ -1351,23 +1443,39 @@ async function processMessage(text) {
   let cartonsTotal = 0;
 
 
+  selectedProducts.forEach(item => {
+
+    productsTotal +=
+      item.subtotal;
+
+    deliveryTotal +=
+      item.deliveryTotal;
+
+    cartonsTotal +=
+      Number(item.quantity);
+
+  });
+
+
+  const finalTotal =
+    productsTotal +
+    deliveryTotal;
+
+
+  /* =======================================================
+     عرض المنتجات
+  ======================================================= */
+
+  let html =
+
+    "وجدت لك المنتجات التالية 👇<br><br>";
+
+
   selectedProducts.forEach(
     (item,index) => {
 
       const product =
         item.product;
-
-
-      productsTotal +=
-        item.subtotal;
-
-
-      deliveryTotal +=
-        item.deliveryTotal;
-
-
-      cartonsTotal +=
-        item.quantity;
 
 
       html += `
@@ -1424,14 +1532,20 @@ async function processMessage(text) {
   );
 
 
-  const finalTotal =
-    productsTotal +
-    deliveryTotal;
-
+  /* =======================================================
+     الإجماليات
+  ======================================================= */
 
   html += `
 
     <hr>
+
+    🛒 عدد المنتجات:
+    <strong>
+      ${selectedProducts.length}
+    </strong>
+
+    <br><br>
 
     📦 إجمالي الكراتين:
     <strong>
@@ -1458,7 +1572,7 @@ async function processMessage(text) {
 
     💰 الإجمالي النهائي:
     <strong style="
-      font-size:19px;
+      font-size:20px;
       color:#009688;
     ">
       ${finalTotal.toLocaleString()}
@@ -1467,7 +1581,7 @@ async function processMessage(text) {
 
     <br><br>
 
-    إذا كانت المنتجات والكميات صحيحة اضغط تأكيد الطلب 👇
+    ⚠️ راجع المنتجات والكميات قبل التأكيد.
 
     <br><br>
 
@@ -1526,9 +1640,9 @@ async function processMessage(text) {
 }
 
 
-/* =========================================
+/* =========================================================
    تجهيز الطلب
-========================================= */
+========================================================= */
 
 function prepareOrder(
   selectedProducts
@@ -1548,10 +1662,6 @@ function prepareOrder(
   }
 
 
-  /* =====================================
-     التاجر
-  ===================================== */
-
   const productShop =
     String(
       selectedProducts[0].product.shopName ||
@@ -1559,9 +1669,9 @@ function prepareOrder(
     ).trim();
 
 
-  /* =====================================
-     التأكد أن كل المنتجات من نفس التاجر
-  ===================================== */
+  /* =======================================================
+     التأكد من نفس التاجر
+  ======================================================= */
 
   const differentShop =
     selectedProducts.find(item => {
@@ -1585,9 +1695,9 @@ function prepareOrder(
   }
 
 
-  /* =====================================
+  /* =======================================================
      فحص السلة
-  ===================================== */
+  ======================================================= */
 
   const cart =
     JSON.parse(
@@ -1624,9 +1734,9 @@ function prepareOrder(
   }
 
 
-  /* =====================================
+  /* =======================================================
      تجهيز المنتجات للحفظ
-  ===================================== */
+  ======================================================= */
 
   const orderProducts =
     selectedProducts.map(item => {
@@ -1644,14 +1754,10 @@ function prepareOrder(
           product.name,
 
         price:
-          Number(
-            product.price
-          ),
+          Number(product.price),
 
         quantity:
-          Number(
-            item.quantity
-          ),
+          Number(item.quantity),
 
         category:
           product.category || "",
@@ -1715,9 +1821,9 @@ function prepareOrder(
     deliveryTotal;
 
 
-  /* =====================================
+  /* =======================================================
      حفظ الطلب مؤقتًا
-  ===================================== */
+  ======================================================= */
 
   window.currentAssistantOrder = {
 
@@ -1758,9 +1864,9 @@ function prepareOrder(
     "name";
 
 
-  /* =====================================
-     رسالة التأكيد
-  ===================================== */
+  /* =======================================================
+     تأكيد الطلب
+  ======================================================= */
 
   let html =
 
@@ -1788,7 +1894,9 @@ function prepareOrder(
 
         " — " +
 
+        "<strong>" +
         item.quantity +
+        "</strong>" +
 
         " كرتون<br>";
 
@@ -1798,7 +1906,13 @@ function prepareOrder(
 
   html +=
 
-    "<br>📦 إجمالي الكراتين: <strong>" +
+    "<br>🛒 عدد المنتجات: <strong>" +
+
+    orderProducts.length +
+
+    "</strong><br>" +
+
+    "📦 إجمالي الكراتين: <strong>" +
 
     cartonsTotal +
 
@@ -1832,9 +1946,9 @@ function prepareOrder(
 }
 
 
-/* =========================================
+/* =========================================================
    بيانات العميل
-========================================= */
+========================================================= */
 
 async function processCustomerStep(
   text
@@ -1851,9 +1965,9 @@ async function processCustomerStep(
   }
 
 
-  /* =====================================
+  /* =======================================================
      الاسم
-  ===================================== */
+  ======================================================= */
 
   if (
     assistantStep === "name"
@@ -1861,7 +1975,6 @@ async function processCustomerStep(
 
     customerData.name =
       cleanText;
-
 
     assistantStep =
       "phone";
@@ -1886,15 +1999,14 @@ async function processCustomerStep(
 
     );
 
-
     return;
 
   }
 
 
-  /* =====================================
+  /* =======================================================
      الجوال
-  ===================================== */
+  ======================================================= */
 
   if (
     assistantStep === "phone"
@@ -1926,7 +2038,6 @@ async function processCustomerStep(
 
       );
 
-
       return;
 
     }
@@ -1953,15 +2064,14 @@ async function processCustomerStep(
 
     );
 
-
     return;
 
   }
 
 
-  /* =====================================
+  /* =======================================================
      الحي
-  ===================================== */
+  ======================================================= */
 
   if (
     assistantStep === "district"
@@ -1983,17 +2093,14 @@ async function processCustomerStep(
 
     await saveAssistantOrder();
 
-
-    return;
-
   }
 
 }
 
 
-/* =========================================
+/* =========================================================
    حفظ الطلب
-========================================= */
+========================================================= */
 
 async function saveAssistantOrder() {
 
@@ -2011,10 +2118,8 @@ async function saveAssistantOrder() {
       "⚠️ لم يتم اختيار المنتجات."
     );
 
-
     assistantStep =
       "product";
-
 
     return;
 
@@ -2023,9 +2128,9 @@ async function saveAssistantOrder() {
 
   try {
 
-    /* =====================================
+    /* =====================================================
        بيانات الطلب
-    ===================================== */
+    ===================================================== */
 
     const orderData = {
 
@@ -2072,12 +2177,11 @@ async function saveAssistantOrder() {
         order.sellerId || "",
 
 
-      /* ===================================
+      /* ===================================================
          المنتجات
-      =================================== */
+      =================================================== */
 
       products:
-
         order.products.map(
           product => ({
 
@@ -2150,9 +2254,9 @@ async function saveAssistantOrder() {
     };
 
 
-    /* =====================================
+    /* =====================================================
        حفظ Firebase
-    ===================================== */
+    ===================================================== */
 
     const orderRef =
       await addDoc(
@@ -2173,9 +2277,9 @@ async function saveAssistantOrder() {
     );
 
 
-    /* =====================================
-       تجهيز رسالة المنتجات لواتساب
-    ===================================== */
+    /* =====================================================
+       تجهيز منتجات واتساب
+    ===================================================== */
 
     let productsText = "";
 
@@ -2198,9 +2302,9 @@ async function saveAssistantOrder() {
     );
 
 
-    /* =====================================
+    /* =====================================================
        رسالة واتساب
-    ===================================== */
+    ===================================================== */
 
     const whatsappMessage =
 
@@ -2229,6 +2333,9 @@ ${productsText}
 
 ━━━━━━━━━━━━
 
+🛒 عدد المنتجات:
+${order.products.length}
+
 📦 إجمالي الكراتين:
 ${Number(order.cartonsTotal).toLocaleString()} كرتون
 
@@ -2250,9 +2357,9 @@ ${Number(order.total).toLocaleString()} ريال
 ${orderRef.id}`;
 
 
-    /* =====================================
+    /* =====================================================
        واتساب الإدارة
-    ===================================== */
+    ===================================================== */
 
     const whatsappUrl =
 
@@ -2263,17 +2370,9 @@ ${orderRef.id}`;
       );
 
 
-    /*
-       فتح واتساب مباشرة
-    */
-
-    window.location.href =
-      whatsappUrl;
-
-
-    /* =====================================
+    /* =====================================================
        رسالة النجاح
-    ===================================== */
+    ===================================================== */
 
     let successProducts = "";
 
@@ -2291,7 +2390,11 @@ ${orderRef.id}`;
 
           " — " +
 
+          "<strong>" +
+
           product.quantity +
+
+          "</strong>" +
 
           " كرتون<br>";
 
@@ -2311,7 +2414,13 @@ ${orderRef.id}`;
 
       "<br><br>" +
 
-      "🛒 المنتجات:<br>" +
+      "🛒 عدد المنتجات: <strong>" +
+
+      order.products.length +
+
+      "</strong><br><br>" +
+
+      "📦 المنتجات:<br>" +
 
       successProducts +
 
@@ -2347,20 +2456,43 @@ ${orderRef.id}`;
 
       " ريال<br><br>" +
 
-      "📱 سيتم فتح واتساب لإرسال الطلب للإدارة.<br><br>" +
+      "📱 اضغط لإرسال تفاصيل الطلب للإدارة عبر واتساب:<br><br>" +
+
+      `<a
+        href="${whatsappUrl}"
+        target="_blank"
+        style="
+          display:block;
+          text-align:center;
+          background:#25D366;
+          color:white;
+          padding:14px;
+          border-radius:12px;
+          text-decoration:none;
+          font-weight:bold;
+        "
+      >
+        📲 إرسال الطلب عبر واتساب
+      </a>` +
+
+      "<br><br>" +
 
       "🆔 رقم الطلب:<br>" +
 
       escapeHtml(
         orderRef.id
-      )
+      ) +
+
+      "<br><br>" +
+
+      "سيتم التواصل معك لتأكيد الطلب."
 
     );
 
 
-    /* =====================================
+    /* =====================================================
        تنظيف
-    ===================================== */
+    ===================================================== */
 
     window.currentAssistantOrder =
       null;
@@ -2403,9 +2535,9 @@ ${orderRef.id}`;
 }
 
 
-/* =========================================
+/* =========================================================
    زر الإرسال
-========================================= */
+========================================================= */
 
 async function sendMessage() {
 
@@ -2423,14 +2555,18 @@ async function sendMessage() {
   messageInput.value = "";
 
 
-  /* =====================================
+  /* =======================================================
      بيانات العميل
-  ===================================== */
+  ======================================================= */
 
   if (
+
     assistantStep === "name" ||
+
     assistantStep === "phone" ||
+
     assistantStep === "district"
+
   ) {
 
     await processCustomerStep(
@@ -2442,9 +2578,9 @@ async function sendMessage() {
   }
 
 
-  /* =====================================
+  /* =======================================================
      اختيار التاجر
-  ===================================== */
+  ======================================================= */
 
   if (
     assistantStep === "shop"
@@ -2461,15 +2597,14 @@ async function sendMessage() {
 
     );
 
-
     return;
 
   }
 
 
-  /* =====================================
+  /* =======================================================
      المنتجات
-  ===================================== */
+  ======================================================= */
 
   await processMessage(
     text
@@ -2478,9 +2613,9 @@ async function sendMessage() {
 }
 
 
-/* =========================================
+/* =========================================================
    الأحداث
-========================================= */
+========================================================= */
 
 if (sendButton) {
 
@@ -2514,9 +2649,9 @@ if (messageInput) {
 }
 
 
-/* =========================================
+/* =========================================================
    حماية HTML
-========================================= */
+========================================================= */
 
 function escapeHtml(text) {
 
@@ -2552,8 +2687,8 @@ function escapeHtml(text) {
 }
 
 
-/* =========================================
+/* =========================================================
    تشغيل المساعد
-========================================= */
+========================================================= */
 
 loadProducts();
