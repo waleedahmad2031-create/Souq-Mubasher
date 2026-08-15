@@ -42,12 +42,115 @@ let selectedShop =
 
 
 let customerData = {
-
   name: "",
   phone: "",
   district: ""
-
 };
+
+
+/* =========================================
+   تحويل الأرقام العربية
+========================================= */
+
+function convertArabicNumbers(text) {
+
+  return String(text || "")
+
+    .replace(/٠/g, "0")
+    .replace(/١/g, "1")
+    .replace(/٢/g, "2")
+    .replace(/٣/g, "3")
+    .replace(/٤/g, "4")
+    .replace(/٥/g, "5")
+    .replace(/٦/g, "6")
+    .replace(/٧/g, "7")
+    .replace(/٨/g, "8")
+    .replace(/٩/g, "9");
+
+}
+
+
+/* =========================================
+   تطبيع العربي
+========================================= */
+
+function normalizeArabic(text) {
+
+  return convertArabicNumbers(text)
+
+    .toLowerCase()
+
+    .replace(/[إأآ]/g, "ا")
+
+    .replace(/ة/g, "ه")
+
+    .replace(/ى/g, "ي")
+
+    .replace(/ؤ/g, "و")
+
+    .replace(/ئ/g, "ي")
+
+    .replace(/[ًٌٍَُِّْـ]/g, "")
+
+    .replace(/[^\u0600-\u06FFa-z0-9\s]/gi, " ")
+
+    .replace(/\s+/g, " ")
+
+    .trim();
+
+}
+
+
+/* =========================================
+   كلمات لا نعتبرها اسم منتج
+========================================= */
+
+const ignoredWords = new Set([
+
+  "اريد",
+  "ابغى",
+  "اشتي",
+  "بغيت",
+  "ارغب",
+  "احتاج",
+  "اريدلي",
+  "جيب",
+  "هات",
+  "لي",
+  "من",
+  "عند",
+  "التاجر",
+  "منتج",
+  "منتجات",
+  "طلب",
+  "اطلب",
+  "شراء",
+  "كرتون",
+  "كرتونات",
+  "كرتونه",
+  "كم",
+  "عدد",
+  "واحد",
+  "واحده",
+  "اثنين",
+  "ثلاثه",
+  "اربعه",
+  "خمسه",
+  "سته",
+  "سبعه",
+  "ثمانيه",
+  "تسعه",
+  "عشره",
+  "ريال",
+  "بالريال",
+  "السلام",
+  "عليكم",
+  "مرحبا",
+  "هلا",
+  "لو",
+  "سمحت"
+
+]);
 
 
 /* =========================================
@@ -75,7 +178,8 @@ async function loadProducts() {
 
       products.push({
 
-        id: doc.id,
+        id:
+          doc.id,
 
         name:
           data.name ||
@@ -135,7 +239,7 @@ async function loadProducts() {
 
 
     /* =====================================
-       التاجر المحفوظ
+       تاجر محفوظ
     ===================================== */
 
     if (selectedShop) {
@@ -143,8 +247,8 @@ async function loadProducts() {
       const shopExists =
         products.some(
           product =>
-            String(product.shopName || "").trim() ===
-            selectedShop
+            normalizeArabic(product.shopName) ===
+            normalizeArabic(selectedShop)
         );
 
 
@@ -164,13 +268,14 @@ async function loadProducts() {
 
           "مثال:<br>" +
 
-          "دقيق قمح 10 وماء شملان 2"
+          "دقيق قمح 10"
 
         );
 
 
         assistantStep =
           "product";
+
 
         return;
 
@@ -266,16 +371,12 @@ function showShopSelection() {
           display:block;
           width:100%;
           margin:8px 0;
-          padding:13px;
+          padding:14px;
           border:none;
           border-radius:12px;
-          background:linear-gradient(
-            135deg,
-            #009688,
-            #00796b
-          );
+          background:linear-gradient(135deg,#009688,#00796b);
           color:white;
-          font-size:15px;
+          font-size:16px;
           font-weight:bold;
           cursor:pointer;
         "
@@ -291,26 +392,24 @@ function showShopSelection() {
   addBotMessage(html);
 
 
-  const buttons =
-    document.querySelectorAll(
+  document
+    .querySelectorAll(
       ".assistant-shop-button"
-    );
+    )
+    .forEach(button => {
 
+      button.addEventListener(
+        "click",
+        () => {
 
-  buttons.forEach(button => {
+          chooseAssistantShop(
+            button.dataset.shop
+          );
 
-    button.addEventListener(
-      "click",
-      () => {
+        }
+      );
 
-        chooseAssistantShop(
-          button.dataset.shop
-        );
-
-      }
-    );
-
-  });
+    });
 
 }
 
@@ -338,7 +437,8 @@ function chooseAssistantShop(shopName) {
 
     if (
       cartShop &&
-      cartShop !== shopName
+      normalizeArabic(cartShop) !==
+      normalizeArabic(shopName)
     ) {
 
       addBotMessage(
@@ -348,8 +448,6 @@ function chooseAssistantShop(shopName) {
         "<strong>" +
         escapeHtml(cartShop) +
         "</strong><br><br>" +
-
-        "لا يمكن إنشاء طلب من تاجر آخر في نفس السلة.<br>" +
 
         "أكمل الطلب الحالي أو أفرغ السلة أولًا."
 
@@ -384,11 +482,11 @@ function chooseAssistantShop(shopName) {
     escapeHtml(selectedShop) +
     "</strong><br><br>" +
 
-    "الآن اكتب المنتجات والكميات.<br><br>" +
+    "الآن اكتب اسم المنتج والكمية التي تريدها.<br><br>" +
 
     "مثال:<br>" +
 
-    "دقيق قمح 10 وماء شملان 2"
+    "دقيق قمح 10"
 
   );
 
@@ -467,52 +565,212 @@ function scrollChat() {
 
 
 /* =========================================
-   تطبيع العربي
+   استخراج الكلمات المهمة
 ========================================= */
 
-function normalizeArabic(text) {
+function getImportantWords(text) {
 
-  return String(text || "")
+  return normalizeArabic(text)
 
-    .toLowerCase()
+    .split(/\s+/)
 
-    .replace(
-      /[إأآ]/g,
-      "ا"
-    )
+    .filter(word => {
 
-    .replace(
-      /ة/g,
-      "ه"
-    )
+      if (!word) {
+        return false;
+      }
 
-    .replace(
-      /ى/g,
-      "ي"
-    )
+      if (ignoredWords.has(word)) {
+        return false;
+      }
 
-    .replace(
-      /ؤ/g,
-      "و"
-    )
+      if (/^\d+$/.test(word)) {
+        return false;
+      }
 
-    .replace(
-      /ئ/g,
-      "ي"
-    )
+      return word.length >= 2;
 
-    .replace(
-      /[ًٌٍَُِّْـ]/g,
-      ""
-    )
-
-    .trim();
+    });
 
 }
 
 
 /* =========================================
-   التوصيل لكل كرتون
+   البحث الذكي عن المنتجات
+========================================= */
+
+function findProducts(text) {
+
+  const words =
+    getImportantWords(text);
+
+
+  if (!words.length) {
+
+    return [];
+
+  }
+
+
+  const shopProducts =
+    products.filter(product => {
+
+      return normalizeArabic(
+        product.shopName || "سوق مباشر"
+      ) === normalizeArabic(
+        selectedShop || "سوق مباشر"
+      );
+
+    });
+
+
+  return shopProducts
+
+    .map(product => {
+
+      const productName =
+        normalizeArabic(
+          product.name
+        );
+
+
+      const productWords =
+        productName.split(/\s+/);
+
+
+      let score = 0;
+
+
+      words.forEach(word => {
+
+        /* تطابق كامل */
+
+        if (
+          productWords.includes(word)
+        ) {
+
+          score += 5;
+
+        }
+
+
+        /* الكلمة موجودة داخل اسم المنتج */
+
+        else if (
+          productName.includes(word)
+        ) {
+
+          score += 3;
+
+        }
+
+
+        /* بداية الكلمة */
+
+        else if (
+          productWords.some(
+            productWord =>
+              productWord.startsWith(word)
+          )
+        ) {
+
+          score += 2;
+
+        }
+
+      });
+
+
+      /* تطابق الاسم كاملًا */
+
+      const normalizedText =
+        normalizeArabic(text);
+
+
+      if (
+        normalizedText.includes(
+          productName
+        )
+      ) {
+
+        score += 10;
+
+      }
+
+
+      return {
+
+        product,
+        score
+
+      };
+
+    })
+
+    .filter(
+      item =>
+        item.score > 0
+    )
+
+    .sort(
+      (a, b) =>
+        b.score - a.score
+    )
+
+    .map(
+      item =>
+        item.product
+    );
+
+}
+
+
+/* =========================================
+   استخراج الكمية
+========================================= */
+
+function extractQuantity(text) {
+
+  const normalized =
+    convertArabicNumbers(text);
+
+
+  const match =
+    normalized.match(
+      /\d+(?:\.\d+)?/
+    );
+
+
+  if (!match) {
+
+    return 1;
+
+  }
+
+
+  const quantity =
+    Number(
+      match[0]
+    );
+
+
+  if (
+    !Number.isFinite(quantity) ||
+    quantity <= 0
+  ) {
+
+    return 1;
+
+  }
+
+
+  return Math.floor(quantity);
+
+}
+
+
+/* =========================================
+   رسوم التوصيل
 ========================================= */
 
 function getDeliveryPerCarton(price) {
@@ -541,194 +799,7 @@ function getDeliveryPerCarton(price) {
 
 
 /* =========================================
-   البحث عن المنتجات
-========================================= */
-
-function findProducts(text) {
-
-  const normalizedText =
-    normalizeArabic(text);
-
-
-  const shopProducts =
-    products.filter(product => {
-
-      const productShop =
-        String(
-          product.shopName ||
-          "سوق مباشر"
-        ).trim();
-
-
-      return (
-        productShop ===
-        selectedShop
-      );
-
-    });
-
-
-  const results = [];
-
-
-  shopProducts.forEach(product => {
-
-    const productName =
-      normalizeArabic(
-        product.name
-      );
-
-
-    if (!productName) {
-
-      return;
-
-    }
-
-
-    let score = 0;
-
-
-    /* الاسم كامل */
-    if (
-      normalizedText.includes(
-        productName
-      )
-    ) {
-
-      score += 100;
-
-    }
-
-
-    /* كلمات الاسم */
-    const productWords =
-      productName
-        .split(/\s+/)
-        .filter(
-          word =>
-            word.length >= 2
-        );
-
-
-    productWords.forEach(word => {
-
-      if (
-        normalizedText.includes(
-          word
-        )
-      ) {
-
-        score += 10;
-
-      }
-
-    });
-
-
-    if (score > 0) {
-
-      results.push({
-
-        product,
-        score
-
-      });
-
-    }
-
-  });
-
-
-  results.sort(
-    (a,b) =>
-      b.score - a.score
-  );
-
-
-  return results.map(
-    item =>
-      item.product
-  );
-
-}
-
-
-/* =========================================
-   استخراج الكمية
-========================================= */
-
-function extractQuantity(
-  text,
-  product
-) {
-
-  const normalizedText =
-    normalizeArabic(text);
-
-
-  const productName =
-    normalizeArabic(
-      product.name
-    );
-
-
-  const index =
-    normalizedText.indexOf(
-      productName
-    );
-
-
-  if (index === -1) {
-
-    return 1;
-
-  }
-
-
-  const afterProduct =
-    normalizedText.substring(
-      index + productName.length,
-      index + productName.length + 20
-    );
-
-
-  const match =
-    afterProduct.match(
-      /\d+/
-    );
-
-
-  if (!match) {
-
-    return 1;
-
-  }
-
-
-  const quantity =
-    Number(
-      match[0]
-    );
-
-
-  if (
-    !Number.isFinite(quantity) ||
-    quantity <= 0
-  ) {
-
-    return 1;
-
-  }
-
-
-  return quantity;
-
-}
-
-
-/* =========================================
-   معالجة الرسالة
+   معالجة رسالة المنتج
 ========================================= */
 
 async function processMessage(text) {
@@ -759,10 +830,10 @@ async function processMessage(text) {
      لم يتم اختيار تاجر
   ===================================== */
 
-  if (
-    !selectedShop ||
-    assistantStep === "shop"
-  ) {
+  if (!selectedShop) {
+
+    assistantStep =
+      "shop";
 
     showShopSelection();
 
@@ -776,10 +847,15 @@ async function processMessage(text) {
   ===================================== */
 
   if (
-    lower === "السلام عليكم" ||
+
     lower === "سلام" ||
+
     lower.includes("مرحبا") ||
-    lower.includes("هلا")
+
+    lower.includes("هلا") ||
+
+    lower.includes("السلام عليكم")
+
   ) {
 
     addBotMessage(
@@ -792,7 +868,9 @@ async function processMessage(text) {
       escapeHtml(selectedShop) +
       "</strong><br><br>" +
 
-      "اكتب اسم المنتج والكمية."
+      "اكتب اسم المنتج والكمية التي تريدها.<br><br>" +
+
+      "مثال: دقيق قمح 10"
 
     );
 
@@ -806,10 +884,13 @@ async function processMessage(text) {
   ===================================== */
 
   if (
+
     lower.includes("غير التاجر") ||
-    lower.includes("غير تاجر") ||
+
     lower.includes("تاجر اخر") ||
+
     lower.includes("تاجر ثاني")
+
   ) {
 
     const cart =
@@ -822,14 +903,12 @@ async function processMessage(text) {
 
       addBotMessage(
 
-        "⚠️ السلة تحتوي على منتجات من:<br><br>" +
+        "⚠️ لا يمكن تغيير التاجر الآن لأن السلة تحتوي على منتجات من:<br><br>" +
 
         "<strong>" +
-
         escapeHtml(
           cart[0].shopName || ""
         ) +
-
         "</strong><br><br>" +
 
         "أكمل الطلب الحالي أو أفرغ السلة أولًا."
@@ -860,7 +939,46 @@ async function processMessage(text) {
 
 
   /* =====================================
-     البحث
+     مساعدة
+  ===================================== */
+
+  if (
+
+    lower.includes("كيف اطلب") ||
+
+    lower.includes("مساعده") ||
+
+    lower.includes("كيف اشتري")
+
+  ) {
+
+    addBotMessage(
+
+      "👍 طريقة الطلب سهلة جدًا:<br><br>" +
+
+      "1️⃣ اكتب اسم المنتج والكمية.<br>" +
+
+      "2️⃣ سأبحث عنه عند التاجر.<br>" +
+
+      "3️⃣ اضغط «طلب هذا المنتج».<br>" +
+
+      "4️⃣ اكتب اسمك ورقمك وحيك.<br>" +
+
+      "5️⃣ سأرسل الطلب للإدارة عبر واتساب.<br><br>" +
+
+      "مثال:<br>" +
+
+      "<strong>دقيق قمح 10</strong>"
+
+    );
+
+    return;
+
+  }
+
+
+  /* =====================================
+     البحث عن المنتجات
   ===================================== */
 
   const found =
@@ -871,19 +989,54 @@ async function processMessage(text) {
 
   if (!found.length) {
 
+    /* اقتراح منتجات من نفس التاجر */
+
+    const shopProducts =
+      products.filter(product => {
+
+        return normalizeArabic(
+          product.shopName || ""
+        ) === normalizeArabic(
+          selectedShop
+        );
+
+      });
+
+
+    let suggestion =
+      "";
+
+
+    if (shopProducts.length) {
+
+      const names =
+        shopProducts
+          .slice(0, 6)
+          .map(p => escapeHtml(p.name))
+          .join("<br>• ");
+
+
+      suggestion =
+
+        "<br><br>📋 بعض المنتجات المتوفرة:<br>" +
+
+        "• " +
+        names;
+
+    }
+
+
     addBotMessage(
 
-      "❌ لم أجد المنتج عند التاجر:<br><br>" +
+      "❌ لم أجد المنتج الذي كتبته عند التاجر:<br><br>" +
 
       "🏪 <strong>" +
-
-      escapeHtml(
-        selectedShop
-      ) +
-
+      escapeHtml(selectedShop) +
       "</strong><br><br>" +
 
-      "اكتب اسم المنتج بشكل أوضح."
+      "جرّب كتابة اسم المنتج بشكل أوضح." +
+
+      suggestion
 
     );
 
@@ -893,194 +1046,128 @@ async function processMessage(text) {
 
 
   /* =====================================
-     تجهيز المنتجات
+     المنتج الأفضل
   ===================================== */
 
-  const selectedProducts =
-    found.map(product => {
-
-      const quantity =
-        extractQuantity(
-          cleanText,
-          product
-        );
+  const product =
+    found[0];
 
 
-      const subtotal =
-        Number(product.price) *
-        quantity;
+  const quantity =
+    extractQuantity(
+      cleanText
+    );
 
 
-      const deliveryPerCarton =
-        getDeliveryPerCarton(
-          product.price
-        );
+  const deliveryPerCarton =
+    getDeliveryPerCarton(
+      product.price
+    );
 
 
-      const deliveryTotal =
-        deliveryPerCarton *
-        quantity;
+  const productsTotal =
+    product.price *
+    quantity;
 
 
-      return {
-
-        product,
-
-        quantity,
-
-        subtotal,
-
-        deliveryPerCarton,
-
-        deliveryTotal
-
-      };
-
-    });
+  const deliveryTotal =
+    deliveryPerCarton *
+    quantity;
 
 
-  /* =====================================
-     منع المنتجات المكررة
-  ===================================== */
-
-  const uniqueProducts = [];
-
-
-  selectedProducts.forEach(item => {
-
-    const exists =
-      uniqueProducts.some(
-        old =>
-          old.product.id ===
-          item.product.id
-      );
-
-
-    if (!exists) {
-
-      uniqueProducts.push(item);
-
-    }
-
-  });
-
-
-  /* =====================================
-     عرض النتائج
-  ===================================== */
-
-  let html =
-
-    "وجدت لك المنتجات التالية 👇<br><br>";
-
-
-  let productsTotal = 0;
-
-  let deliveryTotal = 0;
-
-
-  uniqueProducts.forEach(
-    (item,index) => {
-
-      const product =
-        item.product;
-
-
-      productsTotal +=
-        item.subtotal;
-
-
-      deliveryTotal +=
-        item.deliveryTotal;
-
-
-      html += `
-
-        <div style="
-          background:#f5f5f5;
-          padding:13px;
-          margin:8px 0;
-          border-radius:10px;
-          line-height:1.9;
-        ">
-
-          <strong>
-            ${index + 1}.
-            ${escapeHtml(product.name)}
-          </strong>
-
-          <br>
-
-          💰 سعر الكرتون:
-          ${Number(product.price).toLocaleString()}
-          ريال
-
-          <br>
-
-          📦 الكمية:
-          ${item.quantity}
-          كرتون
-
-          <br>
-
-          🚚 التوصيل:
-          ${item.deliveryPerCarton}
-          × ${item.quantity}
-          =
-          ${item.deliveryTotal.toLocaleString()}
-          ريال
-
-          <br>
-
-          💵 مجموع المنتج:
-          ${item.subtotal.toLocaleString()}
-          ريال
-
-        </div>
-
-      `;
-
-    });
-
-
-  const finalTotal =
+  const orderTotal =
     productsTotal +
     deliveryTotal;
 
 
-  html += `
+  /* =====================================
+     عرض المنتج
+  ===================================== */
 
-    <hr>
+  let html = "";
 
-    🛍️ مجموع المنتجات:
-    <strong>
-      ${productsTotal.toLocaleString()}
-      ريال
-    </strong>
 
-    <br>
+  html +=
+    "وجدت لك هذا المنتج 👇<br><br>";
 
-    🚚 مجموع التوصيل:
-    <strong>
-      ${deliveryTotal.toLocaleString()}
-      ريال
-    </strong>
 
-    <br>
+  html +=
+    "🏪 التاجر: <strong>" +
 
-    💰 الإجمالي النهائي:
-    <strong style="font-size:18px;">
-      ${finalTotal.toLocaleString()}
-      ريال
-    </strong>
+    escapeHtml(
+      product.shopName
+    ) +
 
-    <br><br>
+    "</strong><br>";
 
-    اضغط لتأكيد جميع المنتجات 👇
 
-    <br><br>
+  html +=
+    "🛍️ المنتج: <strong>" +
 
-    <button
+    escapeHtml(
+      product.name
+    ) +
+
+    "</strong><br>";
+
+
+  html +=
+    "💰 السعر: " +
+
+    Number(
+      product.price
+    ).toLocaleString() +
+
+    " ريال<br>";
+
+
+  html +=
+    "📦 الكمية: " +
+
+    quantity +
+
+    " كرتون<br>";
+
+
+  html +=
+    "🛍️ قيمة المنتجات: " +
+
+    Number(
+      productsTotal
+    ).toLocaleString() +
+
+    " ريال<br>";
+
+
+  html +=
+    "🚚 التوصيل: " +
+
+    Number(
+      deliveryTotal
+    ).toLocaleString() +
+
+    " ريال<br>";
+
+
+  html +=
+    "💰 <strong>الإجمالي النهائي: " +
+
+    Number(
+      orderTotal
+    ).toLocaleString() +
+
+    " ريال</strong><br><br>";
+
+
+  html +=
+    "إذا تريد طلبه، اضغط الزر التالي 👇";
+
+
+  html +=
+
+    "<br><br>" +
+
+    `<button
       class="assistant-order-button"
       style="
         width:100%;
@@ -1094,10 +1181,8 @@ async function processMessage(text) {
         cursor:pointer;
       "
     >
-      🛒 تأكيد طلب جميع المنتجات
-    </button>
-
-  `;
+      🛒 طلب هذا المنتج
+    </button>`;
 
 
   addBotMessage(
@@ -1124,7 +1209,8 @@ async function processMessage(text) {
       () => {
 
         prepareOrder(
-          uniqueProducts
+          product,
+          quantity
         );
 
       }
@@ -1140,60 +1226,30 @@ async function processMessage(text) {
 ========================================= */
 
 function prepareOrder(
-  selectedProducts
+  product,
+  quantity
 ) {
-
-  if (
-    !selectedProducts ||
-    !selectedProducts.length
-  ) {
-
-    addBotMessage(
-      "⚠️ لم يتم اختيار أي منتج."
-    );
-
-    return;
-
-  }
-
 
   const productShop =
     String(
-      selectedProducts[0].product.shopName ||
+      product.shopName ||
       "سوق مباشر"
     ).trim();
 
 
-  /* =====================================
-     التأكد من التاجر
-  ===================================== */
-
-  const differentShop =
-    selectedProducts.find(item => {
-
-      return String(
-        item.product.shopName ||
-        "سوق مباشر"
-      ).trim() !==
-      productShop;
-
-    });
-
-
-  if (differentShop) {
+  if (
+    normalizeArabic(selectedShop) !==
+    normalizeArabic(productShop)
+  ) {
 
     addBotMessage(
-      "⚠️ المنتجات المختارة ليست من نفس التاجر."
+      "⚠️ هذا المنتج تابع لتاجر مختلف."
     );
 
     return;
 
   }
 
-
-  /* =====================================
-     فحص السلة
-  ===================================== */
 
   const cart =
     JSON.parse(
@@ -1211,8 +1267,12 @@ function prepareOrder(
 
 
     if (
+
       cartShop &&
-      cartShop !== productShop
+
+      normalizeArabic(cartShop) !==
+      normalizeArabic(productShop)
+
     ) {
 
       addBotMessage(
@@ -1230,104 +1290,67 @@ function prepareOrder(
   }
 
 
-  /* =====================================
-     تجهيز المنتجات
-  ===================================== */
-
-  const orderProducts =
-    selectedProducts.map(item => {
-
-      const product =
-        item.product;
+  const price =
+    Number(
+      product.price || 0
+    );
 
 
-      return {
-
-        productId:
-          product.id,
-
-        name:
-          product.name,
-
-        price:
-          Number(product.price),
-
-        quantity:
-          Number(item.quantity),
-
-        category:
-          product.category || "",
-
-        sellerId:
-          product.sellerId || "",
-
-        shopName:
-          product.shopName || productShop,
-
-        deliveryPerCarton:
-          Number(
-            item.deliveryPerCarton
-          ),
-
-        deliveryTotal:
-          Number(
-            item.deliveryTotal
-          ),
-
-        subtotal:
-          Number(
-            item.subtotal
-          )
-
-      };
-
-    });
+  const deliveryPerCarton =
+    getDeliveryPerCarton(
+      price
+    );
 
 
   const productsTotal =
-    orderProducts.reduce(
-      (sum,item) =>
-        sum + item.subtotal,
-      0
-    );
+    price *
+    quantity;
 
 
   const deliveryTotal =
-    orderProducts.reduce(
-      (sum,item) =>
-        sum + item.deliveryTotal,
-      0
-    );
+    deliveryPerCarton *
+    quantity;
 
 
-  const finalTotal =
+  const total =
     productsTotal +
     deliveryTotal;
 
 
-  /* =====================================
-     حفظ الطلب المؤقت
-  ===================================== */
-
   window.currentAssistantOrder = {
 
-    products:
-      orderProducts,
+    productId:
+      product.id,
+
+    name:
+      product.name,
+
+    price:
+      price,
+
+    quantity:
+      quantity,
+
+    category:
+      product.category || "",
+
+    sellerId:
+      product.sellerId || "",
 
     shopName:
       productShop,
 
-    sellerId:
-      orderProducts[0].sellerId || "",
-
-    productsTotal:
-      productsTotal,
+    deliveryPerCarton:
+      deliveryPerCarton,
 
     deliveryTotal:
       deliveryTotal,
 
+    productsTotal:
+      productsTotal,
+
     total:
-      finalTotal
+      total
 
   };
 
@@ -1345,67 +1368,52 @@ function prepareOrder(
     "name";
 
 
-  /* =====================================
-     رسالة التأكيد
-  ===================================== */
-
-  let html =
+  addBotMessage(
 
     "ممتاز 👍<br><br>" +
 
-    "🏪 التاجر:<br>" +
+    "🏪 التاجر: <strong>" +
 
-    "<strong>" +
-    escapeHtml(productShop) +
-    "</strong><br><br>" +
+    escapeHtml(
+      productShop
+    ) +
 
-    "🛒 المنتجات:<br>";
+    "</strong><br>" +
 
+    "🛒 المنتج: <strong>" +
 
-  orderProducts.forEach(
-    (item,index) => {
+    escapeHtml(
+      product.name
+    ) +
 
-      html +=
+    "</strong><br>" +
 
-        `${index + 1}. ` +
+    "📦 الكمية: <strong>" +
 
-        escapeHtml(item.name) +
+    quantity +
 
-        " — " +
+    " كرتون</strong><br>" +
 
-        item.quantity +
-
-        " كرتون<br>";
-
-    }
-  );
-
-
-  html +=
-
-    "<br>🛍️ مجموع المنتجات: <strong>" +
+    "💰 قيمة المنتجات: <strong>" +
 
     productsTotal.toLocaleString() +
 
     " ريال</strong><br>" +
 
-    "🚚 رسوم التوصيل: <strong>" +
+    "🚚 التوصيل: <strong>" +
 
     deliveryTotal.toLocaleString() +
 
     " ريال</strong><br>" +
 
-    "💰 الإجمالي النهائي: <strong>" +
+    "💵 الإجمالي النهائي: <strong>" +
 
-    finalTotal.toLocaleString() +
+    total.toLocaleString() +
 
     " ريال</strong><br><br>" +
 
-    "👤 ما اسم العميل؟";
+    "👤 ما اسم العميل؟"
 
-
-  addBotMessage(
-    html
   );
 
 }
@@ -1472,7 +1480,7 @@ async function processCustomerStep(
 
 
   /* =====================================
-     الجوال
+     الرقم
   ===================================== */
 
   if (
@@ -1480,10 +1488,11 @@ async function processCustomerStep(
   ) {
 
     const phone =
-      cleanText.replace(
-        /[\s-]/g,
-        ""
-      );
+      cleanText
+        .replace(
+          /[\s-]/g,
+          ""
+        );
 
 
     if (
@@ -1502,6 +1511,7 @@ async function processCustomerStep(
         "اكتب رقم الجوال مرة أخرى."
 
       );
+
 
       return;
 
@@ -1559,6 +1569,7 @@ async function processCustomerStep(
 
     await saveAssistantOrder();
 
+
     return;
 
   }
@@ -1576,138 +1587,186 @@ async function saveAssistantOrder() {
     window.currentAssistantOrder;
 
 
-  if (
-    !order ||
-    !order.products ||
-    !order.products.length
-  ) {
+  if (!order) {
 
     addBotMessage(
-      "⚠️ لم يتم اختيار المنتجات."
+      "⚠️ أولًا اختر المنتج الذي تريد طلبه."
     );
+
 
     assistantStep =
       "product";
+
 
     return;
 
   }
 
 
+  if (
+
+    normalizeArabic(order.shopName) !==
+    normalizeArabic(selectedShop)
+
+  ) {
+
+    addBotMessage(
+      "❌ تعذر تسجيل الطلب لأن التاجر غير مطابق."
+    );
+
+    return;
+
+  }
+
+
+  const orderData = {
+
+    customerName:
+      customerData.name,
+
+    customerPhone:
+      customerData.phone,
+
+    customerCity:
+      "إب",
+
+    customerAddress:
+      customerData.district,
+
+    deliveryArea:
+      customerData.district,
+
+    orderType:
+      "طلب بواسطة المساعد الذكي",
+
+    deliveryTime:
+      "بعد تجهيز الطلب والتواصل مع العميل",
+
+
+    /* ===================================
+       التوصيل
+    =================================== */
+
+    deliveryPerCarton:
+      Number(
+        order.deliveryPerCarton
+      ),
+
+    deliveryFee:
+      Number(
+        order.deliveryTotal
+      ),
+
+    deliveryTotal:
+      Number(
+        order.deliveryTotal
+      ),
+
+
+    cartonsTotal:
+      Number(
+        order.quantity
+      ),
+
+
+    /* ===================================
+       التاجر
+    =================================== */
+
+    shopName:
+      order.shopName,
+
+    sellerId:
+      order.sellerId || "",
+
+
+    /* ===================================
+       المنتجات
+    =================================== */
+
+    products: [
+
+      {
+
+        id:
+          order.productId,
+
+        name:
+          order.name,
+
+        price:
+          Number(
+            order.price
+          ),
+
+        quantity:
+          Number(
+            order.quantity
+          ),
+
+        category:
+          order.category || "",
+
+        sellerId:
+          order.sellerId || "",
+
+        shopName:
+          order.shopName,
+
+        deliveryPerCarton:
+          Number(
+            order.deliveryPerCarton
+          ),
+
+        deliveryTotal:
+          Number(
+            order.deliveryTotal
+          ),
+
+        subtotal:
+          Number(
+            order.productsTotal
+          )
+
+      }
+
+    ],
+
+
+    /* ===================================
+       الإجماليات
+    =================================== */
+
+    productsTotal:
+      Number(
+        order.productsTotal
+      ),
+
+    total:
+      Number(
+        order.total
+      ),
+
+
+    status:
+      "جديد",
+
+
+    source:
+      "طلب بواسطة المساعد الذكي",
+
+
+    assistantOrder:
+      true,
+
+
+    createdAt:
+      serverTimestamp()
+
+  };
+
+
   try {
-
-    /* =====================================
-       بيانات الطلب
-    ===================================== */
-
-    const orderData = {
-
-      customerName:
-        customerData.name,
-
-      customerPhone:
-        customerData.phone,
-
-      customerCity:
-        "إب",
-
-      customerAddress:
-        customerData.district,
-
-      deliveryArea:
-        customerData.district,
-
-      orderType:
-        "طلب بواسطة المساعد الذكي",
-
-      deliveryTime:
-        "بعد تجهيز الطلب والتواصل مع العميل",
-
-      deliveryFee:
-        Number(order.deliveryTotal),
-
-      cartonsTotal:
-        order.products.reduce(
-          (sum,item) =>
-            sum + Number(item.quantity),
-          0
-        ),
-
-      shopName:
-        order.shopName,
-
-      sellerId:
-        order.sellerId || "",
-
-
-      /* ===================================
-         المنتجات
-      =================================== */
-
-      products:
-        order.products.map(product => ({
-
-          id:
-            product.productId,
-
-          name:
-            product.name,
-
-          price:
-            Number(product.price),
-
-          quantity:
-            Number(product.quantity),
-
-          category:
-            product.category || "",
-
-          sellerId:
-            product.sellerId || "",
-
-          shopName:
-            product.shopName,
-
-          deliveryPerCarton:
-            Number(
-              product.deliveryPerCarton
-            ),
-
-          deliveryTotal:
-            Number(
-              product.deliveryTotal
-            ),
-
-          subtotal:
-            Number(
-              product.subtotal
-            )
-
-        })),
-
-
-      productsTotal:
-        Number(order.productsTotal),
-
-      deliveryTotal:
-        Number(order.deliveryTotal),
-
-      total:
-        Number(order.total),
-
-      status:
-        "جديد",
-
-      source:
-        "طلب بواسطة المساعد الذكي",
-
-      assistantOrder:
-        true,
-
-      createdAt:
-        serverTimestamp()
-
-    };
 
 
     /* =====================================
@@ -1734,36 +1793,12 @@ async function saveAssistantOrder() {
 
 
     /* =====================================
-       تجهيز منتجات واتساب
-    ===================================== */
-
-    let productsText = "";
-
-
-    order.products.forEach(
-      (product,index) => {
-
-        productsText +=
-
-`${index + 1}. ${product.name}
-📦 الكمية: ${product.quantity} كرتون
-💰 سعر الكرتون: ${Number(product.price).toLocaleString()} ريال
-💵 مجموع المنتج: ${Number(product.subtotal).toLocaleString()} ريال
-🚚 التوصيل: ${Number(product.deliveryTotal).toLocaleString()} ريال
-
-`;
-
-      }
-    );
-
-
-    /* =====================================
-       رسالة واتساب
+       رسالة واتساب الإدارة
     ===================================== */
 
     const whatsappMessage =
 
-`🛒 طلب جديد بواسطة المساعد الذكي - سوق مباشر
+`🛒 *طلب جديد بواسطة المساعد الذكي - سوق مباشر*
 
 🏪 التاجر:
 ${order.shopName}
@@ -1780,78 +1815,68 @@ ${customerData.phone}
 🏘️ الحي:
 ${customerData.district}
 
-━━━━━━━━━━━━
+━━━━━━━━━━━━━━
 
-📦 المنتجات:
+📦 المنتج:
+${order.name}
 
-${productsText}
+🔢 الكمية:
+${order.quantity} كرتون
 
-━━━━━━━━━━━━
+💰 سعر الكرتون:
+${Number(order.price).toLocaleString()} ريال
 
 🛍️ مجموع المنتجات:
 ${Number(order.productsTotal).toLocaleString()} ريال
 
-🚚 رسوم التوصيل:
+🚚 التوصيل:
+${Number(order.deliveryPerCarton).toLocaleString()} ريال × ${order.quantity}
+
+🚚 إجمالي التوصيل:
 ${Number(order.deliveryTotal).toLocaleString()} ريال
 
-💰 الإجمالي النهائي:
+💵 *الإجمالي النهائي:*
 ${Number(order.total).toLocaleString()} ريال
 
-━━━━━━━━━━━━
+━━━━━━━━━━━━━━
 
 🤖 مصدر الطلب:
 المساعد الذكي
 
+📌 الحالة:
+جديد
+
 🆔 رقم الطلب:
-${orderRef.id}`;
+${orderRef.id}
+
+❤️ سوق مباشر`;
 
 
     /* =====================================
        واتساب الإدارة
+       الرقم ثابت
     ===================================== */
 
     const whatsappUrl =
 
-      `https://wa.me/966550496391?text=` +
+      "https://wa.me/966550496391?text=" +
 
       encodeURIComponent(
         whatsappMessage
       );
 
 
-    window.open(
-      whatsappUrl,
-      "_blank"
-    );
+    /* =====================================
+       فتح واتساب
+    ===================================== */
+
+    window.location.href =
+      whatsappUrl;
 
 
     /* =====================================
-       رسالة النجاح
+       نجاح
     ===================================== */
-
-    let successProducts = "";
-
-
-    order.products.forEach(
-      product => {
-
-        successProducts +=
-
-          "📦 " +
-
-          escapeHtml(
-            product.name
-          ) +
-
-          " — " +
-
-          product.quantity +
-
-          " كرتون<br>";
-
-      }
-    );
-
 
     addBotMessage(
 
@@ -1863,15 +1888,23 @@ ${orderRef.id}`;
         order.shopName
       ) +
 
-      "<br><br>" +
+      "<br>" +
 
-      "🛒 المنتجات:<br>" +
+      "📦 المنتج: " +
 
-      successProducts +
+      escapeHtml(
+        order.name
+      ) +
 
       "<br>" +
 
-      "🛍️ مجموع المنتجات: " +
+      "🔢 الكمية: " +
+
+      order.quantity +
+
+      " كرتون<br>" +
+
+      "💰 مجموع المنتجات: " +
 
       Number(
         order.productsTotal
@@ -1887,7 +1920,7 @@ ${orderRef.id}`;
 
       " ريال<br>" +
 
-      "💰 الإجمالي النهائي: " +
+      "💵 الإجمالي النهائي: " +
 
       Number(
         order.total
@@ -1895,17 +1928,13 @@ ${orderRef.id}`;
 
       " ريال<br><br>" +
 
-      "📱 تم إرسال تفاصيل الطلب للإدارة عبر واتساب.<br><br>" +
+      "📱 سيتم فتح واتساب الإدارة لإرسال تفاصيل الطلب.<br><br>" +
 
       "🆔 رقم الطلب:<br>" +
 
       escapeHtml(
         orderRef.id
-      ) +
-
-      "<br><br>" +
-
-      "سيتم التواصل معك لتأكيد الطلب."
+      )
 
     );
 
@@ -1980,9 +2009,13 @@ async function sendMessage() {
   ===================================== */
 
   if (
+
     assistantStep === "name" ||
+
     assistantStep === "phone" ||
+
     assistantStep === "district"
+
   ) {
 
     await processCustomerStep(
@@ -2009,10 +2042,9 @@ async function sendMessage() {
 
     addBotMessage(
 
-      "من فضلك اختر التاجر من الأزرار الموجودة بالأعلى 🏪"
+      "🏪 من فضلك اختر التاجر من الأزرار الموجودة بالأعلى."
 
     );
-
 
     return;
 
