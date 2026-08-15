@@ -81,8 +81,16 @@ background:#00796b;
 background:#e53935;
 }
 
+.delete:hover{
+background:#c62828;
+}
+
 .cancel{
 background:#757575;
+}
+
+.cancel:hover{
+background:#616161;
 }
 
 .product{
@@ -130,16 +138,21 @@ line-height:1.7;
 
 </head>
 
+
 <body>
+
 
 <header>
 🛍️ إدارة المنتجات
 </header>
 
+
 <div class="container">
 
 
-<!-- العودة -->
+<!-- =====================================
+     العودة إلى لوحة الإدارة
+===================================== -->
 
 <div class="card">
 
@@ -153,7 +166,9 @@ onclick="location.href='admin.html'"
 </div>
 
 
-<!-- إضافة / تعديل المنتج -->
+<!-- =====================================
+     إضافة / تعديل المنتج
+===================================== -->
 
 <div class="card">
 
@@ -178,8 +193,6 @@ type="number"
 placeholder="سعر الكرتون"
 >
 
-
-<!-- القسم -->
 
 <select id="category">
 
@@ -258,7 +271,9 @@ style="display:none;"
 </div>
 
 
-<!-- قائمة المنتجات -->
+<!-- =====================================
+     قائمة المنتجات
+===================================== -->
 
 <div class="card">
 
@@ -278,11 +293,18 @@ style="display:none;"
 
 <script type="module">
 
+
+/* =====================================
+   Firebase
+===================================== */
+
 import { db, auth } from "./firebase.js";
+
 
 import {
 onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 
 import {
 collection,
@@ -293,6 +315,14 @@ updateDoc,
 deleteDoc,
 doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+/* =====================================
+   المدير الوحيد
+===================================== */
+
+const ADMIN_EMAIL =
+"waleedahmad2031@gmail.com";
 
 
 /* =====================================
@@ -351,29 +381,38 @@ async function loadProducts(){
 productsBox.innerHTML =
 "جاري تحميل المنتجات...";
 
+
 try{
+
 
 const snap =
 await getDocs(
 collection(db,"products")
 );
 
+
 if(snap.empty){
 
 productsBox.innerHTML = `
+
 <div class="empty">
+
 🛍️ لا توجد منتجات حاليًا.
+
 </div>
+
 `;
 
 return;
 
 }
 
+
 productsBox.innerHTML = "";
 
 
 snap.forEach(item=>{
+
 
 const data =
 item.data();
@@ -384,48 +423,75 @@ productsBox.innerHTML += `
 <div class="product">
 
 <h3>
-${data.name || "بدون اسم"}
+${escapeHtml(data.name || "بدون اسم")}
 </h3>
+
 
 ${
 data.category
 ?
 `
 <div class="category">
-📂 ${data.category}
+
+📂 ${escapeHtml(data.category)}
+
 </div>
 `
 :
 ""
 }
 
+
 <p>
+
 💰 <strong>سعر الكرتون:</strong>
+
 ${Number(data.price) || 0}
+
 ريال
+
 </p>
 
+
 <p>
+
 🏪 <strong>المتجر:</strong>
-${data.shopName || "مشتاق وليد"}
+
+${escapeHtml(
+data.shopName || "مشتاق وليد"
+)}
+
 </p>
 
+
 <p>
+
 🏙️ <strong>المدينة:</strong>
-${data.city || "-"}
+
+${escapeHtml(
+data.city || "-"
+)}
+
 </p>
 
+
 <p>
+
 📱 <strong>التواصل:</strong>
-${data.phone || "-"}
+
+${escapeHtml(
+data.phone || "-"
+)}
+
 </p>
+
 
 ${
 data.image
 ?
 `
 <img
-src="${data.image}"
+src="${escapeHtml(data.image)}"
 alt="صورة المنتج"
 >
 `
@@ -433,8 +499,13 @@ alt="صورة المنتج"
 ""
 }
 
+
 <p>
-📝 ${data.description || "لا يوجد وصف"}
+
+📝 ${escapeHtml(
+data.description || "لا يوجد وصف"
+)}
+
 </p>
 
 
@@ -452,15 +523,19 @@ onclick="deleteProduct('${item.id}')"
 🗑️ حذف المنتج
 </button>
 
+
 </div>
 
 `;
 
 });
 
+
 }catch(error){
 
+
 console.error(error);
+
 
 productsBox.innerHTML = `
 
@@ -470,7 +545,7 @@ productsBox.innerHTML = `
 
 <br><br>
 
-${error.message}
+${escapeHtml(error.message)}
 
 </div>
 
@@ -488,10 +563,17 @@ ${error.message}
 window.editProduct =
 async function(id){
 
+
 try{
 
+
 const productRef =
-doc(db,"products",id);
+doc(
+db,
+"products",
+id
+);
+
 
 const snap =
 await getDoc(productRef);
@@ -515,20 +597,26 @@ snap.data();
 document.getElementById("name").value =
 data.name || "";
 
+
 document.getElementById("price").value =
 data.price || "";
+
 
 document.getElementById("category").value =
 data.category || "";
 
+
 document.getElementById("city").value =
 data.city || "";
+
 
 document.getElementById("phone").value =
 data.phone || "";
 
+
 document.getElementById("image").value =
 data.image || "";
+
 
 document.getElementById("description").value =
 data.description || "";
@@ -541,8 +629,10 @@ id;
 formTitle.innerText =
 "✏️ تعديل المنتج";
 
+
 saveBtn.innerText =
 "💾 حفظ تعديل المنتج";
+
 
 cancelBtn.style.display =
 "block";
@@ -557,7 +647,9 @@ behavior:"smooth"
 
 }catch(error){
 
+
 console.error(error);
+
 
 alert(
 "حدث خطأ أثناء تحميل المنتج للتعديل:\n" +
@@ -576,17 +668,22 @@ error.message
 cancelBtn.onclick =
 function(){
 
+
 editingProductId =
 null;
+
 
 formTitle.innerText =
 "➕ إضافة منتج جديد";
 
+
 saveBtn.innerText =
 "💾 حفظ المنتج";
 
+
 cancelBtn.style.display =
 "none";
+
 
 clearForm();
 
@@ -600,35 +697,42 @@ clearForm();
 saveBtn.onclick =
 async function(){
 
+
 const name =
 document.getElementById("name")
 .value
 .trim();
+
 
 const price =
 document.getElementById("price")
 .value
 .trim();
 
+
 const category =
 document.getElementById("category")
 .value
 .trim();
+
 
 const city =
 document.getElementById("city")
 .value
 .trim();
 
+
 const phone =
 document.getElementById("phone")
 .value
 .trim();
 
+
 const image =
 document.getElementById("image")
 .value
 .trim();
+
 
 const description =
 document.getElementById("description")
@@ -661,18 +765,21 @@ return;
 try{
 
 
-/* ===============================
+/* =====================================
    تعديل المنتج
-================================ */
+===================================== */
 
 if(editingProductId){
 
+
 await updateDoc(
+
 doc(
 db,
 "products",
 editingProductId
 ),
+
 {
 
 name:name,
@@ -690,6 +797,7 @@ image:image,
 description:description
 
 }
+
 );
 
 
@@ -701,30 +809,41 @@ alert(
 editingProductId =
 null;
 
+
 formTitle.innerText =
 "➕ إضافة منتج جديد";
+
 
 saveBtn.innerText =
 "💾 حفظ المنتج";
 
+
 cancelBtn.style.display =
 "none";
 
+
 clearForm();
 
+
 loadProducts();
+
 
 return;
 
 }
 
 
-/* ===============================
+/* =====================================
    إضافة المنتج
-================================ */
+===================================== */
 
 await addDoc(
-collection(db,"products"),
+
+collection(
+db,
+"products"
+),
+
 {
 
 name:name,
@@ -741,9 +860,11 @@ image:image,
 
 description:description,
 
-shopName:"مشتاق وليد"
+shopName:
+"مشتاق وليد"
 
 }
+
 );
 
 
@@ -754,12 +875,15 @@ alert(
 
 clearForm();
 
+
 loadProducts();
 
 
 }catch(error){
 
+
 console.error(error);
+
 
 alert(
 "حدث خطأ أثناء حفظ المنتج:\n" +
@@ -778,17 +902,27 @@ error.message
 window.deleteProduct =
 async function(id){
 
+
 if(!confirm(
 "⚠️ هل تريد حذف هذا المنتج؟"
 )){
+
 return;
+
 }
 
 
 try{
 
+
 await deleteDoc(
-doc(db,"products",id)
+
+doc(
+db,
+"products",
+id
+)
+
 );
 
 
@@ -802,7 +936,9 @@ loadProducts();
 
 }catch(error){
 
+
 console.error(error);
+
 
 alert(
 "حدث خطأ أثناء حذف المنتج:\n" +
@@ -813,24 +949,55 @@ error.message
 
 };
 
+
+/* =====================================
+   حماية النصوص
+===================================== */
+
+function escapeHtml(text){
+
+return String(
+text ?? ""
+)
+
+.replace(
+/&/g,
+"&amp;"
+)
+
+.replace(
+/</g,
+"&lt;"
+)
+
+.replace(
+/>/g,
+"&gt;"
+)
+
+.replace(
+/"/g,
+"&quot;"
+)
+
+.replace(
+/'/g,
+"&#039;"
+);
+
+}
+
+
 /* =====================================
    التحقق من المدير
 ===================================== */
 
-const allowedEmails = [
-
-"waleedahmad@gmail.com",
-
-"waleedahmadahmad@gmail.com",
-
-"waleedahmad2031@gmail.com"
-
-];
-
-
 onAuthStateChanged(
+
 auth,
+
 (user)=>{
+
 
 if(!user){
 
@@ -847,9 +1014,9 @@ return;
 
 
 if(
-!allowedEmails.includes(
-user.email
-)
+!user.email ||
+user.email.toLowerCase() !==
+ADMIN_EMAIL
 ){
 
 alert(
@@ -864,12 +1031,19 @@ return;
 }
 
 
+/* =====================================
+   تحميل المنتجات بعد التأكد من المدير
+===================================== */
+
 loadProducts();
+
 
 });
 
+
 </script>
+
 
 </body>
 
-     </html>
+   </html>
