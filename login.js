@@ -1,65 +1,226 @@
-import { auth } from "./firebase.js";
+import { auth, db } from "./firebase.js";
 
 import {
   signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const email = document.getElementById("email");
-const password = document.getElementById("password");
-const loginBtn = document.getElementById("loginBtn");
-const msg = document.getElementById("msg");
+import {
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-loginBtn.addEventListener("click", async () => {
 
-  const mail = email.value.trim();
-  const pass = password.value.trim();
+const email =
+document.getElementById("email");
 
-  msg.style.color = "red";
+const password =
+document.getElementById("password");
 
-  if (!mail || !pass) {
-    msg.textContent = "يرجى إدخال البريد الإلكتروني وكلمة المرور";
-    return;
-  }
+const loginBtn =
+document.getElementById("loginBtn");
 
-  try {
+const msg =
+document.getElementById("msg");
 
-    loginBtn.disabled = true;
-    msg.style.color = "#0b7a75";
-    msg.textContent = "جاري تسجيل الدخول...";
 
-    const userCredential =
-      await signInWithEmailAndPassword(auth, mail, pass);
+/* =====================================
+   حسابات الإدارة
+===================================== */
 
-    const user = userCredential.user;
+const allowedAdminEmails = [
 
-    msg.textContent = "تم تسجيل الدخول بنجاح ✅";
+"waleedahmad@gmail.com",
 
-    setTimeout(() => {
+"waleedahmadahmad@gmail.com",
 
-      if (user.email === "waleedahmad2031@gmail.com") {
+"waleedahmad2031@gmail.com"
 
-        location.href = "admin.html";
+];
 
-      } else {
 
-        location.href = "seller.html";
+/* =====================================
+   تسجيل الدخول
+===================================== */
 
-      }
+loginBtn.addEventListener(
+"click",
+async ()=>{
 
-    }, 1000);
+const mail =
+email.value.trim().toLowerCase();
 
-  } catch (error) {
+const pass =
+password.value.trim();
 
-    console.error(error);
 
-    msg.style.color = "red";
-    msg.textContent =
-      "البريد الإلكتروني أو كلمة المرور غير صحيحة";
+msg.style.color =
+"red";
 
-  } finally {
 
-    loginBtn.disabled = false;
+if(!mail || !pass){
 
-  }
+msg.textContent =
+"يرجى إدخال البريد الإلكتروني وكلمة المرور";
+
+return;
+
+}
+
+
+try{
+
+
+loginBtn.disabled =
+true;
+
+msg.style.color =
+"#0b7a75";
+
+msg.textContent =
+"جاري تسجيل الدخول...";
+
+
+/* =====================================
+   تسجيل الدخول في Firebase
+===================================== */
+
+const userCredential =
+await signInWithEmailAndPassword(
+auth,
+mail,
+pass
+);
+
+
+const user =
+userCredential.user;
+
+
+/* =====================================
+   إذا كان مدير
+===================================== */
+
+if(
+allowedAdminEmails.includes(
+user.email.toLowerCase()
+)
+){
+
+msg.textContent =
+"تم تسجيل دخول المدير بنجاح ✅";
+
+
+setTimeout(()=>{
+
+location.href =
+"admin.html";
+
+},700);
+
+
+return;
+
+}
+
+
+/* =====================================
+   التحقق من وجود البائع
+===================================== */
+
+const sellerRef =
+doc(
+db,
+"sellers",
+user.uid
+);
+
+
+const sellerSnap =
+await getDoc(
+sellerRef
+);
+
+
+/* =====================================
+   البائع غير مسجل
+===================================== */
+
+if(!sellerSnap.exists()){
+
+msg.style.color =
+"red";
+
+msg.textContent =
+"❌ هذا الحساب ليس مسجلًا كبائع.";
+
+return;
+
+}
+
+
+/* =====================================
+   بيانات البائع
+===================================== */
+
+const seller =
+sellerSnap.data();
+
+
+/* =====================================
+   التحقق من حالة البائع
+===================================== */
+
+if(
+seller.status === "stopped"
+){
+
+msg.style.color =
+"#e65100";
+
+msg.textContent =
+"⏸️ حسابك متوقف مؤقتًا من الإدارة.";
+
+return;
+
+}
+
+
+/* =====================================
+   دخول البائع
+===================================== */
+
+msg.style.color =
+"#0b7a75";
+
+msg.textContent =
+"تم تسجيل الدخول بنجاح ✅";
+
+
+setTimeout(()=>{
+
+location.href =
+"seller.html";
+
+},700);
+
+
+}catch(error){
+
+console.error(error);
+
+
+msg.style.color =
+"red";
+
+msg.textContent =
+"البريد الإلكتروني أو كلمة المرور غير صحيحة";
+
+
+}finally{
+
+loginBtn.disabled =
+false;
+
+}
 
 });
