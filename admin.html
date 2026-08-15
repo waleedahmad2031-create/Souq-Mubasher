@@ -98,9 +98,11 @@ background:#e53935;
 
 <body>
 
+
 <header>
 🛠 لوحة إدارة سوق مباشر
 </header>
+
 
 <div class="container">
 
@@ -222,7 +224,9 @@ onclick="logoutAdmin()"
 
 <script type="module">
 
+
 import { auth } from "./firebase.js";
+
 
 import {
 onAuthStateChanged,
@@ -231,41 +235,64 @@ signOut
 
 
 /* =========================
+   حساب المدير الوحيد
+========================= */
+
+const ADMIN_EMAIL =
+"waleedahmad2031@gmail.com";
+
+
+/* =========================
+   حالة تسجيل الخروج
+========================= */
+
+let loggingOut = false;
+
+
+/* =========================
    التأكد من دخول المدير
 ========================= */
 
 onAuthStateChanged(
+
 auth,
+
 (user)=>{
 
-if(!user){
 
-alert(
-"يجب تسجيل دخول المدير أولاً"
-);
+/* =========================
+   إذا كان المستخدم يسجل خروج
+========================= */
 
-location.href="login.html";
+if(loggingOut){
 
 return;
 
 }
 
 
-const allowedEmails = [
+/* =========================
+   لا يوجد مستخدم
+========================= */
+
+if(!user){
+
+location.href =
+"login.html";
+
+return;
+
+}
 
 
-
-"waleedahmadahmad@gmail.com",
-
-
-
-];
-
+/* =========================
+   التحقق من المدير
+========================= */
 
 if(
-!allowedEmails.includes(
-user.email
-)
+!user.email ||
+user.email.toLowerCase() !==
+ADMIN_EMAIL
 ){
 
 alert(
@@ -274,7 +301,8 @@ alert(
 
 signOut(auth);
 
-location.href="login.html";
+location.href =
+"login.html";
 
 return;
 
@@ -290,15 +318,34 @@ return;
 window.logoutAdmin =
 async function(){
 
+
 try{
+
+
+loggingOut =
+true;
+
+
+/* تسجيل الخروج */
 
 await signOut(auth);
 
-location.href="login.html";
+
+/* الانتقال إلى تسجيل الدخول */
+
+location.href =
+"login.html";
+
 
 }catch(error){
 
+
 console.error(error);
+
+
+loggingOut =
+false;
+
 
 alert(
 "حدث خطأ أثناء تسجيل الخروج"
@@ -308,7 +355,9 @@ alert(
 
 };
 
+
 </script>
+
 
 </body>
 
