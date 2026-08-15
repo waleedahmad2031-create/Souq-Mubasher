@@ -4,8 +4,7 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport"
-content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 
 <title>إتمام الطلب | سوق مباشر</title>
 
@@ -61,17 +60,12 @@ margin-bottom:6px;
 input,
 textarea,
 select{
-
 width:100%;
 padding:14px;
-
 border:1px solid #ccc;
 border-radius:8px;
-
 font-size:16px;
-
 outline:none;
-
 }
 
 input:focus,
@@ -86,17 +80,11 @@ resize:vertical;
 }
 
 .summary{
-
 background:#e8f5e9;
-
 padding:18px;
-
 border-radius:10px;
-
 line-height:2;
-
 margin-top:15px;
-
 }
 
 .summary p{
@@ -108,77 +96,44 @@ color:#00796b;
 }
 
 .total{
-
 border-top:1px solid #bbb;
-
 margin-top:10px;
-
 padding-top:10px;
-
 font-size:24px !important;
-
 font-weight:bold;
-
 color:#00796b;
-
 }
 
 .shop{
-
 background:#e3f2fd;
-
 color:#1565c0;
-
 padding:14px;
-
 border-radius:8px;
-
 font-size:18px;
-
 font-weight:bold;
-
 margin-bottom:15px;
-
 text-align:center;
-
 }
 
 .products{
-
 background:#fafafa;
-
 padding:12px;
-
 border-radius:8px;
-
 line-height:2;
-
 margin-top:15px;
-
 }
 
 .orderBtn{
-
 width:100%;
-
 margin-top:20px;
-
 padding:16px;
-
 background:#009688;
-
 color:white;
-
 border:none;
-
 border-radius:10px;
-
 font-size:20px;
-
 font-weight:bold;
-
 cursor:pointer;
-
 }
 
 .orderBtn:hover{
@@ -186,63 +141,38 @@ background:#00796b;
 }
 
 .orderBtn:disabled{
-
 background:#999;
-
 cursor:not-allowed;
-
 }
 
 .backBtn{
-
 width:100%;
-
 margin-top:10px;
-
 padding:14px;
-
 background:#777;
-
 color:white;
-
 border:none;
-
 border-radius:10px;
-
 font-size:17px;
-
 }
 
 .message{
-
 display:none;
-
 padding:15px;
-
 border-radius:8px;
-
 margin-top:15px;
-
 font-weight:bold;
-
 line-height:1.8;
-
 }
 
 .success{
-
 background:#e8f5e9;
-
 color:#2e7d32;
-
 }
 
 .error{
-
 background:#ffebee;
-
 color:#c62828;
-
 }
 
 </style>
@@ -252,88 +182,54 @@ color:#c62828;
 <body>
 
 <header>
-
 📦 إتمام الطلب
-
 </header>
-
 
 <div class="container">
 
-
-<!-- ========================= -->
 <!-- التاجر -->
-<!-- ========================= -->
 
 <div class="card">
 
 <div id="shopBox" class="shop">
-
 🏪 جاري تحميل بيانات التاجر...
-
 </div>
-
 
 <h2>
 🛒 تفاصيل الطلب
 </h2>
 
-
-<div id="productsBox"
-class="products">
-
+<div id="productsBox" class="products">
 جاري تحميل المنتجات...
-
 </div>
-
 
 <div class="summary">
 
 <p>
-
 🛍️ مجموع المنتجات:
 
 <strong>
-<span id="productsTotal">
-0
-</span>
-
+<span id="productsTotal">0</span>
 ريال
-
 </strong>
-
 </p>
 
-
 <p class="delivery">
-
 🚚 رسوم التوصيل:
 
 <strong>
-<span id="deliveryTotal">
-0
-</span>
-
+<span id="deliveryTotal">0</span>
 ريال
-
 </strong>
-
 </p>
 
-
 <p class="total">
-
 💰 الإجمالي النهائي:
 
 <strong>
-<span id="orderTotal">
-0
-</span>
-
+<span id="orderTotal">0</span>
 ريال
-
 </strong>
-
 </p>
 
 </div>
@@ -341,17 +237,13 @@ class="products">
 </div>
 
 
-
-<!-- ========================= -->
 <!-- بيانات العميل -->
-<!-- ========================= -->
 
 <div class="card">
 
 <h2>
 👤 بيانات الزبون
 </h2>
-
 
 <label>
 اسم العميل
@@ -363,7 +255,6 @@ id="customerName"
 placeholder="اكتب اسمك"
 >
 
-
 <label>
 رقم الجوال
 </label>
@@ -373,7 +264,6 @@ type="tel"
 id="customerPhone"
 placeholder="05xxxxxxxx أو 7xxxxxxxx"
 >
-
 
 <label>
 المدينة
@@ -386,7 +276,6 @@ value="إب"
 placeholder="مثال: إب"
 >
 
-
 <label>
 اسم الحي
 </label>
@@ -397,14 +286,14 @@ id="deliveryArea"
 placeholder="اكتب اسم الحي"
 >
 
-
-
+<label>
+العنوان بالتفصيل
+</label>
 
 <textarea
 id="customerAddress"
 placeholder="اكتب موقعك بالتفصيل"
 ></textarea>
-
 
 <label>
 نوع الطلب
@@ -421,7 +310,6 @@ placeholder="اكتب موقعك بالتفصيل"
 </option>
 
 </select>
-
 
 <label>
 وقت التوصيل المناسب
@@ -447,26 +335,19 @@ placeholder="اكتب موقعك بالتفصيل"
 
 </select>
 
-
 <button
 class="orderBtn"
 id="sendOrder"
 >
-
 📦 إرسال الطلب
-
 </button>
-
 
 <button
 class="backBtn"
 onclick="location.href='cart.html'"
 >
-
 ⬅️ العودة إلى السلة
-
 </button>
-
 
 <div
 id="message"
@@ -476,7 +357,6 @@ class="message"
 </div>
 
 </div>
-
 
 
 <script type="module">
@@ -507,39 +387,25 @@ localStorage.getItem("cart")
 // ======================================
 
 const productsTotalElement =
-document.getElementById(
-"productsTotal"
-);
+document.getElementById("productsTotal");
 
 const deliveryTotalElement =
-document.getElementById(
-"deliveryTotal"
-);
+document.getElementById("deliveryTotal");
 
 const orderTotalElement =
-document.getElementById(
-"orderTotal"
-);
+document.getElementById("orderTotal");
 
 const productsBox =
-document.getElementById(
-"productsBox"
-);
+document.getElementById("productsBox");
 
 const shopBox =
-document.getElementById(
-"shopBox"
-);
+document.getElementById("shopBox");
 
 const sendOrder =
-document.getElementById(
-"sendOrder"
-);
+document.getElementById("sendOrder");
 
 const message =
-document.getElementById(
-"message"
-);
+document.getElementById("message");
 
 
 // ======================================
@@ -551,20 +417,13 @@ function getDeliveryPerCarton(price){
 price =
 Number(price || 0);
 
-
 if(price < 1500){
-
 return 50;
-
 }
-
 
 if(price < 2000){
-
 return 70;
-
 }
-
 
 return 100;
 
@@ -581,7 +440,6 @@ let productsTotal = 0;
 
 let deliveryTotal = 0;
 
-
 cart.forEach(item => {
 
 const price =
@@ -590,35 +448,25 @@ Number(item.price || 0);
 const quantity =
 Number(item.quantity || 1);
 
-
 productsTotal +=
 price * quantity;
-
 
 const deliveryPerCarton =
 getDeliveryPerCarton(price);
 
-
 deliveryTotal +=
-deliveryPerCarton *
-quantity;
+deliveryPerCarton * quantity;
 
 });
-
 
 const orderTotal =
 productsTotal +
 deliveryTotal;
 
-
 return {
-
 productsTotal,
-
 deliveryTotal,
-
 orderTotal
-
 };
 
 }
@@ -632,7 +480,6 @@ function renderProducts(){
 
 productsBox.innerHTML = "";
 
-
 if(cart.length === 0){
 
 productsBox.innerHTML =
@@ -644,9 +491,7 @@ return;
 
 }
 
-
 let html = "";
-
 
 cart.forEach(item => {
 
@@ -656,15 +501,11 @@ Number(item.price || 0);
 const quantity =
 Number(item.quantity || 1);
 
-
 const subtotal =
 price * quantity;
 
-
 const delivery =
-getDeliveryPerCarton(price)
-* quantity;
-
+getDeliveryPerCarton(price) * quantity;
 
 html += `
 
@@ -705,7 +546,6 @@ ${delivery.toLocaleString()}
 
 });
 
-
 productsBox.innerHTML =
 html;
 
@@ -721,20 +561,15 @@ function renderTotals(){
 const totals =
 calculateOrder();
 
-
 productsTotalElement.textContent =
 totals.productsTotal.toLocaleString();
-
 
 deliveryTotalElement.textContent =
 totals.deliveryTotal.toLocaleString();
 
-
 orderTotalElement.textContent =
 totals.orderTotal.toLocaleString();
 
-
-// حفظها أيضًا
 localStorage.setItem(
 "productsTotal",
 String(totals.productsTotal)
@@ -768,19 +603,14 @@ return;
 
 }
 
-
 const shop =
 String(
 cart[0].shopName || "سوق مباشر"
 ).trim();
 
-
 shopBox.innerHTML =
-
 "🏪 التاجر: <strong>" +
-
 escapeHtml(shop) +
-
 "</strong>";
 
 }
@@ -793,9 +623,6 @@ escapeHtml(shop) +
 sendOrder.onclick =
 async function(){
 
-
-// فحص السلة
-
 if(cart.length === 0){
 
 showError(
@@ -807,66 +634,48 @@ return;
 }
 
 
+// ======================================
 // بيانات العميل
+// ======================================
 
 const customerName =
 document
-.getElementById(
-"customerName"
-)
+.getElementById("customerName")
 .value
 .trim();
-
 
 const customerPhone =
 document
-.getElementById(
-"customerPhone"
-)
+.getElementById("customerPhone")
 .value
 .trim();
-
 
 const customerCity =
 document
-.getElementById(
-"customerCity"
-)
+.getElementById("customerCity")
 .value
 .trim();
-
 
 const deliveryArea =
 document
-.getElementById(
-"deliveryArea"
-)
+.getElementById("deliveryArea")
 .value
 .trim();
-
 
 const customerAddress =
 document
-.getElementById(
-"customerAddress"
-)
+.getElementById("customerAddress")
 .value
 .trim();
 
-
 const orderType =
 document
-.getElementById(
-"orderType"
-)
+.getElementById("orderType")
 .value;
-
 
 const deliveryTime =
 document
-.getElementById(
-"deliveryTime"
-)
+.getElementById("deliveryTime")
 .value;
 
 
@@ -884,7 +693,6 @@ return;
 
 }
 
-
 if(!customerPhone){
 
 showError(
@@ -894,7 +702,6 @@ showError(
 return;
 
 }
-
 
 if(!customerCity){
 
@@ -906,7 +713,6 @@ return;
 
 }
 
-
 if(!deliveryArea){
 
 showError(
@@ -916,7 +722,6 @@ showError(
 return;
 
 }
-
 
 if(!customerAddress){
 
@@ -930,14 +735,13 @@ return;
 
 
 // ======================================
-// فحص أن التاجر واحد
+// التأكد من تاجر واحد
 // ======================================
 
 const firstShop =
 String(
 cart[0].shopName || ""
 ).trim();
-
 
 const differentShop =
 cart.find(item => {
@@ -948,7 +752,6 @@ item.shopName || ""
 !== firstShop;
 
 });
-
 
 if(differentShop){
 
@@ -968,10 +771,8 @@ return;
 const totals =
 calculateOrder();
 
-
 const sellerId =
 cart[0].sellerId || "";
-
 
 const shopName =
 firstShop ||
@@ -1029,7 +830,7 @@ price * quantity
 
 
 // ======================================
-// الطلب
+// بيانات الطلب
 // ======================================
 
 const orderData = {
@@ -1096,7 +897,7 @@ try{
 
 
 // ======================================
-// حفظ في Firebase
+// حفظ الطلب في Firebase
 // ======================================
 
 await addDoc(
@@ -1106,7 +907,7 @@ orderData
 
 
 // ======================================
-// تجهيز رسالة واتساب
+// رسالة واتساب
 // ======================================
 
 let whatsappMessage =
@@ -1134,7 +935,6 @@ ${deliveryTime}
 ━━━━━━━━━━━━
 
 `;
-
 
 products.forEach((product,index) => {
 
@@ -1170,50 +970,25 @@ ${totals.orderTotal.toLocaleString()} ريال
 
 
 // ======================================
-// تحديد رقم واتساب التاجر
+// رقم واتساب استقبال جميع الطلبات
 // ======================================
 
-let sellerPhone =
-cart[0].phone ||
-cart[0].sellerPhone ||
-cart[0].whatsapp ||
-"";
+const receiverPhone =
+"967550496391";
 
 
-// إزالة الرموز
-sellerPhone =
-String(sellerPhone)
-.replace(/\D/g,"");
+// ======================================
+// فتح واتساب على رقمك مباشرة
+// ======================================
 
+const whatsappUrl =
 
-// إذا كان الرقم يبدأ 0
-if(
-sellerPhone.startsWith("0")
-){
-
-sellerPhone =
-"967" +
-sellerPhone.substring(1);
-
-}
+`https://wa.me/${receiverPhone}?text=${encodeURIComponent(whatsappMessage)}`;
 
 
 // ======================================
 // فتح واتساب
 // ======================================
-
-const whatsappUrl =
-
-sellerPhone
-
-?
-
-`https://wa.me/${sellerPhone}?text=${encodeURIComponent(whatsappMessage)}`
-
-:
-
-`https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
-
 
 window.location.href =
 whatsappUrl;
@@ -1245,7 +1020,7 @@ sendOrder.textContent =
 
 
 // ======================================
-// رسالة خطأ
+// رسالة الخطأ
 // ======================================
 
 function showError(text){
@@ -1270,30 +1045,15 @@ function escapeHtml(text){
 
 return String(text ?? "")
 
-.replace(
-/&/g,
-"&amp;"
-)
+.replace(/&/g,"&amp;")
 
-.replace(
-/</g,
-"&lt;"
-)
+.replace(/</g,"&lt;")
 
-.replace(
-/>/g,
-"&gt;"
-)
+.replace(/>/g,"&gt;")
 
-.replace(
-/"/g,
-"&quot;"
-)
+.replace(/"/g,"&quot;")
 
-.replace(
-/'/g,
-"&#039;"
-);
+.replace(/'/g,"&#039;");
 
 }
 
