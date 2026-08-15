@@ -179,6 +179,7 @@ margin:15px 0;
 
 <body>
 
+
 <header>
 🏪 إدارة البائعين
 </header>
@@ -196,9 +197,7 @@ margin:15px 0;
 <div id="message" class="message"></div>
 
 <div id="sellersList">
-
 جاري تحميل البائعين...
-
 </div>
 
 </div>
@@ -221,6 +220,7 @@ onclick="location.href='admin.html'"
 
 <script type="module">
 
+
 import { db, auth } from "./firebase.js";
 
 
@@ -241,6 +241,7 @@ onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 
+
 const sellersList =
 document.getElementById("sellersList");
 
@@ -248,6 +249,11 @@ document.getElementById("sellersList");
 const messageBox =
 document.getElementById("message");
 
+
+
+/* =====================================
+   المديرون المسموح لهم
+===================================== */
 
 const allowedEmails = [
 
@@ -258,6 +264,7 @@ const allowedEmails = [
 "waleedahmad2031@gmail.com"
 
 ];
+
 
 
 /* =====================================
@@ -278,6 +285,7 @@ messageBox.style.display =
 }
 
 
+
 /* =====================================
    إخفاء الرسالة
 ===================================== */
@@ -288,6 +296,7 @@ messageBox.style.display =
 "none";
 
 }
+
 
 
 /* =====================================
@@ -545,8 +554,9 @@ sellersList.appendChild(card);
 });
 
 
+
 /* =====================================
-   تعديل الاسم
+   أزرار تعديل الاسم
 ===================================== */
 
 document
@@ -581,8 +591,9 @@ editBox.style.display === "none"
 });
 
 
+
 /* =====================================
-   حفظ الاسم
+   حفظ اسم التاجر
 ===================================== */
 
 document
@@ -636,16 +647,99 @@ try{
 
 
 /* =====================================
-   تحديث بيانات البائع
+   أولًا: الحصول على بيانات البائع
+   لمعرفة الاسم القديم
 ===================================== */
 
-await updateDoc(
-
+const sellerRef =
 doc(
 db,
 "sellers",
 sellerId
-),
+);
+
+
+const sellerSnap =
+await getDocs(
+query(
+collection(db,"sellers"),
+where(
+"uid",
+"==",
+sellerId
+)
+)
+);
+
+
+/*
+   نقرأ الاسم القديم من القائمة
+   قبل التحديث.
+*/
+
+let oldShopName = "";
+
+
+if(!sellerSnap.empty){
+
+oldShopName =
+sellerSnap.docs[0].data().shopName || "";
+
+}
+
+
+/*
+   إذا لم نجد uid نقرأ مباشرة
+*/
+
+if(!oldShopName){
+
+const directSeller =
+await import(
+"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+);
+
+}
+
+
+/* =====================================
+   تحديث بيانات البائع
+===================================== */
+
+const directSellerDoc =
+await import(
+"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+);
+
+
+/*
+   نستخدم getDoc بطريقة مباشرة
+*/
+
+const sellerDocument =
+await directSellerDoc.getDoc(
+sellerRef
+);
+
+
+if(
+sellerDocument.exists()
+){
+
+oldShopName =
+sellerDocument.data().shopName ||
+oldShopName;
+
+}
+
+
+/* =====================================
+   تحديث اسم البائع
+===================================== */
+
+await updateDoc(
+
+sellerRef,
 
 {
 
@@ -658,10 +752,11 @@ newName
 
 
 /* =====================================
-   البحث عن منتجات البائع
+   البحث عن منتجات البائع الجديدة
+   بواسطة sellerId
 ===================================== */
 
-const productsQuery =
+const productsBySellerQuery =
 query(
 
 collection(db,"products"),
@@ -675,15 +770,88 @@ sellerId
 );
 
 
-const productsSnap =
+const productsBySellerSnap =
 await getDocs(
-productsQuery
+productsBySellerQuery
 );
 
 
 /* =====================================
-   تحديث المنتجات على دفعات
+   تخزين المنتجات بدون تكرار
 ===================================== */
+
+const productsMap =
+new Map();
+
+
+productsBySellerSnap.forEach(
+productDoc => {
+
+productsMap.set(
+productDoc.id,
+productDoc
+);
+
+});
+
+
+/* =====================================
+   البحث عن المنتجات القديمة
+   بواسطة اسم التاجر القديم
+===================================== */
+
+if(oldShopName){
+
+const productsByNameQuery =
+query(
+
+collection(db,"products"),
+
+where(
+"shopName",
+"==",
+oldShopName
+)
+
+);
+
+
+const productsByNameSnap =
+await getDocs(
+productsByNameQuery
+);
+
+
+productsByNameSnap.forEach(
+productDoc => {
+
+if(
+!productsMap.has(
+productDoc.id
+)
+){
+
+productsMap.set(
+productDoc.id,
+productDoc
+);
+
+}
+
+});
+
+}
+
+
+/* =====================================
+   تحديث جميع المنتجات
+===================================== */
+
+const productsDocs =
+Array.from(
+productsMap.values()
+);
+
 
 let batch =
 writeBatch(db);
@@ -693,7 +861,7 @@ let count = 0;
 
 for(
 const productDoc
-of productsSnap.docs
+of productsDocs
 ){
 
 batch.update(
@@ -707,7 +875,10 @@ productDoc.id
 {
 
 shopName:
-newName
+newName,
+
+sellerId:
+sellerId
 
 }
 
@@ -739,20 +910,25 @@ await batch.commit();
 
 
 /* =====================================
-   نجاح
+   رسالة النجاح
 ===================================== */
 
 showMessage(
 
 "✅ تم تعديل اسم التاجر بنجاح.\n\n" +
 
+"🏪 الاسم القديم: " +
+(oldShopName || "غير معروف") +
+
+"\n\n" +
+
 "🏪 الاسم الجديد: " +
 newName +
 
 "\n\n" +
 
-"📦 تم تحديث اسم التاجر في " +
-productsSnap.size +
+"📦 تم تحديث " +
+productsDocs.length +
 " منتج.",
 
 "success"
@@ -789,6 +965,7 @@ this.textContent =
 });
 
 });
+
 
 
 /* =====================================
@@ -832,7 +1009,6 @@ this.textContent =
 
 
 try{
-
 
 await updateDoc(
 
@@ -892,6 +1068,7 @@ this.textContent =
 });
 
 
+
 /* =====================================
    إعادة تفعيل البائع
 ===================================== */
@@ -931,7 +1108,6 @@ this.textContent =
 
 
 try{
-
 
 await updateDoc(
 
@@ -989,6 +1165,7 @@ this.textContent =
 });
 
 });
+
 
 
 /* =====================================
@@ -1214,6 +1391,7 @@ ${escapeHtml(error.message)}
 }
 
 
+
 /* =====================================
    حماية المدير
 ===================================== */
@@ -1258,9 +1436,8 @@ return;
 
 loadSellers();
 
-}
+});
 
-);
 
 
 /* =====================================
