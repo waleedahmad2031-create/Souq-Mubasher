@@ -227,48 +227,51 @@ height:80px;
 </strong>
 </p>
 
+
 <p class="delivery">
 🚚 رسوم التوصيل:
 <strong>
-يحددها سوق مباشر
+<span id="deliveryTotal">0</span> ريال
 </strong>
 </p>
 
+
 <div class="deliveryDetails">
 
-📍 يكتب الزبون اسم الحي عند إتمام الطلب.
+🚚 رسوم التوصيل تُحسب لكل كرتون حسب سعره:
 
 <br>
 
-🚚 بعد معرفة الحي يتم تحديد رسوم التوصيل حسب المسافة:
+📦 أقل من 1,500 ريال:
+<strong>50 ريال للكرتون</strong>
 
 <br>
 
-🏠 قريب: 300 ريال
+📦 من 1,500 إلى أقل من 2,000 ريال:
+<strong>70 ريال للكرتون</strong>
 
 <br>
 
-📍 متوسط: 500 ريال
-
-<br>
-
-🛣️ بعيد: 700 ريال
+📦 2,000 ريال فأكثر:
+<strong>100 ريال للكرتون</strong>
 
 <br><br>
 
-⚠️ رسوم التوصيل لا تُحسب الآن داخل السلة، وسيتم تحديدها بعد معرفة موقع الزبون.
+⚠️ يتم حساب رسوم التوصيل تلقائيًا حسب سعر الكرتون وعدد الكراتين.
 
 </div>
 
+
 <p class="finalTotal">
 
-💰 قيمة المنتجات:
+💰 الإجمالي شامل التوصيل:
 
 <strong>
 <span id="totalPrice">0</span> ريال
 </strong>
 
 </p>
+
 
 <div class="note">
 
@@ -280,14 +283,17 @@ height:80px;
 
 <br>
 
-🚚 يتم تحديد رسوم التوصيل حسب الحي.
+🚚 رسوم التوصيل محسوبة لكل كرتون.
 
 </div>
 
 </div>
+
 
 <button class="orderBtn" id="sendOrder">
-إتمام طلب الجملة
+
+إتمام طلب الجملة 📦
+
 </button>
 
 </div>
@@ -307,6 +313,9 @@ document.getElementById("cart");
 const productsTotal =
 document.getElementById("productsTotal");
 
+const deliveryTotal =
+document.getElementById("deliveryTotal");
+
 const totalPrice =
 document.getElementById("totalPrice");
 
@@ -318,6 +327,31 @@ document.getElementById("warning");
 
 const sendOrder =
 document.getElementById("sendOrder");
+
+
+// ===============================
+// حساب رسوم التوصيل للكرتون
+// ===============================
+
+function getDeliveryPerCarton(price){
+
+price = Number(price || 0);
+
+if(price < 1500){
+
+return 50;
+
+}
+
+if(price < 2000){
+
+return 70;
+
+}
+
+return 100;
+
+}
 
 
 // ===============================
@@ -387,6 +421,8 @@ shopBox.innerHTML = "";
 
 let total = 0;
 
+let delivery = 0;
+
 
 if(cart.length === 0){
 
@@ -407,6 +443,8 @@ cartItems.innerHTML = `
 `;
 
 productsTotal.textContent = "0";
+
+deliveryTotal.textContent = "0";
 
 totalPrice.textContent = "0";
 
@@ -486,8 +524,23 @@ item.price || 0
 );
 
 
+// قيمة المنتجات
 total +=
 price * quantity;
+
+
+// رسوم التوصيل للكرتون
+const deliveryPerCarton =
+getDeliveryPerCarton(price);
+
+
+// رسوم التوصيل
+delivery +=
+deliveryPerCarton * quantity;
+
+
+const itemDelivery =
+deliveryPerCarton * quantity;
 
 
 cartItems.innerHTML += `
@@ -523,6 +576,13 @@ ${price.toLocaleString()} ريال
 📦 عدد الكراتين:
 <strong>
 ${quantity}
+</strong>
+</p>
+
+<p>
+🚚 توصيل هذا المنتج:
+<strong>
+${itemDelivery.toLocaleString()} ريال
 </strong>
 </p>
 
@@ -568,8 +628,12 @@ productsTotal.textContent =
 total.toLocaleString();
 
 
+deliveryTotal.textContent =
+delivery.toLocaleString();
+
+
 totalPrice.textContent =
-total.toLocaleString();
+(total + delivery).toLocaleString();
 
 }
 
@@ -688,9 +752,57 @@ return;
 }
 
 
+// حفظ اسم التاجر
 localStorage.setItem(
 "selectedShop",
 shopCheck.shop
+);
+
+
+// حفظ إجمالي المنتجات
+let total = 0;
+
+
+// حفظ رسوم التوصيل
+let delivery = 0;
+
+
+cart.forEach(item => {
+
+const quantity =
+Number(item.quantity || 1);
+
+const price =
+Number(item.price || 0);
+
+
+total +=
+price * quantity;
+
+
+delivery +=
+getDeliveryPerCarton(price)
+* quantity;
+
+});
+
+
+// حفظ البيانات لاستخدامها في صفحة الطلب
+localStorage.setItem(
+"productsTotal",
+String(total)
+);
+
+
+localStorage.setItem(
+"deliveryTotal",
+String(delivery)
+);
+
+
+localStorage.setItem(
+"orderTotal",
+String(total + delivery)
 );
 
 
