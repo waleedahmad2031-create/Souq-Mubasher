@@ -80,6 +80,10 @@ background:#009688;
 background:#ff9800;
 }
 
+.stats{
+background:#00897b;
+}
+
 .archive{
 background:#673ab7;
 }
@@ -98,13 +102,34 @@ background:#e53935;
 
 <body>
 
-
 <header>
 🛠 لوحة إدارة سوق مباشر
 </header>
 
-
 <div class="container">
+
+<!-- =========================
+     الإحصائيات
+========================= -->
+
+<div class="card">
+
+<div class="title">
+📊 إحصائيات سوق مباشر
+</div>
+
+<div class="description">
+مشاهدات المنتجات، إضافات السلة، الطلبات، وأكثر المنتجات طلبًا.
+</div>
+
+<button
+class="stats"
+onclick="location.href='product-stats.html'"
+>
+📊 فتح الإحصائيات
+</button>
+
+</div>
 
 
 <!-- =========================
@@ -218,15 +243,12 @@ onclick="logoutAdmin()"
 
 </div>
 
-
 </div>
 
 
 <script type="module">
 
-
 import { auth } from "./firebase.js";
-
 
 import {
 onAuthStateChanged,
@@ -259,21 +281,11 @@ auth,
 
 (user)=>{
 
-
-/* =========================
-   إذا كان المستخدم يسجل خروج
-========================= */
-
 if(loggingOut){
 
 return;
 
 }
-
-
-/* =========================
-   لا يوجد مستخدم
-========================= */
 
 if(!user){
 
@@ -283,11 +295,6 @@ location.href =
 return;
 
 }
-
-
-/* =========================
-   التحقق من المدير
-========================= */
 
 if(
 !user.email ||
@@ -318,34 +325,22 @@ return;
 window.logoutAdmin =
 async function(){
 
-
 try{
-
 
 loggingOut =
 true;
 
-
-/* تسجيل الخروج */
-
 await signOut(auth);
-
-
-/* الانتقال إلى تسجيل الدخول */
 
 location.href =
 "login.html";
 
-
 }catch(error){
-
 
 console.error(error);
 
-
 loggingOut =
 false;
-
 
 alert(
 "حدث خطأ أثناء تسجيل الخروج"
@@ -355,9 +350,7 @@ alert(
 
 };
 
-
 </script>
-
 
 </body>
 
