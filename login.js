@@ -10,6 +10,10 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
+/* =====================================
+   عناصر الصفحة
+===================================== */
+
 const email =
 document.getElementById("email");
 
@@ -24,18 +28,11 @@ document.getElementById("msg");
 
 
 /* =====================================
-   حسابات الإدارة
+   حساب المدير الوحيد
 ===================================== */
 
-const allowedAdminEmails = [
-
-"waleedahmad@gmail.com",
-
-"waleedahmadahmad@gmail.com",
-
-"waleedahmad2031@gmail.com"
-
-];
+const ADMIN_EMAIL =
+"waleedahmad2031@gmail.com";
 
 
 /* =====================================
@@ -44,7 +41,8 @@ const allowedAdminEmails = [
 
 loginBtn.addEventListener(
 "click",
-async ()=>{
+async () => {
+
 
 const mail =
 email.value.trim().toLowerCase();
@@ -56,6 +54,10 @@ password.value.trim();
 msg.style.color =
 "red";
 
+
+/* =====================================
+   التحقق من الحقول
+===================================== */
 
 if(!mail || !pass){
 
@@ -97,20 +99,23 @@ userCredential.user;
 
 
 /* =====================================
-   إذا كان مدير
+   التحقق من المدير
 ===================================== */
 
 if(
-allowedAdminEmails.includes(
-user.email.toLowerCase()
-)
+user.email &&
+user.email.toLowerCase() ===
+ADMIN_EMAIL
 ){
+
+msg.style.color =
+"#0b7a75";
 
 msg.textContent =
 "تم تسجيل دخول المدير بنجاح ✅";
 
 
-setTimeout(()=>{
+setTimeout(() => {
 
 location.href =
 "admin.html";
@@ -124,7 +129,7 @@ return;
 
 
 /* =====================================
-   التحقق من وجود البائع
+   التحقق من البائع
 ===================================== */
 
 const sellerRef =
@@ -142,7 +147,7 @@ sellerRef
 
 
 /* =====================================
-   البائع غير مسجل
+   الحساب ليس بائعًا
 ===================================== */
 
 if(!sellerSnap.exists()){
@@ -186,7 +191,7 @@ return;
 
 
 /* =====================================
-   دخول البائع
+   البائع نشط
 ===================================== */
 
 msg.style.color =
@@ -196,7 +201,7 @@ msg.textContent =
 "تم تسجيل الدخول بنجاح ✅";
 
 
-setTimeout(()=>{
+setTimeout(() => {
 
 location.href =
 "seller.html";
@@ -207,7 +212,6 @@ location.href =
 }catch(error){
 
 console.error(error);
-
 
 msg.style.color =
 "red";
