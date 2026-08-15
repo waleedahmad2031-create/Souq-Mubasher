@@ -97,6 +97,10 @@ opacity:.6;
 cursor:not-allowed;
 }
 
+.addMoshtaq{
+background:#009688;
+}
+
 .edit{
 background:#009688;
 }
@@ -179,14 +183,38 @@ margin:15px 0;
 
 <body>
 
-
 <header>
 🏪 إدارة البائعين
 </header>
 
-
 <div class="container">
 
+<!-- إضافة مشتاق وليد -->
+
+<div class="card">
+
+<div class="title">
+🏪 إضافة التاجر الحالي
+</div>
+
+<div class="info">
+
+التاجر <strong>مشتاق وليد</strong> موجود في المنتجات،
+لكن غير مسجل في قائمة البائعين.
+
+</div>
+
+<button
+id="addMoshtaqBtn"
+class="addMoshtaq"
+>
+➕ إضافة مشتاق وليد وربط منتجاته
+</button>
+
+</div>
+
+
+<!-- قائمة البائعين -->
 
 <div class="card">
 
@@ -197,7 +225,9 @@ margin:15px 0;
 <div id="message" class="message"></div>
 
 <div id="sellersList">
+
 جاري تحميل البائعين...
+
 </div>
 
 </div>
@@ -214,41 +244,48 @@ onclick="location.href='admin.html'"
 
 </div>
 
-
 </div>
 
 
 <script type="module">
 
-
-import { db, auth } from "./firebase.js";
+import {
+db,
+auth
+} from "./firebase.js";
 
 
 import {
+
 collection,
 getDocs,
 doc,
+getDoc,
 updateDoc,
 deleteDoc,
 query,
 where,
-writeBatch
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+writeBatch,
+setDoc
+
+} from
+"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
 import {
 onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
+} from
+"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 
 const sellersList =
 document.getElementById("sellersList");
 
-
 const messageBox =
 document.getElementById("message");
 
+const addMoshtaqBtn =
+document.getElementById("addMoshtaqBtn");
 
 
 /* =====================================
@@ -264,7 +301,6 @@ const allowedEmails = [
 "waleedahmad2031@gmail.com"
 
 ];
-
 
 
 /* =====================================
@@ -285,7 +321,6 @@ messageBox.style.display =
 }
 
 
-
 /* =====================================
    إخفاء الرسالة
 ===================================== */
@@ -297,6 +332,239 @@ messageBox.style.display =
 
 }
 
+
+/* =====================================
+   إضافة مشتاق وليد
+===================================== */
+
+addMoshtaqBtn.onclick =
+async function(){
+
+const confirmAdd =
+confirm(
+
+"🏪 إضافة مشتاق وليد\n\n" +
+
+"سيتم إنشاء سجل للتاجر وربط منتجاته القديمة به.\n\n" +
+
+"لن يتم حذف أي منتج.\n\n" +
+
+"هل تريد المتابعة؟"
+
+);
+
+if(!confirmAdd){
+
+return;
+
+}
+
+this.disabled =
+true;
+
+this.textContent =
+"⏳ جاري إضافة التاجر...";
+
+
+try{
+
+/*
+   معرف ثابت لمشتاق وليد
+*/
+
+const sellerId =
+"moshtaq-waleed";
+
+
+/*
+   التأكد هل هو موجود
+*/
+
+const sellerRef =
+doc(
+db,
+"sellers",
+sellerId
+);
+
+const sellerSnap =
+await getDoc(
+sellerRef
+);
+
+
+/*
+   إذا لم يكن موجودًا ننشئه
+*/
+
+if(!sellerSnap.exists()){
+
+await setDoc(
+
+sellerRef,
+
+{
+
+uid:
+sellerId,
+
+shopName:
+"مشتاق وليد",
+
+phone:
+"",
+
+email:
+"",
+
+status:
+"active",
+
+subscription:
+"free",
+
+createdAt:
+new Date()
+
+}
+
+);
+
+}
+
+
+/*
+   البحث عن منتجات مشتاق
+*/
+
+const productsQuery =
+query(
+
+collection(db,"products"),
+
+where(
+"shopName",
+"==",
+"مشتاق وليد"
+)
+
+);
+
+const productsSnap =
+await getDocs(
+productsQuery
+);
+
+
+/*
+   ربط المنتجات
+*/
+
+let batch =
+writeBatch(db);
+
+let count = 0;
+
+
+for(
+const productDoc
+of productsSnap.docs
+){
+
+batch.update(
+
+doc(
+db,
+"products",
+productDoc.id
+),
+
+{
+
+sellerId:
+sellerId,
+
+shopName:
+"مشتاق وليد"
+
+}
+
+);
+
+count++;
+
+
+if(count >= 450){
+
+await batch.commit();
+
+batch =
+writeBatch(db);
+
+count = 0;
+
+}
+
+}
+
+
+if(count > 0){
+
+await batch.commit();
+
+}
+
+
+/*
+   نجاح
+*/
+
+showMessage(
+
+"✅ تمت إضافة مشتاق وليد بنجاح.\n\n" +
+
+"🏪 اسم التاجر: مشتاق وليد\n\n" +
+
+"📦 تم ربط " +
+productsSnap.size +
+" منتج به.\n\n" +
+
+"الآن تستطيع تعديل اسمه من إدارة البائعين.",
+
+"success"
+
+);
+
+
+await loadSellers();
+
+
+this.textContent =
+"✅ تم إضافة مشتاق وليد";
+
+}catch(error){
+
+console.error(error);
+
+showMessage(
+
+"❌ حدث خطأ أثناء إضافة مشتاق وليد:\n\n" +
+
+error.message,
+
+"error"
+
+);
+
+this.disabled =
+false;
+
+this.textContent =
+"➕ إضافة مشتاق وليد وربط منتجاته";
+
+}
+
+};
 
 
 /* =====================================
@@ -340,35 +608,29 @@ sellersList.innerHTML = "";
 
 
 snapshot.forEach(
-sellerDoc => {
+sellerDoc=>{
 
 const seller =
 sellerDoc.data();
 
-
 const sellerId =
 sellerDoc.id;
-
 
 const shopName =
 seller.shopName ||
 "بدون اسم";
 
-
 const email =
 seller.email ||
 "-";
-
 
 const phone =
 seller.phone ||
 "-";
 
-
 const status =
 seller.status ||
 "active";
-
 
 const subscription =
 seller.subscription ||
@@ -381,37 +643,25 @@ let statusHTML = "";
 if(status === "active"){
 
 statusHTML = `
-
 <span class="statusActive">
-
 🟢 نشط
-
 </span>
-
 `;
 
 }else if(status === "stopped"){
 
 statusHTML = `
-
 <span class="statusStopped">
-
 🔴 متوقف مؤقتًا
-
 </span>
-
 `;
 
 }else{
 
 statusHTML = `
-
 <span class="statusUnknown">
-
 ⚪ ${escapeHtml(status)}
-
 </span>
-
 `;
 
 }
@@ -419,7 +669,6 @@ statusHTML = `
 
 const card =
 document.createElement("div");
-
 
 card.className =
 "sellerCard";
@@ -446,13 +695,11 @@ ${escapeHtml(sellerId)}
 
 <br><br>
 
-
 📧 البريد:
 
 ${escapeHtml(email)}
 
 <br>
-
 
 📱 الجوال:
 
@@ -460,13 +707,11 @@ ${escapeHtml(phone)}
 
 <br>
 
-
 📌 الحالة:
 
 ${statusHTML}
 
 <br>
-
 
 💳 الاشتراك:
 
@@ -496,7 +741,6 @@ id="input-${escapeHtml(sellerId)}"
 value="${escapeHtml(shopName)}"
 placeholder="اسم التاجر أو البقالة"
 >
-
 
 <button
 class="save"
@@ -554,42 +798,37 @@ sellersList.appendChild(card);
 });
 
 
-
 /* =====================================
-   أزرار تعديل الاسم
+   فتح تعديل الاسم
 ===================================== */
 
 document
 .querySelectorAll(".edit")
-.forEach(button => {
+.forEach(button=>{
 
-button.addEventListener(
-"click",
+button.onclick =
 function(){
 
 const id =
 this.dataset.id;
 
-
-const editBox =
+const box =
 document.getElementById(
 "edit-" + id
 );
 
+if(box){
 
-if(editBox){
-
-editBox.style.display =
-editBox.style.display === "none"
+box.style.display =
+box.style.display === "none"
 ? "block"
 : "none";
 
 }
 
-});
+};
 
 });
-
 
 
 /* =====================================
@@ -598,28 +837,24 @@ editBox.style.display === "none"
 
 document
 .querySelectorAll("[data-save-id]")
-.forEach(button => {
+.forEach(button=>{
 
-button.addEventListener(
-"click",
+button.onclick =
 async function(){
 
 const sellerId =
 this.dataset.saveId;
-
 
 const input =
 document.getElementById(
 "input-" + sellerId
 );
 
-
 if(!input){
 
 return;
 
 }
-
 
 const newName =
 input.value.trim();
@@ -645,11 +880,9 @@ this.textContent =
 
 try{
 
-
-/* =====================================
-   أولًا: الحصول على بيانات البائع
-   لمعرفة الاسم القديم
-===================================== */
+/*
+   قراءة الاسم القديم
+*/
 
 const sellerRef =
 doc(
@@ -658,84 +891,22 @@ db,
 sellerId
 );
 
-
 const sellerSnap =
-await getDocs(
-query(
-collection(db,"sellers"),
-where(
-"uid",
-"==",
-sellerId
-)
-)
-);
-
-
-/*
-   نقرأ الاسم القديم من القائمة
-   قبل التحديث.
-*/
-
-let oldShopName = "";
-
-
-if(!sellerSnap.empty){
-
-oldShopName =
-sellerSnap.docs[0].data().shopName || "";
-
-}
-
-
-/*
-   إذا لم نجد uid نقرأ مباشرة
-*/
-
-if(!oldShopName){
-
-const directSeller =
-await import(
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
-);
-
-}
-
-
-/* =====================================
-   تحديث بيانات البائع
-===================================== */
-
-const directSellerDoc =
-await import(
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
-);
-
-
-/*
-   نستخدم getDoc بطريقة مباشرة
-*/
-
-const sellerDocument =
-await directSellerDoc.getDoc(
+await getDoc(
 sellerRef
 );
 
-
-if(
-sellerDocument.exists()
-){
-
-oldShopName =
-sellerDocument.data().shopName ||
-oldShopName;
-
-}
+const oldName =
+sellerSnap.exists()
+?
+sellerSnap.data().shopName || ""
+:
+"";
 
 
-/* =====================================
+/*
    تحديث اسم البائع
-===================================== */
+*/
 
 await updateDoc(
 
@@ -751,12 +922,11 @@ newName
 );
 
 
-/* =====================================
-   البحث عن منتجات البائع الجديدة
-   بواسطة sellerId
-===================================== */
+/*
+   البحث بواسطة sellerId
+*/
 
-const productsBySellerQuery =
+const bySeller =
 query(
 
 collection(db,"products"),
@@ -769,40 +939,32 @@ sellerId
 
 );
 
-
-const productsBySellerSnap =
+const sellerProducts =
 await getDocs(
-productsBySellerQuery
+bySeller
 );
 
 
-/* =====================================
-   تخزين المنتجات بدون تكرار
-===================================== */
+/*
+   البحث أيضًا بالاسم القديم
+*/
 
 const productsMap =
 new Map();
 
 
-productsBySellerSnap.forEach(
-productDoc => {
-
+sellerProducts.forEach(
+p=>{
 productsMap.set(
-productDoc.id,
-productDoc
+p.id,
+p
 );
-
 });
 
 
-/* =====================================
-   البحث عن المنتجات القديمة
-   بواسطة اسم التاجر القديم
-===================================== */
+if(oldName){
 
-if(oldShopName){
-
-const productsByNameQuery =
+const byName =
 query(
 
 collection(db,"products"),
@@ -810,30 +972,25 @@ collection(db,"products"),
 where(
 "shopName",
 "==",
-oldShopName
+oldName
 )
 
 );
 
-
-const productsByNameSnap =
+const oldProducts =
 await getDocs(
-productsByNameQuery
+byName
 );
 
 
-productsByNameSnap.forEach(
-productDoc => {
+oldProducts.forEach(
+p=>{
 
-if(
-!productsMap.has(
-productDoc.id
-)
-){
+if(!productsMap.has(p.id)){
 
 productsMap.set(
-productDoc.id,
-productDoc
+p.id,
+p
 );
 
 }
@@ -843,15 +1000,9 @@ productDoc
 }
 
 
-/* =====================================
-   تحديث جميع المنتجات
-===================================== */
-
-const productsDocs =
-Array.from(
-productsMap.values()
-);
-
+/*
+   تحديث المنتجات
+*/
 
 let batch =
 writeBatch(db);
@@ -861,7 +1012,7 @@ let count = 0;
 
 for(
 const productDoc
-of productsDocs
+of productsMap.values()
 ){
 
 batch.update(
@@ -883,7 +1034,6 @@ sellerId
 }
 
 );
-
 
 count++;
 
@@ -909,18 +1059,13 @@ await batch.commit();
 }
 
 
-/* =====================================
-   رسالة النجاح
-===================================== */
+/*
+   نجاح
+*/
 
 showMessage(
 
-"✅ تم تعديل اسم التاجر بنجاح.\n\n" +
-
-"🏪 الاسم القديم: " +
-(oldShopName || "غير معروف") +
-
-"\n\n" +
+"✅ تم تغيير اسم التاجر بنجاح.\n\n" +
 
 "🏪 الاسم الجديد: " +
 newName +
@@ -928,7 +1073,7 @@ newName +
 "\n\n" +
 
 "📦 تم تحديث " +
-productsDocs.length +
+productsMap.size +
 " منتج.",
 
 "success"
@@ -943,16 +1088,14 @@ await loadSellers();
 
 console.error(error);
 
-
 showMessage(
 
-"❌ حدث خطأ أثناء تعديل اسم التاجر:\n\n" +
+"❌ حدث خطأ أثناء تعديل الاسم:\n\n" +
 error.message,
 
 "error"
 
 );
-
 
 this.disabled =
 false;
@@ -962,39 +1105,29 @@ this.textContent =
 
 }
 
-});
+};
 
 });
-
 
 
 /* =====================================
-   إيقاف البائع مؤقتًا
+   إيقاف البائع
 ===================================== */
 
 document
 .querySelectorAll("[data-stop-id]")
-.forEach(button => {
+.forEach(button=>{
 
-button.addEventListener(
-"click",
+button.onclick =
 async function(){
 
 const sellerId =
 this.dataset.stopId;
 
 
-const confirmStop =
-confirm(
-
-"⚠️ هل تريد إيقاف هذا البائع مؤقتًا؟\n\n" +
-
-"سيتم تغيير حالة البائع إلى متوقف مؤقتًا."
-
-);
-
-
-if(!confirmStop){
+if(!confirm(
+"⚠️ هل تريد إيقاف هذا البائع مؤقتًا؟"
+)){
 
 return;
 
@@ -1029,11 +1162,8 @@ status:
 
 
 showMessage(
-
 "⏸️ تم إيقاف البائع مؤقتًا بنجاح.",
-
 "warning"
-
 );
 
 
@@ -1044,16 +1174,14 @@ await loadSellers();
 
 console.error(error);
 
-
 showMessage(
 
-"❌ حدث خطأ أثناء إيقاف البائع:\n\n" +
+"❌ حدث خطأ:\n\n" +
 error.message,
 
 "error"
 
 );
-
 
 this.disabled =
 false;
@@ -1063,37 +1191,29 @@ this.textContent =
 
 }
 
-});
+};
 
 });
-
 
 
 /* =====================================
-   إعادة تفعيل البائع
+   إعادة التفعيل
 ===================================== */
 
 document
 .querySelectorAll("[data-activate-id]")
-.forEach(button => {
+.forEach(button=>{
 
-button.addEventListener(
-"click",
+button.onclick =
 async function(){
 
 const sellerId =
 this.dataset.activateId;
 
 
-const confirmActivate =
-confirm(
-
+if(!confirm(
 "▶️ هل تريد إعادة تفعيل هذا البائع؟"
-
-);
-
-
-if(!confirmActivate){
+)){
 
 return;
 
@@ -1128,11 +1248,8 @@ status:
 
 
 showMessage(
-
-"✅ تم إعادة تفعيل البائع بنجاح.",
-
+"✅ تم إعادة تفعيل البائع.",
 "success"
-
 );
 
 
@@ -1143,16 +1260,14 @@ await loadSellers();
 
 console.error(error);
 
-
 showMessage(
 
-"❌ حدث خطأ أثناء إعادة التفعيل:\n\n" +
+"❌ حدث خطأ:\n\n" +
 error.message,
 
 "error"
 
 );
-
 
 this.disabled =
 false;
@@ -1162,10 +1277,9 @@ this.textContent =
 
 }
 
-});
+};
 
 });
-
 
 
 /* =====================================
@@ -1174,46 +1288,33 @@ this.textContent =
 
 document
 .querySelectorAll("[data-delete-id]")
-.forEach(button => {
+.forEach(button=>{
 
-button.addEventListener(
-"click",
+button.onclick =
 async function(){
 
 const sellerId =
 this.dataset.deleteId;
 
 
-const firstConfirm =
-confirm(
+if(!confirm(
 
-"⚠️ تحذير مهم\n\n" +
+"⚠️ تحذير\n\n" +
 
-"هل أنت متأكد من حذف هذا البائع؟\n\n" +
+"سيتم حذف البائع ومنتجاته.\n\n" +
 
-"سيتم حذف بيانات البائع ومنتجاته من النظام."
+"هل تريد المتابعة؟"
 
-);
-
-
-if(!firstConfirm){
+)){
 
 return;
 
 }
 
 
-const secondConfirm =
-confirm(
-
-"🗑️ تأكيد الحذف النهائي\n\n" +
-
-"هل تريد بالفعل حذف البائع نهائيًا؟"
-
-);
-
-
-if(!secondConfirm){
+if(!confirm(
+"🗑️ تأكيد الحذف النهائي؟"
+)){
 
 return;
 
@@ -1228,11 +1329,6 @@ this.textContent =
 
 
 try{
-
-
-/* =====================================
-   البحث عن منتجات البائع
-===================================== */
 
 const productsQuery =
 query(
@@ -1254,10 +1350,6 @@ productsQuery
 );
 
 
-/* =====================================
-   حذف المنتجات على دفعات
-===================================== */
-
 let batch =
 writeBatch(db);
 
@@ -1278,7 +1370,6 @@ productDoc.id
 )
 
 );
-
 
 count++;
 
@@ -1304,10 +1395,6 @@ await batch.commit();
 }
 
 
-/* =====================================
-   حذف البائع
-===================================== */
-
 await deleteDoc(
 
 doc(
@@ -1319,17 +1406,13 @@ sellerId
 );
 
 
-/* =====================================
-   رسالة النجاح
-===================================== */
-
 showMessage(
 
-"🗑️ تم حذف البائع بنجاح.\n\n" +
+"🗑️ تم حذف البائع.\n\n" +
 
 "📦 تم حذف " +
 productsSnap.size +
-" منتج تابع له.",
+" منتج.",
 
 "success"
 
@@ -1343,16 +1426,14 @@ await loadSellers();
 
 console.error(error);
 
-
 showMessage(
 
-"❌ حدث خطأ أثناء حذف البائع:\n\n" +
+"❌ حدث خطأ أثناء الحذف:\n\n" +
 error.message,
 
 "error"
 
 );
-
 
 this.disabled =
 false;
@@ -1362,7 +1443,7 @@ this.textContent =
 
 }
 
-});
+};
 
 });
 
@@ -1370,7 +1451,6 @@ this.textContent =
 }catch(error){
 
 console.error(error);
-
 
 sellersList.innerHTML = `
 
@@ -1389,7 +1469,6 @@ ${escapeHtml(error.message)}
 }
 
 }
-
 
 
 /* =====================================
@@ -1439,7 +1518,6 @@ loadSellers();
 });
 
 
-
 /* =====================================
    حماية النصوص
 ===================================== */
@@ -1450,30 +1528,11 @@ return String(
 text ?? ""
 )
 
-.replace(
-/&/g,
-"&amp;"
-)
-
-.replace(
-/</g,
-"&lt;"
-)
-
-.replace(
-/>/g,
-"&gt;"
-)
-
-.replace(
-/"/g,
-"&quot;"
-)
-
-.replace(
-/'/g,
-"&#039;"
-);
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;")
+.replace(/'/g,"&#039;");
 
 }
 
@@ -1481,4 +1540,4 @@ text ?? ""
 
 </body>
 
-</html>
+   </html>
