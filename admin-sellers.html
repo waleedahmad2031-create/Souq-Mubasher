@@ -6,7 +6,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 
-<title>إدارة التاجر | سوق مباشر</title>
+<title>إدارة البائعين | سوق مباشر</title>
 
 <style>
 
@@ -31,7 +31,7 @@ font-weight:bold;
 }
 
 .container{
-max-width:600px;
+max-width:700px;
 margin:auto;
 padding:20px;
 }
@@ -50,27 +50,34 @@ font-weight:bold;
 margin-bottom:15px;
 }
 
-.info{
-background:#e8eaf6;
-padding:15px;
-border-radius:10px;
-line-height:2;
+.sellerCard{
+background:#fff;
+border-radius:12px;
+padding:18px;
 margin-bottom:15px;
+box-shadow:0 2px 6px rgba(0,0,0,.08);
+border-right:5px solid #3f51b5;
 }
 
-label{
-display:block;
+.sellerName{
+font-size:21px;
 font-weight:bold;
-margin-bottom:8px;
+color:#303f9f;
+margin-bottom:12px;
+}
+
+.info{
+line-height:2;
+font-size:16px;
 }
 
 input{
 width:100%;
-padding:14px;
+padding:13px;
 border:1px solid #ccc;
 border-radius:8px;
-font-size:17px;
-margin-bottom:12px;
+font-size:16px;
+margin-top:10px;
 }
 
 button{
@@ -85,12 +92,26 @@ cursor:pointer;
 margin-top:10px;
 }
 
-.save{
+.edit{
 background:#009688;
+}
+
+.save{
+background:#3f51b5;
 }
 
 .back{
 background:#757575;
+}
+
+.statusActive{
+color:#2e7d32;
+font-weight:bold;
+}
+
+.statusStopped{
+color:#c62828;
+font-weight:bold;
 }
 
 .message{
@@ -112,6 +133,12 @@ background:#ffebee;
 color:#c62828;
 }
 
+.empty{
+text-align:center;
+padding:30px;
+color:#777;
+}
+
 </style>
 
 </head>
@@ -119,53 +146,26 @@ color:#c62828;
 <body>
 
 <header>
-🏪 إدارة التاجر
+🏪 إدارة البائعين
 </header>
 
+
 <div class="container">
+
 
 <div class="card">
 
 <div class="title">
-🏪 بيانات التاجر الحالي
+👥 البائعون المسجلون
 </div>
 
-<div class="info">
+<div id="message" class="message"></div>
 
-<strong>اسم التاجر الحالي:</strong>
+<div id="sellersList">
 
-<br>
-
-<span id="currentSeller">
-جاري التحميل...
-</span>
+جاري تحميل البائعين...
 
 </div>
-
-
-<label>
-✏️ اسم التاجر
-</label>
-
-<input
-id="sellerName"
-type="text"
-placeholder="اكتب اسم التاجر أو البقالة"
->
-
-
-<button
-class="save"
-id="saveButton"
->
-💾 حفظ اسم التاجر
-</button>
-
-
-<div
-id="message"
-class="message"
-></div>
 
 </div>
 
@@ -181,6 +181,7 @@ onclick="location.href='admin.html'"
 
 </div>
 
+
 </div>
 
 
@@ -188,25 +189,26 @@ onclick="location.href='admin.html'"
 
 import { db, auth } from "./firebase.js";
 
+
 import {
+collection,
+getDocs,
 doc,
-getDoc,
-setDoc
+updateDoc,
+query,
+where,
+writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 
 import {
 onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 
-const sellerNameInput =
-document.getElementById("sellerName");
+const sellersList =
+document.getElementById("sellersList");
 
-const currentSeller =
-document.getElementById("currentSeller");
-
-const saveButton =
-document.getElementById("saveButton");
 
 const messageBox =
 document.getElementById("message");
@@ -224,7 +226,7 @@ const allowedEmails = [
 
 
 /* =====================================
-   إظهار رسالة
+   رسالة
 ===================================== */
 
 function showMessage(
@@ -245,84 +247,259 @@ messageBox.style.display =
 
 
 /* =====================================
-   تحميل بيانات التاجر
+   تحميل البائعين
 ===================================== */
 
-async function loadSeller(){
+async function loadSellers(){
+
+sellersList.innerHTML =
+"جاري تحميل البائعين...";
+
 
 try{
 
-const sellerRef =
-doc(
-db,
-"settings",
-"shop"
-);
-
-const sellerSnap =
-await getDoc(
-sellerRef
+const snapshot =
+await getDocs(
+collection(db,"sellers")
 );
 
 
-if(sellerSnap.exists()){
+if(snapshot.empty){
 
-const data =
-sellerSnap.data();
+sellersList.innerHTML = `
 
-const name =
-data.shopName ||
-"مشتاق وليد";
+<div class="empty">
 
-sellerNameInput.value =
-name;
+👥 لا يوجد بائعون مسجلون.
 
-currentSeller.textContent =
-name;
+</div>
 
-}else{
+`;
 
-sellerNameInput.value =
-"مشتاق وليد";
-
-currentSeller.textContent =
-"مشتاق وليد";
+return;
 
 }
 
-}catch(error){
 
-console.error(error);
+sellersList.innerHTML = "";
 
-currentSeller.textContent =
-"تعذر تحميل الاسم";
 
-showMessage(
-"❌ حدث خطأ أثناء تحميل بيانات التاجر",
-"error"
-);
+snapshot.forEach(
+sellerDoc => {
 
-}
+const seller =
+sellerDoc.data();
 
-}
+
+const sellerId =
+sellerDoc.id;
+
+
+const shopName =
+seller.shopName ||
+"بدون اسم";
+
+
+const email =
+seller.email ||
+"-";
+
+
+const phone =
+seller.phone ||
+"-";
+
+
+const status =
+seller.status ||
+"غير محدد";
+
+
+const subscription =
+seller.subscription ||
+"free";
+
+
+const statusHTML =
+status === "active"
+
+? `<span class="statusActive">
+🟢 نشط
+</span>`
+
+: `<span class="statusStopped">
+🔴 ${escapeHtml(status)}
+</span>`;
+
+
+const card =
+document.createElement("div");
+
+
+card.className =
+"sellerCard";
+
+
+card.innerHTML = `
+
+<div class="sellerName">
+
+🏪 ${escapeHtml(shopName)}
+
+</div>
+
+
+<div class="info">
+
+🆔 معرف البائع:
+
+<br>
+
+<small>
+${escapeHtml(sellerId)}
+</small>
+
+<br><br>
+
+
+📧 البريد:
+
+${escapeHtml(email)}
+
+<br>
+
+
+📱 الجوال:
+
+${escapeHtml(phone)}
+
+<br>
+
+
+📌 الحالة:
+
+${statusHTML}
+
+<br>
+
+
+💳 الاشتراك:
+
+${escapeHtml(subscription)}
+
+</div>
+
+
+<button
+class="edit"
+data-id="${escapeHtml(sellerId)}"
+>
+✏️ تعديل اسم التاجر
+</button>
+
+
+<div
+id="edit-${escapeHtml(sellerId)}"
+style="display:none;margin-top:10px;"
+>
+
+<input
+id="input-${escapeHtml(sellerId)}"
+value="${escapeHtml(shopName)}"
+placeholder="اسم التاجر أو البقالة"
+>
+
+
+<button
+class="save"
+data-save-id="${escapeHtml(sellerId)}"
+>
+💾 حفظ الاسم
+</button>
+
+</div>
+
+`;
+
+
+sellersList.appendChild(card);
+
+});
 
 
 /* =====================================
-   حفظ اسم التاجر
+   أزرار تعديل الاسم
 ===================================== */
 
-saveButton.onclick =
+document
+.querySelectorAll(".edit")
+.forEach(button => {
+
+button.addEventListener(
+"click",
+function(){
+
+const id =
+this.dataset.id;
+
+
+const editBox =
+document.getElementById(
+"edit-" + id
+);
+
+
+if(editBox){
+
+editBox.style.display =
+editBox.style.display === "none"
+? "block"
+: "none";
+
+}
+
+});
+
+});
+
+
+/* =====================================
+   أزرار الحفظ
+===================================== */
+
+document
+.querySelectorAll("[data-save-id]")
+.forEach(button => {
+
+button.addEventListener(
+"click",
 async function(){
 
-const name =
-sellerNameInput.value.trim();
+const sellerId =
+this.dataset.saveId;
 
 
-if(!name){
+const input =
+document.getElementById(
+"input-" + sellerId
+);
 
-showMessage(
-"⚠️ اكتب اسم التاجر أولًا",
-"error"
+
+if(!input){
+
+return;
+
+}
+
+
+const newName =
+input.value.trim();
+
+
+if(!newName){
+
+alert(
+"⚠️ اكتب اسم التاجر أولًا"
 );
 
 return;
@@ -330,78 +507,204 @@ return;
 }
 
 
-saveButton.disabled =
+this.disabled =
 true;
 
-saveButton.textContent =
+this.textContent =
 "⏳ جاري الحفظ...";
 
 
 try{
 
-await setDoc(
+
+/* =====================================
+   تحديث بيانات البائع
+===================================== */
+
+await updateDoc(
 
 doc(
 db,
-"settings",
-"shop"
+"sellers",
+sellerId
 ),
 
 {
 
 shopName:
-name,
-
-updatedAt:
-new Date()
+newName
 
 }
 
 );
 
 
-currentSeller.textContent =
-name;
+/* =====================================
+   تحديث اسم التاجر في المنتجات الحالية
+===================================== */
 
+const productsQuery =
+query(
+
+collection(db,"products"),
+
+where(
+"sellerId",
+"==",
+sellerId
+)
+
+);
+
+
+const productsSnap =
+await getDocs(
+productsQuery
+);
+
+
+/*
+   نستخدم Batch لتحديث المنتجات
+*/
+
+let batch =
+writeBatch(db);
+
+let count = 0;
+
+
+for(
+const productDoc
+of productsSnap.docs
+){
+
+batch.update(
+
+doc(
+db,
+"products",
+productDoc.id
+),
+
+{
+
+shopName:
+newName
+
+}
+
+);
+
+
+count++;
+
+
+/*
+   Firestore Batch يدعم حتى 500 عملية.
+   نرسل كل 450 عملية.
+*/
+
+if(count >= 450){
+
+await batch.commit();
+
+batch =
+writeBatch(db);
+
+count = 0;
+
+}
+
+}
+
+
+if(count > 0){
+
+await batch.commit();
+
+}
+
+
+/* =====================================
+   نجاح
+===================================== */
 
 showMessage(
 
-"✅ تم حفظ اسم التاجر بنجاح\n\n" +
-"الاسم الحالي: " +
-name,
+"✅ تم تعديل اسم التاجر بنجاح.\n\n" +
+
+"🏪 الاسم الجديد: " +
+newName +
+
+"\n\n" +
+
+"📦 تم تحديث اسم التاجر في " +
+productsSnap.size +
+" منتج.",
 
 "success"
 
 );
 
 
+await loadSellers();
+
+
 }catch(error){
 
 console.error(error);
 
+
 showMessage(
 
-"❌ حدث خطأ أثناء حفظ الاسم:\n" +
+"❌ حدث خطأ أثناء تعديل اسم التاجر:\n\n" +
 error.message,
 
 "error"
 
 );
 
+
+this.disabled =
+false;
+
+this.textContent =
+"💾 حفظ الاسم";
+
+}
+
+});
+
+});
+
+
+
+}catch(error){
+
+console.error(error);
+
+
+sellersList.innerHTML = `
+
+<div class="empty">
+
+❌ حدث خطأ أثناء تحميل البائعين.
+
+<br><br>
+
+${escapeHtml(error.message)}
+
+</div>
+
+`;
+
+}
+
 }
 
 
-saveButton.disabled =
-false;
-
-saveButton.textContent =
-"💾 حفظ اسم التاجر";
-
-};
-
-
 /* =====================================
-   حماية لوحة الإدارة
+   حماية المدير
 ===================================== */
 
 onAuthStateChanged(
@@ -431,7 +734,7 @@ user.email
 ){
 
 alert(
-"ليس لديك صلاحية دخول هذه الصفحة"
+"ليس لديك صلاحية دخول إدارة البائعين"
 );
 
 location.href =
@@ -442,11 +745,49 @@ return;
 }
 
 
-loadSeller();
+loadSellers();
 
 }
 
 );
+
+
+/* =====================================
+   حماية النصوص
+===================================== */
+
+function escapeHtml(text){
+
+return String(
+text ?? ""
+)
+
+.replace(
+/&/g,
+"&amp;"
+)
+
+.replace(
+/</g,
+"&lt;"
+)
+
+.replace(
+/>/g,
+"&gt;"
+)
+
+.replace(
+/"/g,
+"&quot;"
+)
+
+.replace(
+/'/g,
+"&#039;"
+);
+
+}
 
 </script>
 
