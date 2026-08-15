@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>إدارة التاجر | سوق مباشر</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Tahoma,Arial,sans-serif;
+}
+
+body{
+background:#f5f5f5;
+}
+
+header{
+background:#3f51b5;
+color:white;
+padding:20px;
+text-align:center;
+font-size:25px;
+font-weight:bold;
+}
+
+.container{
+max-width:600px;
+margin:auto;
+padding:20px;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:12px;
+box-shadow:0 2px 6px rgba(0,0,0,.1);
+margin-bottom:18px;
+}
+
+.title{
+font-size:21px;
+font-weight:bold;
+margin-bottom:15px;
+}
+
+.info{
+background:#e8eaf6;
+padding:15px;
+border-radius:10px;
+line-height:2;
+margin-bottom:15px;
+}
+
+label{
+display:block;
+font-weight:bold;
+margin-bottom:8px;
+}
+
+input{
+width:100%;
+padding:14px;
+border:1px solid #ccc;
+border-radius:8px;
+font-size:17px;
+margin-bottom:12px;
+}
+
+button{
+width:100%;
+padding:14px;
+border:none;
+border-radius:9px;
+font-size:17px;
+font-weight:bold;
+color:white;
+cursor:pointer;
+margin-top:10px;
+}
+
+.save{
+background:#009688;
+}
+
+.back{
+background:#757575;
+}
+
+.message{
+display:none;
+padding:12px;
+border-radius:8px;
+margin-top:12px;
+line-height:1.8;
+text-align:center;
+}
+
+.success{
+background:#e8f5e9;
+color:#2e7d32;
+}
+
+.error{
+background:#ffebee;
+color:#c62828;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+🏪 إدارة التاجر
+</header>
+
+<div class="container">
+
+<div class="card">
+
+<div class="title">
+🏪 بيانات التاجر الحالي
+</div>
+
+<div class="info">
+
+<strong>اسم التاجر الحالي:</strong>
+
+<br>
+
+<span id="currentSeller">
+جاري التحميل...
+</span>
+
+</div>
+
+
+<label>
+✏️ اسم التاجر
+</label>
+
+<input
+id="sellerName"
+type="text"
+placeholder="اكتب اسم التاجر أو البقالة"
+>
+
+
+<button
+class="save"
+id="saveButton"
+>
+💾 حفظ اسم التاجر
+</button>
+
+
+<div
+id="message"
+class="message"
+></div>
+
+</div>
+
+
+<div class="card">
+
+<button
+class="back"
+onclick="location.href='admin.html'"
+>
+⬅️ العودة إلى لوحة الإدارة
+</button>
+
+</div>
+
+</div>
+
+
+<script type="module">
+
+import { db, auth } from "./firebase.js";
+
+import {
+doc,
+getDoc,
+setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import {
+onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+
+const sellerNameInput =
+document.getElementById("sellerName");
+
+const currentSeller =
+document.getElementById("currentSeller");
+
+const saveButton =
+document.getElementById("saveButton");
+
+const messageBox =
+document.getElementById("message");
+
+
+const allowedEmails = [
+
+"waleedahmad@gmail.com",
+
+"waleedahmadahmad@gmail.com",
+
+"waleedahmad2031@gmail.com"
+
+];
+
+
+/* =====================================
+   إظهار رسالة
+===================================== */
+
+function showMessage(
+text,
+type
+){
+
+messageBox.textContent =
+text;
+
+messageBox.className =
+"message " + type;
+
+messageBox.style.display =
+"block";
+
+}
+
+
+/* =====================================
+   تحميل بيانات التاجر
+===================================== */
+
+async function loadSeller(){
+
+try{
+
+const sellerRef =
+doc(
+db,
+"settings",
+"shop"
+);
+
+const sellerSnap =
+await getDoc(
+sellerRef
+);
+
+
+if(sellerSnap.exists()){
+
+const data =
+sellerSnap.data();
+
+const name =
+data.shopName ||
+"مشتاق وليد";
+
+sellerNameInput.value =
+name;
+
+currentSeller.textContent =
+name;
+
+}else{
+
+sellerNameInput.value =
+"مشتاق وليد";
+
+currentSeller.textContent =
+"مشتاق وليد";
+
+}
+
+}catch(error){
+
+console.error(error);
+
+currentSeller.textContent =
+"تعذر تحميل الاسم";
+
+showMessage(
+"❌ حدث خطأ أثناء تحميل بيانات التاجر",
+"error"
+);
+
+}
+
+}
+
+
+/* =====================================
+   حفظ اسم التاجر
+===================================== */
+
+saveButton.onclick =
+async function(){
+
+const name =
+sellerNameInput.value.trim();
+
+
+if(!name){
+
+showMessage(
+"⚠️ اكتب اسم التاجر أولًا",
+"error"
+);
+
+return;
+
+}
+
+
+saveButton.disabled =
+true;
+
+saveButton.textContent =
+"⏳ جاري الحفظ...";
+
+
+try{
+
+await setDoc(
+
+doc(
+db,
+"settings",
+"shop"
+),
+
+{
+
+shopName:
+name,
+
+updatedAt:
+new Date()
+
+}
+
+);
+
+
+currentSeller.textContent =
+name;
+
+
+showMessage(
+
+"✅ تم حفظ اسم التاجر بنجاح\n\n" +
+"الاسم الحالي: " +
+name,
+
+"success"
+
+);
+
+
+}catch(error){
+
+console.error(error);
+
+showMessage(
+
+"❌ حدث خطأ أثناء حفظ الاسم:\n" +
+error.message,
+
+"error"
+
+);
+
+}
+
+
+saveButton.disabled =
+false;
+
+saveButton.textContent =
+"💾 حفظ اسم التاجر";
+
+};
+
+
+/* =====================================
+   حماية لوحة الإدارة
+===================================== */
+
+onAuthStateChanged(
+
+auth,
+
+(user)=>{
+
+if(!user){
+
+alert(
+"يجب تسجيل دخول المدير أولًا"
+);
+
+location.href =
+"login.html";
+
+return;
+
+}
+
+
+if(
+!allowedEmails.includes(
+user.email
+)
+){
+
+alert(
+"ليس لديك صلاحية دخول هذه الصفحة"
+);
+
+location.href =
+"login.html";
+
+return;
+
+}
+
+
+loadSeller();
+
+}
+
+);
+
+</script>
+
+</body>
+
+</html>
