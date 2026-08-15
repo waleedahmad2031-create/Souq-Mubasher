@@ -44,18 +44,6 @@ border-radius:12px;
 box-shadow:0 2px 6px rgba(0,0,0,.1);
 }
 
-.title{
-font-size:21px;
-font-weight:bold;
-margin-bottom:8px;
-}
-
-.description{
-color:#666;
-line-height:1.7;
-margin-bottom:12px;
-}
-
 button{
 width:100%;
 padding:14px;
@@ -144,49 +132,12 @@ border-radius:8px;
 line-height:1.8;
 }
 
-.deliveryChoose{
+.deliveryCalculation{
 background:#e3f2fd;
-padding:15px;
-margin-top:12px;
-border-radius:10px;
-}
-
-.deliveryTitle{
-font-size:18px;
-font-weight:bold;
-color:#1565c0;
-margin-bottom:10px;
-}
-
-.deliveryButton{
-margin-top:8px;
-font-weight:bold;
-}
-
-.near{
-background:#43a047;
-}
-
-.medium{
-background:#fb8c00;
-}
-
-.far{
-background:#e53935;
-}
-
-.selectedDelivery{
-background:#dcedc8;
-color:#33691e;
-padding:10px;
-border-radius:8px;
+padding:12px;
 margin-top:10px;
-font-weight:bold;
-text-align:center;
-}
-
-.whatsapp{
-background:#25D366;
+border-radius:8px;
+line-height:2;
 }
 
 .status{
@@ -219,28 +170,10 @@ margin:10px 0;
 
 <body>
 
-<div class="card">
-
-<div class="title">
-📊 إحصائيات المنتجات
-</div>
-
-<div class="description">
-عرض مشاهدات المنتجات وعدد مرات إضافتها إلى السلة.
-</div>
-
-<button
-style="background:#00897b;"
-onclick="location.href='product-stats.html'"
->
-📊 فتح إحصائيات المنتجات
-</button>
-
-</div>
-
 <header>
 📦 طلبات الزبائن
 </header>
+
 
 <div class="container">
 
@@ -253,6 +186,7 @@ onclick="location.href='admin.html'"
 ⬅️ العودة إلى لوحة الإدارة
 </button>
 
+
 <div id="orders">
 جاري تحميل الطلبات...
 </div>
@@ -260,6 +194,7 @@ onclick="location.href='admin.html'"
 </div>
 
 </div>
+
 
 <script type="module">
 
@@ -272,7 +207,6 @@ onAuthStateChanged
 import {
 collection,
 getDocs,
-getDoc,
 deleteDoc,
 updateDoc,
 setDoc,
@@ -286,6 +220,106 @@ document.getElementById("orders");
 
 
 /* =====================================
+   حساب توصيل الكرتون
+===================================== */
+
+function getDeliveryPerCarton(price){
+
+price =
+Number(price) || 0;
+
+
+if(price < 1500){
+
+return 50;
+
+}
+
+
+if(price < 2000){
+
+return 70;
+
+}
+
+
+return 100;
+
+}
+
+
+/* =====================================
+   حساب إجمالي التوصيل
+===================================== */
+
+function calculateDelivery(products){
+
+let deliveryTotal = 0;
+
+let details = [];
+
+
+products.forEach(product=>{
+
+const price =
+Number(product.price) || 0;
+
+
+const quantity =
+Number(product.quantity) > 0
+? Number(product.quantity)
+: 1;
+
+
+const deliveryPerCarton =
+getDeliveryPerCarton(price);
+
+
+const productDelivery =
+deliveryPerCarton *
+quantity;
+
+
+deliveryTotal +=
+productDelivery;
+
+
+details.push({
+
+name:
+product.name || "منتج",
+
+price:
+price,
+
+quantity:
+quantity,
+
+deliveryPerCarton:
+deliveryPerCarton,
+
+productDelivery:
+productDelivery
+
+});
+
+});
+
+
+return {
+
+deliveryTotal:
+deliveryTotal,
+
+details:
+details
+
+};
+
+}
+
+
+/* =====================================
    تحميل الطلبات
 ===================================== */
 
@@ -294,12 +328,14 @@ async function loadOrders(){
 ordersBox.innerHTML =
 "جاري تحميل الطلبات...";
 
+
 try{
 
 const snap =
 await getDocs(
 collection(db,"orders")
 );
+
 
 if(snap.empty){
 
@@ -317,7 +353,9 @@ return;
 
 }
 
+
 ordersBox.innerHTML = "";
+
 
 const orders =
 snap.docs.sort((a,b)=>{
@@ -327,10 +365,12 @@ a.data().createdAt?.toDate
 ? a.data().createdAt.toDate().getTime()
 : 0;
 
+
 const dateB =
 b.data().createdAt?.toDate
 ? b.data().createdAt.toDate().getTime()
 : 0;
+
 
 return dateB - dateA;
 
@@ -342,6 +382,10 @@ orders.forEach(item=>{
 const data =
 item.data();
 
+
+/* =====================================
+   بيانات العميل
+===================================== */
 
 const customerName =
 data.customerName ||
@@ -374,8 +418,12 @@ data.orderType ||
 
 const deliveryTime =
 data.deliveryTime ||
-"غير محدد";
+"بعد تسجيل الطلب";
 
+
+/* =====================================
+   بيانات التاجر
+===================================== */
 
 const shopName =
 data.shopName ||
@@ -387,6 +435,10 @@ data.products.length > 0
 ) ||
 "سوق مباشر";
 
+
+/* =====================================
+   المنتجات
+===================================== */
 
 const products =
 Array.isArray(data.products)
@@ -466,18 +518,112 @@ ${productTotal.toLocaleString()} ريال
 });
 
 
+/* =====================================
+   مجموع المنتجات
+===================================== */
+
 const productsTotal =
 calculatedProductsTotal;
 
 
-const savedDeliveryFee =
-Number(data.deliveryFee) || 0;
+/* =====================================
+   حساب التوصيل تلقائيًا
+===================================== */
 
+const deliveryCalculation =
+calculateDelivery(products);
+
+
+const deliveryFee =
+deliveryCalculation.deliveryTotal;
+
+
+/* =====================================
+   الإجمالي النهائي
+===================================== */
 
 const total =
 productsTotal +
-savedDeliveryFee;
+deliveryFee;
 
+
+/* =====================================
+   حفظ الحساب تلقائيًا
+===================================== */
+
+try{
+
+await updateDoc(
+
+doc(
+db,
+"orders",
+item.id
+),
+
+{
+
+productsTotal:
+productsTotal,
+
+deliveryFee:
+deliveryFee,
+
+total:
+total
+
+}
+
+);
+
+}catch(error){
+
+console.error(
+"خطأ تحديث الإجمالي:",
+error
+);
+
+}
+
+
+/* =====================================
+   تفاصيل التوصيل
+===================================== */
+
+let deliveryDetailsHTML = "";
+
+
+deliveryCalculation.details.forEach(
+detail=>{
+
+deliveryDetailsHTML += `
+
+<div>
+
+🛍️ ${escapeHtml(detail.name)}
+
+<br>
+
+📦 ${detail.quantity} كرتون ×
+${detail.deliveryPerCarton} ريال
+
+=
+
+<strong>
+${detail.productDelivery.toLocaleString()}
+ريال
+</strong>
+
+</div>
+
+`;
+
+});
+
+
+/* =====================================
+   التاريخ
+===================================== */
 
 const createdAt =
 data.createdAt?.toDate
@@ -499,6 +645,10 @@ minute:"2-digit"
 )
 : "غير متوفر";
 
+
+/* =====================================
+   الحالة
+===================================== */
 
 const status =
 data.status ||
@@ -525,6 +675,7 @@ margin-top:10px;
 ✅ تم التوصيل
 
 </p>
+
 
 <button
 class="archive"
@@ -555,98 +706,6 @@ onclick="changeStatus('${item.id}')"
 }
 
 
-let deliveryStatusHTML = "";
-
-
-if(savedDeliveryFee === 300){
-
-deliveryStatusHTML = `
-
-<div class="selectedDelivery">
-
-🟢 تم تحديد التوصيل: قريب — 300 ريال
-
-</div>
-
-`;
-
-}
-
-else if(savedDeliveryFee === 500){
-
-deliveryStatusHTML = `
-
-<div class="selectedDelivery">
-
-🟡 تم تحديد التوصيل: متوسط — 500 ريال
-
-</div>
-
-`;
-
-}
-
-else if(savedDeliveryFee === 700){
-
-deliveryStatusHTML = `
-
-<div class="selectedDelivery">
-
-🔴 تم تحديد التوصيل: بعيد — 700 ريال
-
-</div>
-
-`;
-
-}
-
-else{
-
-deliveryStatusHTML = `
-
-<div class="selectedDelivery">
-
-⏳ لم يتم تحديد رسوم التوصيل بعد
-
-</div>
-
-`;
-
-}
-
-
-/* =====================================
-   زر واتساب
-===================================== */
-
-let whatsappButton = "";
-
-
-if(
-savedDeliveryFee === 300 ||
-savedDeliveryFee === 500 ||
-savedDeliveryFee === 700
-){
-
-whatsappButton = `
-
-<button
-class="whatsapp"
-onclick="sendFinalWhatsApp(
-'${item.id}',
-'${encodeURIComponent(customerPhone)}'
-)"
->
-
-📲 إرسال الإجمالي للزبون عبر واتساب
-
-</button>
-
-`;
-
-}
-
-
 /* =====================================
    عرض الطلب
 ===================================== */
@@ -655,6 +714,7 @@ ordersBox.innerHTML += `
 
 <div class="orderBox">
 
+
 <div class="orderHeader">
 
 <h3>
@@ -662,6 +722,7 @@ ordersBox.innerHTML += `
 👤 ${escapeHtml(customerName)}
 
 </h3>
+
 
 <p>
 
@@ -740,59 +801,34 @@ productsHTML ||
 </div>
 
 
-<div class="deliveryChoose">
+<!-- ===============================
+     حساب التوصيل
+================================ -->
 
-<div class="deliveryTitle">
+<div class="deliveryCalculation">
 
-🚚 تحديد رسوم التوصيل
+🚚 <strong>
+حساب التوصيل
+</strong>
 
-</div>
+<br><br>
 
+${deliveryDetailsHTML}
 
-<div>
+<hr>
 
-الحي:
-<strong>
-${escapeHtml(customerAddress)}
+💰 <strong>
+إجمالي التوصيل:
+${deliveryFee.toLocaleString()}
+ريال
 </strong>
 
 </div>
 
 
-<button
-class="deliveryButton near"
-onclick="setDelivery('${item.id}',300,'قريب')"
->
-
-🟢 قريب — 300 ريال
-
-</button>
-
-
-<button
-class="deliveryButton medium"
-onclick="setDelivery('${item.id}',500,'متوسط')"
->
-
-🟡 متوسط — 500 ريال
-
-</button>
-
-
-<button
-class="deliveryButton far"
-onclick="setDelivery('${item.id}',700,'بعيد')"
->
-
-🔴 بعيد — 700 ريال
-
-</button>
-
-
-${deliveryStatusHTML}
-
-</div>
-
+<!-- ===============================
+     الإجماليات
+================================ -->
 
 <div class="totalBox">
 
@@ -816,7 +852,7 @@ ${productsTotal.toLocaleString()} ريال
 رسوم التوصيل:
 </strong>
 
-${savedDeliveryFee.toLocaleString()} ريال
+${deliveryFee.toLocaleString()} ريال
 
 <hr>
 
@@ -842,9 +878,6 @@ ${escapeHtml(status)}
 </div>
 
 
-${whatsappButton}
-
-
 ${statusButton}
 
 
@@ -864,9 +897,11 @@ onclick="deleteOrder('${item.id}')"
 
 });
 
+
 }catch(error){
 
 console.error(error);
+
 
 ordersBox.innerHTML = `
 
@@ -876,9 +911,7 @@ ordersBox.innerHTML = `
 
 <br><br>
 
-${escapeHtml(
-error.message
-)}
+${escapeHtml(error.message)}
 
 </div>
 
@@ -887,369 +920,6 @@ error.message
 }
 
 }
-
-
-/* =====================================
-   تحديد رسوم التوصيل
-===================================== */
-
-window.setDelivery =
-async function(
-id,
-fee,
-distanceType
-){
-
-try{
-
-const orderRef =
-doc(
-db,
-"orders",
-id
-);
-
-
-const orderSnap =
-await getDoc(
-orderRef
-);
-
-
-if(!orderSnap.exists()){
-
-alert(
-"لم يتم العثور على الطلب"
-);
-
-return;
-
-}
-
-
-const orderData =
-orderSnap.data();
-
-
-const products =
-Array.isArray(
-orderData.products
-)
-? orderData.products
-: [];
-
-
-let productsTotal = 0;
-
-
-products.forEach(product=>{
-
-const price =
-Number(product.price) || 0;
-
-
-const quantity =
-Number(product.quantity) > 0
-? Number(product.quantity)
-: 1;
-
-
-productsTotal +=
-price * quantity;
-
-});
-
-
-const newTotal =
-productsTotal +
-Number(fee);
-
-
-await updateDoc(
-
-orderRef,
-
-{
-
-deliveryFee:
-Number(fee),
-
-deliveryType:
-distanceType,
-
-productsTotal:
-Number(productsTotal),
-
-total:
-Number(newTotal)
-
-}
-
-);
-
-
-alert(
-
-"✅ تم تحديد التوصيل\n\n" +
-
-"🚚 النوع: " +
-distanceType +
-
-"\n" +
-
-"💰 رسوم التوصيل: " +
-fee.toLocaleString() +
-" ريال\n\n" +
-
-"🛍️ المنتجات: " +
-productsTotal.toLocaleString() +
-" ريال\n\n" +
-
-"💵 الإجمالي النهائي: " +
-newTotal.toLocaleString() +
-" ريال"
-
-);
-
-
-loadOrders();
-
-
-}catch(error){
-
-console.error(
-"خطأ تحديد التوصيل:",
-error
-);
-
-alert(
-
-"❌ حدث خطأ أثناء تحديد التوصيل:\n\n" +
-
-(error.message ||
-"خطأ غير معروف")
-
-);
-
-}
-
-};
-
-
-/* =====================================
-   إرسال الإجمالي عبر واتساب
-===================================== */
-
-window.sendFinalWhatsApp =
-async function(
-id,
-encodedPhone
-){
-
-try{
-
-const orderRef =
-doc(
-db,
-"orders",
-id
-);
-
-
-const orderSnap =
-await getDoc(
-orderRef
-);
-
-
-if(!orderSnap.exists()){
-
-alert(
-"لم يتم العثور على الطلب"
-);
-
-return;
-
-}
-
-
-const data =
-orderSnap.data();
-
-
-let phone =
-decodeURIComponent(encodedPhone)
-.replace(/[^0-9]/g, "");
-
-/* تحويل الرقم اليمني إلى الصيغة الدولية */
-
-if(phone.startsWith("0")){
-
-phone =
-"967" +
-phone.substring(1);
-
-}
-else if(phone.startsWith("7")){
-
-phone =
-"967" +
-phone;
-
-}
-else if(phone.startsWith("967")){
-
-phone =
-phone;
-
-}
-
-
-const products =
-Array.isArray(data.products)
-? data.products
-: [];
-
-
-let productsTotal = 0;
-
-let productsMessage = "";
-
-
-products.forEach(
-(item,index)=>{
-
-const price =
-Number(item.price) || 0;
-
-const quantity =
-Number(item.quantity) > 0
-? Number(item.quantity)
-: 1;
-
-const itemTotal =
-price * quantity;
-
-productsTotal +=
-itemTotal;
-
-
-productsMessage +=
-`${index + 1}. ${item.name} × ${quantity} = ${itemTotal.toLocaleString()} ريال\n`;
-
-});
-
-
-const deliveryFee =
-Number(data.deliveryFee) || 0;
-
-
-const total =
-productsTotal +
-deliveryFee;
-
-
-if(
-deliveryFee !== 300 &&
-deliveryFee !== 500 &&
-deliveryFee !== 700
-){
-
-alert(
-"⚠️ حدد رسوم التوصيل أولًا."
-);
-
-return;
-
-}
-
-
-const message =
-
-`🛒 تحديث طلبك من سوق مباشر
-
-مرحبًا ${data.customerName || "عميلنا الكريم"} 🌷
-
-🏪 التاجر:
-${data.shopName || "سوق مباشر"}
-
-📦 المنتجات:
-${productsMessage}
-
-🛍️ قيمة المنتجات:
-${productsTotal.toLocaleString()} ريال
-
-🚚 رسوم التوصيل:
-${deliveryFee.toLocaleString()} ريال
-
-💰 الإجمالي النهائي:
-${total.toLocaleString()} ريال
-
-📍 الحي:
-${data.customerAddress || "-"}
-
-🆔 رقم الطلب:
-${id}
-
-شكراً لطلبك من سوق مباشر ❤️`;
-
-
-if(!phone){
-
-alert(
-"⚠️ رقم جوال الزبون غير موجود."
-);
-
-return;
-
-}
-
-
-window.open(
-
-`https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
-
-"_blank"
-
-);
-
-
-/* =====================================
-   حفظ حالة الإرسال
-===================================== */
-
-await updateDoc(
-
-orderRef,
-
-{
-
-finalMessageSent:
-true,
-
-finalMessageSentAt:
-serverTimestamp()
-
-}
-
-);
-
-
-}catch(error){
-
-console.error(error);
-
-alert(
-
-"❌ حدث خطأ أثناء إرسال رسالة واتساب:\n\n" +
-
-error.message
-
-);
-
-}
-
-};
 
 
 /* =====================================
@@ -1287,6 +957,7 @@ loadOrders();
 }catch(error){
 
 console.error(error);
+
 
 alert(
 
@@ -1328,12 +999,31 @@ id
 
 
 const orderSnap =
-await getDoc(
-orderRef
+await getDocs(
+collection(db,"orders")
 );
 
 
-if(!orderSnap.exists()){
+/*
+   نقرأ الطلب المطلوب مباشرة
+*/
+
+const singleOrder =
+await import(
+"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+);
+
+
+const {
+getDoc
+} = singleOrder;
+
+
+const snap =
+await getDoc(orderRef);
+
+
+if(!snap.exists()){
 
 alert(
 "لم يتم العثور على الطلب"
@@ -1345,7 +1035,7 @@ return;
 
 
 const orderData =
-orderSnap.data();
+snap.data();
 
 
 await setDoc(
@@ -1384,6 +1074,7 @@ loadOrders();
 }catch(error){
 
 console.error(error);
+
 
 alert(
 
@@ -1438,6 +1129,7 @@ loadOrders();
 }catch(error){
 
 console.error(error);
+
 
 alert(
 
@@ -1547,4 +1239,4 @@ loadOrders();
 
 </body>
 
-   </html>
+</html>
