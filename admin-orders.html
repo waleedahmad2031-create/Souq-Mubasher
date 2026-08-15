@@ -64,6 +64,10 @@ cursor:not-allowed;
 background:#757575;
 }
 
+.reload{
+background:#009688;
+}
+
 .orderBox{
 background:#fff;
 padding:15px;
@@ -124,14 +128,6 @@ font-weight:bold;
 color:#00897b;
 }
 
-.deliveryBox{
-background:#fff3e0;
-padding:12px;
-margin-top:10px;
-border-radius:8px;
-line-height:1.8;
-}
-
 .deliveryCalculation{
 background:#e3f2fd;
 padding:12px;
@@ -156,6 +152,32 @@ background:#e53935;
 text-align:center;
 padding:30px;
 color:#777;
+line-height:2;
+}
+
+.errorBox{
+background:#ffebee;
+color:#c62828;
+padding:18px;
+border-radius:10px;
+line-height:2;
+margin-top:15px;
+word-break:break-word;
+}
+
+.successBox{
+background:#e8f5e9;
+color:#2e7d32;
+padding:15px;
+border-radius:10px;
+margin-top:15px;
+}
+
+.loading{
+text-align:center;
+padding:30px;
+color:#555;
+font-size:18px;
 }
 
 hr{
@@ -174,7 +196,6 @@ margin:10px 0;
 📦 طلبات الزبائن
 </header>
 
-
 <div class="container">
 
 <div class="card">
@@ -186,9 +207,19 @@ onclick="location.href='admin.html'"
 ⬅️ العودة إلى لوحة الإدارة
 </button>
 
+<button
+class="reload"
+id="reloadButton"
+>
+🔄 تحديث الطلبات
+</button>
 
 <div id="orders">
-جاري تحميل الطلبات...
+
+<div class="loading">
+⏳ جاري تحميل الطلبات...
+</div>
+
 </div>
 
 </div>
@@ -207,6 +238,7 @@ onAuthStateChanged
 import {
 collection,
 getDocs,
+getDoc,
 deleteDoc,
 updateDoc,
 setDoc,
@@ -215,8 +247,15 @@ serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
+/* =====================================
+   العناصر
+===================================== */
+
 const ordersBox =
 document.getElementById("orders");
+
+const reloadButton =
+document.getElementById("reloadButton");
 
 
 /* =====================================
@@ -225,9 +264,7 @@ document.getElementById("orders");
 
 function getDeliveryPerCarton(price){
 
-price =
-Number(price) || 0;
-
+price = Number(price) || 0;
 
 if(price < 1500){
 
@@ -235,13 +272,11 @@ return 50;
 
 }
 
-
 if(price < 2000){
 
 return 70;
 
 }
-
 
 return 100;
 
@@ -249,7 +284,7 @@ return 100;
 
 
 /* =====================================
-   حساب إجمالي التوصيل
+   حساب التوصيل
 ===================================== */
 
 function calculateDelivery(products){
@@ -258,31 +293,24 @@ let deliveryTotal = 0;
 
 let details = [];
 
-
-products.forEach(product=>{
+products.forEach(product => {
 
 const price =
 Number(product.price) || 0;
-
 
 const quantity =
 Number(product.quantity) > 0
 ? Number(product.quantity)
 : 1;
 
-
 const deliveryPerCarton =
 getDeliveryPerCarton(price);
 
-
 const productDelivery =
-deliveryPerCarton *
-quantity;
-
+deliveryPerCarton * quantity;
 
 deliveryTotal +=
 productDelivery;
-
 
 details.push({
 
@@ -305,7 +333,6 @@ productDelivery
 
 });
 
-
 return {
 
 deliveryTotal:
@@ -325,11 +352,29 @@ details
 
 async function loadOrders(){
 
-ordersBox.innerHTML =
-"جاري تحميل الطلبات...";
+ordersBox.innerHTML = `
 
+<div class="loading">
+
+⏳ جاري تحميل الطلبات...
+
+<br>
+
+<small>
+يرجى الانتظار...
+</small>
+
+</div>
+
+`;
+
+reloadButton.disabled = true;
 
 try{
+
+/* =====================================
+   جلب الطلبات
+===================================== */
 
 const snap =
 await getDocs(
@@ -337,25 +382,36 @@ collection(db,"orders")
 );
 
 
+/* =====================================
+   لا توجد طلبات
+===================================== */
+
 if(snap.empty){
 
 ordersBox.innerHTML = `
 
 <div class="empty">
 
-📦 لا توجد طلبات حالية.
+📦 لا توجد طلبات حاليًا.
+
+<br>
+
+عندما يرسل أحد الزبائن طلبًا سيظهر هنا.
 
 </div>
 
 `;
+
+reloadButton.disabled = false;
 
 return;
 
 }
 
 
-ordersBox.innerHTML = "";
-
+/* =====================================
+   ترتيب الطلبات
+===================================== */
 
 const orders =
 snap.docs.sort((a,b)=>{
@@ -365,19 +421,24 @@ a.data().createdAt?.toDate
 ? a.data().createdAt.toDate().getTime()
 : 0;
 
-
 const dateB =
 b.data().createdAt?.toDate
 ? b.data().createdAt.toDate().getTime()
 : 0;
-
 
 return dateB - dateA;
 
 });
 
 
-orders.forEach(item=>{
+ordersBox.innerHTML = "";
+
+
+/* =====================================
+   عرض كل طلب
+===================================== */
+
+orders.forEach(item => {
 
 const data =
 item.data();
@@ -392,29 +453,27 @@ data.customerName ||
 data.name ||
 "بدون اسم";
 
-
 const customerPhone =
 data.customerPhone ||
 data.phone ||
 "-";
-
 
 const customerAddress =
 data.customerAddress ||
 data.address ||
 "-";
 
-
 const city =
 data.customerCity ||
-data.deliveryArea ||
 "إب";
 
+const deliveryArea =
+data.deliveryArea ||
+"-";
 
 const orderType =
 data.orderType ||
 "جملة";
-
 
 const deliveryTime =
 data.deliveryTime ||
@@ -428,7 +487,7 @@ data.deliveryTime ||
 const shopName =
 data.shopName ||
 (
-data.products &&
+Array.isArray(data.products) &&
 data.products.length > 0
 ? data.products[0].shopName
 : ""
@@ -453,30 +512,25 @@ let calculatedCartons = 0;
 let calculatedProductsTotal = 0;
 
 
-products.forEach(product=>{
+products.forEach(product => {
 
 const name =
 product.name ||
 "منتج";
 
-
 const price =
 Number(product.price) || 0;
-
 
 const quantity =
 Number(product.quantity) > 0
 ? Number(product.quantity)
 : 1;
 
-
 const productTotal =
 price * quantity;
 
-
 calculatedCartons +=
 quantity;
-
 
 calculatedProductsTotal +=
 productTotal;
@@ -492,9 +546,9 @@ ${escapeHtml(name)}
 
 <br>
 
-📦 الكراتين:
+📦 الكمية:
 <strong>
-${quantity}
+${quantity} كرتون
 </strong>
 
 <br>
@@ -527,12 +581,11 @@ calculatedProductsTotal;
 
 
 /* =====================================
-   حساب التوصيل تلقائيًا
+   التوصيل
 ===================================== */
 
 const deliveryCalculation =
 calculateDelivery(products);
-
 
 const deliveryFee =
 deliveryCalculation.deliveryTotal;
@@ -548,53 +601,13 @@ deliveryFee;
 
 
 /* =====================================
-   حفظ الحساب تلقائيًا
-===================================== */
-
-try{
-
-await updateDoc(
-
-doc(
-db,
-"orders",
-item.id
-),
-
-{
-
-productsTotal:
-productsTotal,
-
-deliveryFee:
-deliveryFee,
-
-total:
-total
-
-}
-
-);
-
-}catch(error){
-
-console.error(
-"خطأ تحديث الإجمالي:",
-error
-);
-
-}
-
-
-/* =====================================
    تفاصيل التوصيل
 ===================================== */
 
 let deliveryDetailsHTML = "";
 
 
-deliveryCalculation.details.forEach(
-detail=>{
+deliveryCalculation.details.forEach(detail => {
 
 deliveryDetailsHTML += `
 
@@ -630,7 +643,6 @@ data.createdAt?.toDate
 ? data.createdAt.toDate()
 : null;
 
-
 const createdAtText =
 createdAt
 ? createdAt.toLocaleString(
@@ -662,28 +674,17 @@ if(status === "تم التوصيل"){
 
 statusButton = `
 
-<p style="
-background:#e8f5e9;
-color:#008000;
-padding:10px;
-border-radius:8px;
-font-weight:bold;
-text-align:center;
-margin-top:10px;
-">
-
+<div
+class="successBox"
+>
 ✅ تم التوصيل
-
-</p>
-
+</div>
 
 <button
 class="archive"
 onclick="archiveOrder('${item.id}')"
 >
-
 📚 نقل الطلب إلى الأرشيف
-
 </button>
 
 `;
@@ -696,9 +697,7 @@ statusButton = `
 class="status"
 onclick="changeStatus('${item.id}')"
 >
-
 🚚 تغيير الحالة إلى تم التوصيل
-
 </button>
 
 `;
@@ -714,15 +713,11 @@ ordersBox.innerHTML += `
 
 <div class="orderBox">
 
-
 <div class="orderHeader">
 
 <h3>
-
 👤 ${escapeHtml(customerName)}
-
 </h3>
-
 
 <p>
 
@@ -752,7 +747,9 @@ ${escapeHtml(shopName)}
 
 📱 الجوال:
 
+<strong>
 ${escapeHtml(customerPhone)}
+</strong>
 
 <br>
 
@@ -762,7 +759,13 @@ ${escapeHtml(city)}
 
 <br>
 
-🏠 الحي:
+🏘️ الحي:
+
+${escapeHtml(deliveryArea)}
+
+<br>
+
+🏠 العنوان:
 
 <strong>
 ${escapeHtml(customerAddress)}
@@ -795,15 +798,11 @@ ${escapeHtml(deliveryTime)}
 
 ${
 productsHTML ||
-"<p>لا توجد منتجات</p>"
+"<p>❌ لا توجد منتجات داخل الطلب</p>"
 }
 
 </div>
 
-
-<!-- ===============================
-     حساب التوصيل
-================================ -->
 
 <div class="deliveryCalculation">
 
@@ -826,10 +825,6 @@ ${deliveryFee.toLocaleString()}
 </div>
 
 
-<!-- ===============================
-     الإجماليات
-================================ -->
-
 <div class="totalBox">
 
 📦 <strong>
@@ -844,7 +839,8 @@ ${calculatedCartons}
 مجموع المنتجات:
 </strong>
 
-${productsTotal.toLocaleString()} ريال
+${productsTotal.toLocaleString()}
+ريال
 
 <br>
 
@@ -852,7 +848,8 @@ ${productsTotal.toLocaleString()} ريال
 رسوم التوصيل:
 </strong>
 
-${deliveryFee.toLocaleString()} ريال
+${deliveryFee.toLocaleString()}
+ريال
 
 <hr>
 
@@ -860,14 +857,17 @@ ${deliveryFee.toLocaleString()} ريال
 
 💰 الإجمالي النهائي:
 
-${total.toLocaleString()} ريال
+${total.toLocaleString()}
+ريال
 
 </span>
 
 </div>
 
 
-<div class="deliveryBox">
+<div
+class="deliveryCalculation"
+>
 
 📋 <strong>
 حالة الطلب:
@@ -898,24 +898,50 @@ onclick="deleteOrder('${item.id}')"
 });
 
 
+reloadButton.disabled = false;
+
+
 }catch(error){
 
-console.error(error);
+console.error(
+"خطأ تحميل الطلبات:",
+error
+);
 
 
 ordersBox.innerHTML = `
 
-<div class="empty">
+<div class="errorBox">
 
-❌ حدث خطأ أثناء تحميل الطلبات.
+❌ <strong>
+تعذر تحميل الطلبات
+</strong>
 
 <br><br>
 
+<strong>
+سبب الخطأ:
+</strong>
+
+<br>
+
 ${escapeHtml(error.message)}
+
+<br><br>
+
+إذا ظهر لك:
+
+<strong>
+Missing or insufficient permissions
+</strong>
+
+فالمشكلة من صلاحيات Firestore.
 
 </div>
 
 `;
+
+reloadButton.disabled = false;
 
 }
 
@@ -923,7 +949,7 @@ ${escapeHtml(error.message)}
 
 
 /* =====================================
-   تغيير الحالة
+   تغيير حالة الطلب
 ===================================== */
 
 window.changeStatus =
@@ -945,11 +971,9 @@ status:"تم التوصيل"
 
 );
 
-
 alert(
 "تم تغيير حالة الطلب إلى تم التوصيل ✅"
 );
-
 
 loadOrders();
 
@@ -958,13 +982,9 @@ loadOrders();
 
 console.error(error);
 
-
 alert(
-
-"حدث خطأ أثناء تغيير حالة الطلب:\n" +
-
+"حدث خطأ أثناء تغيير الحالة:\n" +
 error.message
-
 );
 
 }
@@ -973,7 +993,7 @@ error.message
 
 
 /* =====================================
-   نقل إلى الأرشيف
+   نقل الطلب إلى الأرشيف
 ===================================== */
 
 window.archiveOrder =
@@ -998,26 +1018,7 @@ id
 );
 
 
-const orderSnap =
-await getDocs(
-collection(db,"orders")
-);
-
-
-/*
-   نقرأ الطلب المطلوب مباشرة
-*/
-
-const singleOrder =
-await import(
-"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
-);
-
-
-const {
-getDoc
-} = singleOrder;
-
+/* قراءة الطلب */
 
 const snap =
 await getDoc(orderRef);
@@ -1026,7 +1027,7 @@ await getDoc(orderRef);
 if(!snap.exists()){
 
 alert(
-"لم يتم العثور على الطلب"
+"❌ لم يتم العثور على الطلب"
 );
 
 return;
@@ -1037,6 +1038,8 @@ return;
 const orderData =
 snap.data();
 
+
+/* حفظ في الأرشيف */
 
 await setDoc(
 
@@ -1058,9 +1061,9 @@ serverTimestamp()
 );
 
 
-await deleteDoc(
-orderRef
-);
+/* حذف من الطلبات الحالية */
+
+await deleteDoc(orderRef);
 
 
 alert(
@@ -1074,7 +1077,6 @@ loadOrders();
 }catch(error){
 
 console.error(error);
-
 
 alert(
 
@@ -1097,7 +1099,7 @@ window.deleteOrder =
 async function(id){
 
 if(!confirm(
-"هل تريد حذف هذا الطلب؟"
+"هل تريد حذف هذا الطلب نهائيًا؟"
 )){
 
 return;
@@ -1117,11 +1119,9 @@ id
 
 );
 
-
 alert(
 "تم حذف الطلب ✅"
 );
-
 
 loadOrders();
 
@@ -1129,7 +1129,6 @@ loadOrders();
 }catch(error){
 
 console.error(error);
-
 
 alert(
 
@@ -1183,6 +1182,18 @@ text ?? ""
 
 
 /* =====================================
+   تحديث يدوي
+===================================== */
+
+reloadButton.onclick =
+function(){
+
+loadOrders();
+
+};
+
+
+/* =====================================
    التحقق من المدير
 ===================================== */
 
@@ -1194,49 +1205,74 @@ auth,
 
 if(!user){
 
-alert(
-"يجب تسجيل دخول المدير أولاً"
-);
+ordersBox.innerHTML = `
+
+<div class="errorBox">
+
+❌ يجب تسجيل دخول المدير أولًا.
+
+<br><br>
+
+<a href="login.html">
+
+الانتقال إلى تسجيل الدخول
+
+</a>
+
+</div>
+
+`;
 
 return;
 
 }
 
 
-if(
+/* =====================================
+   البريد المسموح
+===================================== */
 
-user.email !==
-"waleedahmad@gmail.com"
+const email =
+(user.email || "").toLowerCase();
 
-&&
 
-user.email !==
-"waleedahmadahmad@gmail.com"
+const allowedEmail =
+"waleedahmad2031@gmail.com";
 
-&&
 
-user.email !==
-"waleedahmad2031@gmail.com"
+if(email !== allowedEmail){
 
-){
+ordersBox.innerHTML = `
 
-alert(
-"ليس لديك صلاحية دخول طلبات الزبائن"
-);
+<div class="errorBox">
+
+❌ ليس لديك صلاحية دخول طلبات الزبائن.
+
+<br><br>
+
+الحساب الحالي:
+
+${escapeHtml(user.email || "غير معروف")}
+
+</div>
+
+`;
 
 return;
 
 }
 
+
+/* =====================================
+   تحميل الطلبات
+===================================== */
 
 loadOrders();
 
-}
-
-);
+});
 
 </script>
 
 </body>
 
-</html>
+   </html>
