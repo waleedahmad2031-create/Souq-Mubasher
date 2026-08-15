@@ -813,10 +813,20 @@ error.message
 
 };
 
-
 /* =====================================
    التحقق من المدير
 ===================================== */
+
+const allowedEmails = [
+
+"waleedahmad@gmail.com",
+
+"waleedahmadahmad@gmail.com",
+
+"waleedahmad2031@gmail.com"
+
+];
+
 
 onAuthStateChanged(
 auth,
@@ -828,22 +838,26 @@ alert(
 "يجب تسجيل دخول المدير أولًا"
 );
 
+location.href =
+"login.html";
+
 return;
 
 }
 
 
 if(
-
-user.email !==
-"waleedahmadahmad@gmail.com" &&
-
-
+!allowedEmails.includes(
+user.email
+)
 ){
 
 alert(
 "ليس لديك صلاحية دخول قسم المنتجات"
 );
+
+location.href =
+"login.html";
 
 return;
 
