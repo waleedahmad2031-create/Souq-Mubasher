@@ -92,12 +92,29 @@ cursor:pointer;
 margin-top:10px;
 }
 
+button:disabled{
+opacity:.6;
+cursor:not-allowed;
+}
+
 .edit{
 background:#009688;
 }
 
 .save{
 background:#3f51b5;
+}
+
+.stop{
+background:#ff9800;
+}
+
+.activate{
+background:#2e7d32;
+}
+
+.delete{
+background:#d32f2f;
 }
 
 .back{
@@ -114,6 +131,11 @@ color:#c62828;
 font-weight:bold;
 }
 
+.statusUnknown{
+color:#757575;
+font-weight:bold;
+}
+
 .message{
 display:none;
 padding:12px;
@@ -121,6 +143,7 @@ border-radius:8px;
 margin-top:12px;
 line-height:1.8;
 text-align:center;
+white-space:pre-line;
 }
 
 .success{
@@ -133,10 +156,21 @@ background:#ffebee;
 color:#c62828;
 }
 
+.warning{
+background:#fff3e0;
+color:#e65100;
+}
+
 .empty{
 text-align:center;
 padding:30px;
 color:#777;
+}
+
+.divider{
+height:1px;
+background:#eee;
+margin:15px 0;
 }
 
 </style>
@@ -195,6 +229,7 @@ collection,
 getDocs,
 doc,
 updateDoc,
+deleteDoc,
 query,
 where,
 writeBatch
@@ -229,10 +264,7 @@ const allowedEmails = [
    رسالة
 ===================================== */
 
-function showMessage(
-text,
-type
-){
+function showMessage(text,type){
 
 messageBox.textContent =
 text;
@@ -247,6 +279,18 @@ messageBox.style.display =
 
 
 /* =====================================
+   إخفاء الرسالة
+===================================== */
+
+function hideMessage(){
+
+messageBox.style.display =
+"none";
+
+}
+
+
+/* =====================================
    تحميل البائعين
 ===================================== */
 
@@ -254,6 +298,8 @@ async function loadSellers(){
 
 sellersList.innerHTML =
 "جاري تحميل البائعين...";
+
+hideMessage();
 
 
 try{
@@ -312,7 +358,7 @@ seller.phone ||
 
 const status =
 seller.status ||
-"غير محدد";
+"active";
 
 
 const subscription =
@@ -320,16 +366,46 @@ seller.subscription ||
 "free";
 
 
-const statusHTML =
-status === "active"
+let statusHTML = "";
 
-? `<span class="statusActive">
+
+if(status === "active"){
+
+statusHTML = `
+
+<span class="statusActive">
+
 🟢 نشط
-</span>`
 
-: `<span class="statusStopped">
-🔴 ${escapeHtml(status)}
-</span>`;
+</span>
+
+`;
+
+}else if(status === "stopped"){
+
+statusHTML = `
+
+<span class="statusStopped">
+
+🔴 متوقف مؤقتًا
+
+</span>
+
+`;
+
+}else{
+
+statusHTML = `
+
+<span class="statusUnknown">
+
+⚪ ${escapeHtml(status)}
+
+</span>
+
+`;
+
+}
 
 
 const card =
@@ -390,6 +466,9 @@ ${escapeHtml(subscription)}
 </div>
 
 
+<div class="divider"></div>
+
+
 <button
 class="edit"
 data-id="${escapeHtml(sellerId)}"
@@ -419,6 +498,45 @@ data-save-id="${escapeHtml(sellerId)}"
 
 </div>
 
+
+${
+status === "active"
+
+?
+
+`
+
+<button
+class="stop"
+data-stop-id="${escapeHtml(sellerId)}"
+>
+⏸️ إيقاف البائع مؤقتًا
+</button>
+
+`
+
+:
+
+`
+
+<button
+class="activate"
+data-activate-id="${escapeHtml(sellerId)}"
+>
+▶️ إعادة تفعيل البائع
+</button>
+
+`
+}
+
+
+<button
+class="delete"
+data-delete-id="${escapeHtml(sellerId)}"
+>
+🗑️ حذف البائع
+</button>
+
 `;
 
 
@@ -428,7 +546,7 @@ sellersList.appendChild(card);
 
 
 /* =====================================
-   أزرار تعديل الاسم
+   تعديل الاسم
 ===================================== */
 
 document
@@ -464,7 +582,7 @@ editBox.style.display === "none"
 
 
 /* =====================================
-   أزرار الحفظ
+   حفظ الاسم
 ===================================== */
 
 document
@@ -540,7 +658,7 @@ newName
 
 
 /* =====================================
-   تحديث اسم التاجر في المنتجات الحالية
+   البحث عن منتجات البائع
 ===================================== */
 
 const productsQuery =
@@ -563,9 +681,9 @@ productsQuery
 );
 
 
-/*
-   نستخدم Batch لتحديث المنتجات
-*/
+/* =====================================
+   تحديث المنتجات على دفعات
+===================================== */
 
 let batch =
 writeBatch(db);
@@ -598,11 +716,6 @@ newName
 
 count++;
 
-
-/*
-   Firestore Batch يدعم حتى 500 عملية.
-   نرسل كل 450 عملية.
-*/
 
 if(count >= 450){
 
@@ -677,6 +790,404 @@ this.textContent =
 
 });
 
+
+/* =====================================
+   إيقاف البائع مؤقتًا
+===================================== */
+
+document
+.querySelectorAll("[data-stop-id]")
+.forEach(button => {
+
+button.addEventListener(
+"click",
+async function(){
+
+const sellerId =
+this.dataset.stopId;
+
+
+const confirmStop =
+confirm(
+
+"⚠️ هل تريد إيقاف هذا البائع مؤقتًا؟\n\n" +
+
+"سيتم تغيير حالة البائع إلى متوقف مؤقتًا."
+
+);
+
+
+if(!confirmStop){
+
+return;
+
+}
+
+
+this.disabled =
+true;
+
+this.textContent =
+"⏳ جاري الإيقاف...";
+
+
+try{
+
+
+await updateDoc(
+
+doc(
+db,
+"sellers",
+sellerId
+),
+
+{
+
+status:
+"stopped"
+
+}
+
+);
+
+
+showMessage(
+
+"⏸️ تم إيقاف البائع مؤقتًا بنجاح.",
+
+"warning"
+
+);
+
+
+await loadSellers();
+
+
+}catch(error){
+
+console.error(error);
+
+
+showMessage(
+
+"❌ حدث خطأ أثناء إيقاف البائع:\n\n" +
+error.message,
+
+"error"
+
+);
+
+
+this.disabled =
+false;
+
+this.textContent =
+"⏸️ إيقاف البائع مؤقتًا";
+
+}
+
+});
+
+});
+
+
+/* =====================================
+   إعادة تفعيل البائع
+===================================== */
+
+document
+.querySelectorAll("[data-activate-id]")
+.forEach(button => {
+
+button.addEventListener(
+"click",
+async function(){
+
+const sellerId =
+this.dataset.activateId;
+
+
+const confirmActivate =
+confirm(
+
+"▶️ هل تريد إعادة تفعيل هذا البائع؟"
+
+);
+
+
+if(!confirmActivate){
+
+return;
+
+}
+
+
+this.disabled =
+true;
+
+this.textContent =
+"⏳ جاري التفعيل...";
+
+
+try{
+
+
+await updateDoc(
+
+doc(
+db,
+"sellers",
+sellerId
+),
+
+{
+
+status:
+"active"
+
+}
+
+);
+
+
+showMessage(
+
+"✅ تم إعادة تفعيل البائع بنجاح.",
+
+"success"
+
+);
+
+
+await loadSellers();
+
+
+}catch(error){
+
+console.error(error);
+
+
+showMessage(
+
+"❌ حدث خطأ أثناء إعادة التفعيل:\n\n" +
+error.message,
+
+"error"
+
+);
+
+
+this.disabled =
+false;
+
+this.textContent =
+"▶️ إعادة تفعيل البائع";
+
+}
+
+});
+
+});
+
+
+/* =====================================
+   حذف البائع
+===================================== */
+
+document
+.querySelectorAll("[data-delete-id]")
+.forEach(button => {
+
+button.addEventListener(
+"click",
+async function(){
+
+const sellerId =
+this.dataset.deleteId;
+
+
+const firstConfirm =
+confirm(
+
+"⚠️ تحذير مهم\n\n" +
+
+"هل أنت متأكد من حذف هذا البائع؟\n\n" +
+
+"سيتم حذف بيانات البائع ومنتجاته من النظام."
+
+);
+
+
+if(!firstConfirm){
+
+return;
+
+}
+
+
+const secondConfirm =
+confirm(
+
+"🗑️ تأكيد الحذف النهائي\n\n" +
+
+"هل تريد بالفعل حذف البائع نهائيًا؟"
+
+);
+
+
+if(!secondConfirm){
+
+return;
+
+}
+
+
+this.disabled =
+true;
+
+this.textContent =
+"⏳ جاري الحذف...";
+
+
+try{
+
+
+/* =====================================
+   البحث عن منتجات البائع
+===================================== */
+
+const productsQuery =
+query(
+
+collection(db,"products"),
+
+where(
+"sellerId",
+"==",
+sellerId
+)
+
+);
+
+
+const productsSnap =
+await getDocs(
+productsQuery
+);
+
+
+/* =====================================
+   حذف المنتجات على دفعات
+===================================== */
+
+let batch =
+writeBatch(db);
+
+let count = 0;
+
+
+for(
+const productDoc
+of productsSnap.docs
+){
+
+batch.delete(
+
+doc(
+db,
+"products",
+productDoc.id
+)
+
+);
+
+
+count++;
+
+
+if(count >= 450){
+
+await batch.commit();
+
+batch =
+writeBatch(db);
+
+count = 0;
+
+}
+
+}
+
+
+if(count > 0){
+
+await batch.commit();
+
+}
+
+
+/* =====================================
+   حذف البائع
+===================================== */
+
+await deleteDoc(
+
+doc(
+db,
+"sellers",
+sellerId
+)
+
+);
+
+
+/* =====================================
+   رسالة النجاح
+===================================== */
+
+showMessage(
+
+"🗑️ تم حذف البائع بنجاح.\n\n" +
+
+"📦 تم حذف " +
+productsSnap.size +
+" منتج تابع له.",
+
+"success"
+
+);
+
+
+await loadSellers();
+
+
+}catch(error){
+
+console.error(error);
+
+
+showMessage(
+
+"❌ حدث خطأ أثناء حذف البائع:\n\n" +
+error.message,
+
+"error"
+
+);
+
+
+this.disabled =
+false;
+
+this.textContent =
+"🗑️ حذف البائع";
+
+}
+
+});
+
+});
 
 
 }catch(error){
